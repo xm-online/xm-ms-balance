@@ -4,13 +4,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 /**
  * A Balance.
@@ -38,14 +45,15 @@ public class Balance implements Serializable {
     @Column(name = "measure_key")
     private String measureKey;
 
-    @Column(name = "user_key")
-    private String userKey;
-
-    @Column(name = "amount", precision=10, scale=2)
+    @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "reserved", precision=10, scale=2)
+    @Column(name = "reserved", precision = 10, scale = 2)
     private BigDecimal reserved;
+
+    @NotNull
+    @Column(name = "entity_id", nullable = false)
+    private Long entityId;
 
     @OneToMany(mappedBy = "balance")
     @JsonIgnore
@@ -105,19 +113,6 @@ public class Balance implements Serializable {
         this.measureKey = measureKey;
     }
 
-    public String getUserKey() {
-        return userKey;
-    }
-
-    public Balance userKey(String userKey) {
-        this.userKey = userKey;
-        return this;
-    }
-
-    public void setUserKey(String userKey) {
-        this.userKey = userKey;
-    }
-
     public BigDecimal getAmount() {
         return amount;
     }
@@ -142,6 +137,19 @@ public class Balance implements Serializable {
 
     public void setReserved(BigDecimal reserved) {
         this.reserved = reserved;
+    }
+
+    public Long getEntityId() {
+        return entityId;
+    }
+
+    public Balance entityId(Long entityId) {
+        this.entityId = entityId;
+        return this;
+    }
+
+    public void setEntityId(Long entityId) {
+        this.entityId = entityId;
     }
 
     public Set<Pocket> getPockets() {
@@ -217,14 +225,14 @@ public class Balance implements Serializable {
 
     @Override
     public String toString() {
-        return "Balance{" +
-            "id=" + getId() +
-            ", key='" + getKey() + "'" +
-            ", typeKey='" + getTypeKey() + "'" +
-            ", measureKey='" + getMeasureKey() + "'" +
-            ", userKey='" + getUserKey() + "'" +
-            ", amount='" + getAmount() + "'" +
-            ", reserved='" + getReserved() + "'" +
-            "}";
+        return "Balance{"
+            + "id=" + getId()
+            + ", key='" + getKey() + "'"
+            + ", typeKey='" + getTypeKey() + "'"
+            + ", measureKey='" + getMeasureKey() + "'"
+            + ", amount='" + getAmount() + "'"
+            + ", reserved='" + getReserved() + "'"
+            + ", entityId='" + getEntityId() + "'"
+            + "}";
     }
 }

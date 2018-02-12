@@ -111,5 +111,9 @@ jhipster:
 # More documentation is available at:
 # http://www.jhipster.tech/common-application-properties/
 # ===================================================================
+xm-config:
+    enabled: false
 
 application:
+    kafka-system-queue: system_queue
+    kafka-enabled: false

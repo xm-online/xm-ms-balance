@@ -21,7 +21,7 @@ public interface MetricService {
      *
      *  @return the list of entities
      */
-    List<Metric> findAll();
+    List<Metric> findAll(String privilegeKey);
 
     /**
      *  Get the "id" metric.

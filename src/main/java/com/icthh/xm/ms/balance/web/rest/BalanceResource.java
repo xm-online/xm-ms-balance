@@ -4,18 +4,26 @@ import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
-import io.github.jhipster.web.util.ResponseUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import io.github.jhipster.web.util.ResponseUtil;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
+
+import javax.validation.Valid;
 
 /**
  * REST controller for managing Balance.
@@ -23,8 +31,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api")
 public class BalanceResource {
-
-    private final Logger log = LoggerFactory.getLogger(BalanceResource.class);
 
     private static final String ENTITY_NAME = "balance";
 
@@ -43,8 +49,8 @@ public class BalanceResource {
      */
     @PostMapping("/balances")
     @Timed
+    @PreAuthorize("hasPermission({'balance': #balance}, 'BALANCE.CREATE')")
     public ResponseEntity<Balance> createBalance(@Valid @RequestBody Balance balance) throws URISyntaxException {
-        log.debug("REST request to save Balance : {}", balance);
         if (balance.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new balance cannot already have an ID")).body(null);
         }
@@ -65,8 +71,8 @@ public class BalanceResource {
      */
     @PutMapping("/balances")
     @Timed
+    @PreAuthorize("hasPermission({'id': #balance.id, 'newBalance': #balance}, 'balance', 'BALANCE.UPDATE')")
     public ResponseEntity<Balance> updateBalance(@Valid @RequestBody Balance balance) throws URISyntaxException {
-        log.debug("REST request to update Balance : {}", balance);
         if (balance.getId() == null) {
             return createBalance(balance);
         }
@@ -84,9 +90,8 @@ public class BalanceResource {
     @GetMapping("/balances")
     @Timed
     public List<Balance> getAllBalances() {
-        log.debug("REST request to get all Balances");
-        return balanceService.findAll();
-        }
+        return balanceService.findAll(null);
+    }
 
     /**
      * GET  /balances/:id : get the "id" balance.
@@ -96,8 +101,8 @@ public class BalanceResource {
      */
     @GetMapping("/balances/{id}")
     @Timed
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'BALANCE.GET_LIST.ITEM')")
     public ResponseEntity<Balance> getBalance(@PathVariable Long id) {
-        log.debug("REST request to get Balance : {}", id);
         Balance balance = balanceService.findOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balance));
     }
@@ -110,8 +115,8 @@ public class BalanceResource {
      */
     @DeleteMapping("/balances/{id}")
     @Timed
+    @PreAuthorize("hasPermission({'id': #id}, 'balance', 'BALANCE.DELETE')")
     public ResponseEntity<Void> deleteBalance(@PathVariable Long id) {
-        log.debug("REST request to delete Balance : {}", id);
         balanceService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }

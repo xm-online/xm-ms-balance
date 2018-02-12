@@ -1,17 +1,19 @@
 package com.icthh.xm.ms.balance.config;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
+import com.icthh.xm.commons.web.spring.TenantVerifyInterceptor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @Configuration
 public class TenantConfigMockConfiguration {
@@ -19,8 +21,8 @@ public class TenantConfigMockConfiguration {
     private Set<String> tenants = new HashSet<>();
 
     {
+        tenants.add("RESINTTEST");
         tenants.add("XM");
-        tenants.add("ECS");
         tenants.add("DEMO");
     }
 
@@ -39,4 +41,8 @@ public class TenantConfigMockConfiguration {
         return  tenantConfigRepository;
     }
 
+    @Bean
+    public TenantVerifyInterceptor tenantVerifyInterceptor() {
+        return mock(TenantVerifyInterceptor.class);
+    }
 }

@@ -1,10 +1,10 @@
 package com.icthh.xm.ms.balance.service.impl;
 
-import com.icthh.xm.ms.balance.service.PocketService;
+import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.icthh.xm.ms.balance.service.PocketService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,14 +15,16 @@ import java.util.List;
  */
 @Service
 @Transactional
-public class PocketServiceImpl implements PocketService{
-
-    private final Logger log = LoggerFactory.getLogger(PocketServiceImpl.class);
+public class PocketServiceImpl implements PocketService {
 
     private final PocketRepository pocketRepository;
+    private final PermittedRepository permittedRepository;
 
-    public PocketServiceImpl(PocketRepository pocketRepository) {
+    public PocketServiceImpl(
+                    PocketRepository pocketRepository,
+                    PermittedRepository permittedRepository) {
         this.pocketRepository = pocketRepository;
+        this.permittedRepository = permittedRepository;
     }
 
     /**
@@ -33,7 +35,6 @@ public class PocketServiceImpl implements PocketService{
      */
     @Override
     public Pocket save(Pocket pocket) {
-        log.debug("Request to save Pocket : {}", pocket);
         return pocketRepository.save(pocket);
     }
 
@@ -44,9 +45,8 @@ public class PocketServiceImpl implements PocketService{
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Pocket> findAll() {
-        log.debug("Request to get all Pockets");
-        return pocketRepository.findAll();
+    public List<Pocket> findAll(String privilegeKey) {
+        return permittedRepository.findAll(Pocket.class, privilegeKey);
     }
 
     /**
@@ -58,7 +58,6 @@ public class PocketServiceImpl implements PocketService{
     @Override
     @Transactional(readOnly = true)
     public Pocket findOne(Long id) {
-        log.debug("Request to get Pocket : {}", id);
         return pocketRepository.findOne(id);
     }
 
@@ -69,7 +68,6 @@ public class PocketServiceImpl implements PocketService{
      */
     @Override
     public void delete(Long id) {
-        log.debug("Request to delete Pocket : {}", id);
         pocketRepository.delete(id);
     }
 }

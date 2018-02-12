@@ -1,10 +1,10 @@
 package com.icthh.xm.ms.balance.service.impl;
 
-import com.icthh.xm.ms.balance.service.MetricService;
+import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.repository.MetricRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.icthh.xm.ms.balance.service.MetricService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,14 +15,16 @@ import java.util.List;
  */
 @Service
 @Transactional
-public class MetricServiceImpl implements MetricService{
-
-    private final Logger log = LoggerFactory.getLogger(MetricServiceImpl.class);
+public class MetricServiceImpl implements MetricService {
 
     private final MetricRepository metricRepository;
+    private final PermittedRepository permittedRepository;
 
-    public MetricServiceImpl(MetricRepository metricRepository) {
+    public MetricServiceImpl(
+                    MetricRepository metricRepository,
+                    PermittedRepository permittedRepository) {
         this.metricRepository = metricRepository;
+        this.permittedRepository = permittedRepository;
     }
 
     /**
@@ -33,7 +35,6 @@ public class MetricServiceImpl implements MetricService{
      */
     @Override
     public Metric save(Metric metric) {
-        log.debug("Request to save Metric : {}", metric);
         return metricRepository.save(metric);
     }
 
@@ -44,9 +45,8 @@ public class MetricServiceImpl implements MetricService{
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Metric> findAll() {
-        log.debug("Request to get all Metrics");
-        return metricRepository.findAll();
+    public List<Metric> findAll(String privilegeKey) {
+        return permittedRepository.findAll(Metric.class, privilegeKey);
     }
 
     /**
@@ -58,7 +58,6 @@ public class MetricServiceImpl implements MetricService{
     @Override
     @Transactional(readOnly = true)
     public Metric findOne(Long id) {
-        log.debug("Request to get Metric : {}", id);
         return metricRepository.findOne(id);
     }
 
@@ -69,7 +68,6 @@ public class MetricServiceImpl implements MetricService{
      */
     @Override
     public void delete(Long id) {
-        log.debug("Request to delete Metric : {}", id);
         metricRepository.delete(id);
     }
 }

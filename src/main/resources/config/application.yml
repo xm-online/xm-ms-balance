@@ -62,6 +62,9 @@ security:
         resource:
             filter-order: 3
 
+liquibase:
+    default-schema: XM
+
 server:
     session:
         cookie:
@@ -119,7 +122,7 @@ xm-config:
     enabled: true
     hazelcast:
         hazelcast-config-url: classpath:./config/hazelcast-consul.xml
-        interfaces: 192.168.1.*,10.0.0.*
+        # interfaces:
         consul-host: ${spring.cloud.consul.host}
         consul-port: ${spring.cloud.consul.port}
         consul-service-name: xm-tenant-config-hazelcast-cluster
@@ -127,9 +130,11 @@ xm-config:
         consul-service-tags: 'hazelcast'
         consul-discovery-delay-ms: 10000
         group-name: xm-tenant-config-hazelcast-cluster
-        group-pass: d4G9%BH[
+        # group-pass: <replace_with_password>
     xm-config-url: http://config
 
 application:
     tenant-ignored-path-list: /v2/api-docs, /api/profile-info, /swagger-resources/configuration/ui, /management/health
     timelines-enabled: true
+    kafka-enabled: true
+    kafka-system-queue: system_queue
