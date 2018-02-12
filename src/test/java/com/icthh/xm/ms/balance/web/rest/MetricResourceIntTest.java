@@ -1,10 +1,20 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.icthh.xm.commons.errors.ExceptionTranslator;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.BalanceApp;
-
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
-
 import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.service.MetricService;
@@ -18,18 +28,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import javax.persistence.EntityManager;
 
 /**
  * Test class for the MetricResource REST controller.
@@ -67,9 +75,17 @@ public class MetricResourceIntTest {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private TenantContextHolder tenantContextHolder;
+
     private MockMvc restMetricMockMvc;
 
     private Metric metric;
+
+    @BeforeTransaction
+    public void beforeTransaction() {
+        TenantContextUtils.setTenant(tenantContextHolder, "RESINTTEST");
+    }
 
     @Before
     public void setup() {
@@ -176,6 +192,7 @@ public class MetricResourceIntTest {
     }
 
     @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
     @Transactional
     public void getAllMetrics() throws Exception {
         // Initialize the database

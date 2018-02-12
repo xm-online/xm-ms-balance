@@ -21,7 +21,7 @@ public interface BalanceService {
      *
      *  @return the list of entities
      */
-    List<Balance> findAll();
+    List<Balance> findAll(String privilegeKey);
 
     /**
      *  Get the "id" balance.

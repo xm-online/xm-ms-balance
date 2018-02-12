@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest.errors;
 
-import com.icthh.xm.commons.errors.exception.BusinessException;
+import com.icthh.xm.commons.exceptions.BusinessException;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;

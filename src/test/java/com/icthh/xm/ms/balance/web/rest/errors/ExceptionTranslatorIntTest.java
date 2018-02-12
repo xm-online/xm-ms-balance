@@ -1,7 +1,7 @@
 package com.icthh.xm.ms.balance.web.rest.errors;
 
-import com.icthh.xm.commons.errors.ErrorConstants;
-import com.icthh.xm.commons.errors.ExceptionTranslator;
+import com.icthh.xm.commons.exceptions.ErrorConstants;
+import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
 import com.icthh.xm.ms.balance.BalanceApp;
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
 import org.junit.Before;
@@ -58,7 +58,7 @@ public class ExceptionTranslatorIntTest {
         mockMvc.perform(get("/test/parameterized-error"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_BUSINESS))
-            .andExpect(jsonPath("$.error_description").value("Business logic error occurred, please contact support"))
+            .andExpect(jsonPath("$.error_description").value("test parameterized error"))
             .andExpect(jsonPath("$.params.param0").value("param0_value"))
             .andExpect(jsonPath("$.params.param1").value("param1_value"));
     }
@@ -68,7 +68,7 @@ public class ExceptionTranslatorIntTest {
         mockMvc.perform(get("/test/parameterized-error2"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_BUSINESS))
-            .andExpect(jsonPath("$.error_description").value("Business logic error occurred, please contact support"))
+            .andExpect(jsonPath("$.error_description").value("test parameterized error"))
             .andExpect(jsonPath("$.params.foo").value("foo_value"))
             .andExpect(jsonPath("$.params.bar").value("bar_value"));
     }

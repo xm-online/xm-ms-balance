@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
-import com.icthh.xm.ms.balance.security.AuthoritiesConstants;
+import com.icthh.xm.commons.permission.constants.RoleConstant;
 
 import com.icthh.xm.ms.balance.security.DomainJwtAccessTokenConverter;
 import java.io.ByteArrayInputStream;
@@ -57,7 +57,7 @@ public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerA
             .antMatchers("/api/profile-info").permitAll()
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health").permitAll()
-            .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers("/management/**").hasAuthority(RoleConstant.SUPER_ADMIN)
             .antMatchers("/swagger-resources/configuration/ui").permitAll();
     }
 

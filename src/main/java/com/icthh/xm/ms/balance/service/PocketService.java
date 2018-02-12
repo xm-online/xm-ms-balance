@@ -21,7 +21,7 @@ public interface PocketService {
      *
      *  @return the list of entities
      */
-    List<Pocket> findAll();
+    List<Pocket> findAll(String privilegeKey);
 
     /**
      *  Get the "id" pocket.

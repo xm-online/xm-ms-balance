@@ -1,10 +1,11 @@
 package com.icthh.xm.ms.balance.service.impl;
 
-import com.icthh.xm.ms.balance.service.BalanceService;
+import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.icthh.xm.ms.balance.service.BalanceService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,14 +16,16 @@ import java.util.List;
  */
 @Service
 @Transactional
-public class BalanceServiceImpl implements BalanceService{
-
-    private final Logger log = LoggerFactory.getLogger(BalanceServiceImpl.class);
+public class BalanceServiceImpl implements BalanceService {
 
     private final BalanceRepository balanceRepository;
+    private final PermittedRepository permittedRepository;
 
-    public BalanceServiceImpl(BalanceRepository balanceRepository) {
+    public BalanceServiceImpl(
+                    BalanceRepository balanceRepository,
+                    PermittedRepository permittedRepository) {
         this.balanceRepository = balanceRepository;
+        this.permittedRepository = permittedRepository;
     }
 
     /**
@@ -33,7 +36,6 @@ public class BalanceServiceImpl implements BalanceService{
      */
     @Override
     public Balance save(Balance balance) {
-        log.debug("Request to save Balance : {}", balance);
         return balanceRepository.save(balance);
     }
 
@@ -44,9 +46,9 @@ public class BalanceServiceImpl implements BalanceService{
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Balance> findAll() {
-        log.debug("Request to get all Balances");
-        return balanceRepository.findAll();
+    @FindWithPermission("BALANCE.GET_LIST")
+    public List<Balance> findAll(String privilegeKey) {
+        return permittedRepository.findAll(Balance.class, privilegeKey);
     }
 
     /**
@@ -58,7 +60,6 @@ public class BalanceServiceImpl implements BalanceService{
     @Override
     @Transactional(readOnly = true)
     public Balance findOne(Long id) {
-        log.debug("Request to get Balance : {}", id);
         return balanceRepository.findOne(id);
     }
 
@@ -69,7 +70,6 @@ public class BalanceServiceImpl implements BalanceService{
      */
     @Override
     public void delete(Long id) {
-        log.debug("Request to delete Balance : {}", id);
         balanceRepository.delete(id);
     }
 }

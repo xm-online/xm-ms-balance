@@ -1,14 +1,23 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.icthh.xm.commons.errors.ExceptionTranslator;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
+import com.icthh.xm.commons.tenant.TenantContextHolder;
+import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.BalanceApp;
-
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
-
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.service.BalanceService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,19 +27,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import javax.persistence.EntityManager;
 
 /**
  * Test class for the BalanceResource REST controller.
@@ -50,14 +56,14 @@ public class BalanceResourceIntTest {
     private static final String DEFAULT_MEASURE_KEY = "AAAAAAAAAA";
     private static final String UPDATED_MEASURE_KEY = "BBBBBBBBBB";
 
-    private static final String DEFAULT_USER_KEY = "AAAAAAAAAA";
-    private static final String UPDATED_USER_KEY = "BBBBBBBBBB";
-
     private static final BigDecimal DEFAULT_AMOUNT = new BigDecimal(1);
     private static final BigDecimal UPDATED_AMOUNT = new BigDecimal(2);
 
     private static final BigDecimal DEFAULT_RESERVED = new BigDecimal(1);
     private static final BigDecimal UPDATED_RESERVED = new BigDecimal(2);
+
+    private static final Long DEFAULT_ENTITY_ID = 1L;
+    private static final Long UPDATED_ENTITY_ID = 2L;
 
     @Autowired
     private BalanceRepository balanceRepository;
@@ -77,9 +83,17 @@ public class BalanceResourceIntTest {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private TenantContextHolder tenantContextHolder;
+
     private MockMvc restBalanceMockMvc;
 
     private Balance balance;
+
+    @BeforeTransaction
+    public void beforeTransaction() {
+        TenantContextUtils.setTenant(tenantContextHolder, "RESINTTEST");
+    }
 
     @Before
     public void setup() {
@@ -102,9 +116,9 @@ public class BalanceResourceIntTest {
             .key(DEFAULT_KEY)
             .typeKey(DEFAULT_TYPE_KEY)
             .measureKey(DEFAULT_MEASURE_KEY)
-            .userKey(DEFAULT_USER_KEY)
             .amount(DEFAULT_AMOUNT)
-            .reserved(DEFAULT_RESERVED);
+            .reserved(DEFAULT_RESERVED)
+            .entityId(DEFAULT_ENTITY_ID);
         return balance;
     }
 
@@ -131,9 +145,9 @@ public class BalanceResourceIntTest {
         assertThat(testBalance.getKey()).isEqualTo(DEFAULT_KEY);
         assertThat(testBalance.getTypeKey()).isEqualTo(DEFAULT_TYPE_KEY);
         assertThat(testBalance.getMeasureKey()).isEqualTo(DEFAULT_MEASURE_KEY);
-        assertThat(testBalance.getUserKey()).isEqualTo(DEFAULT_USER_KEY);
         assertThat(testBalance.getAmount()).isEqualTo(DEFAULT_AMOUNT);
         assertThat(testBalance.getReserved()).isEqualTo(DEFAULT_RESERVED);
+        assertThat(testBalance.getEntityId()).isEqualTo(DEFAULT_ENTITY_ID);
     }
 
     @Test
@@ -193,6 +207,25 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    public void checkEntityIdIsRequired() throws Exception {
+        int databaseSizeBeforeTest = balanceRepository.findAll().size();
+        // set the field null
+        balance.setEntityId(null);
+
+        // Create the Balance, which fails.
+
+        restBalanceMockMvc.perform(post("/api/balances")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(balance)))
+            .andExpect(status().isBadRequest());
+
+        List<Balance> balanceList = balanceRepository.findAll();
+        assertThat(balanceList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
     public void getAllBalances() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -205,9 +238,9 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
             .andExpect(jsonPath("$.[*].measureKey").value(hasItem(DEFAULT_MEASURE_KEY.toString())))
-            .andExpect(jsonPath("$.[*].userKey").value(hasItem(DEFAULT_USER_KEY.toString())))
             .andExpect(jsonPath("$.[*].amount").value(hasItem(DEFAULT_AMOUNT.intValue())))
-            .andExpect(jsonPath("$.[*].reserved").value(hasItem(DEFAULT_RESERVED.intValue())));
+            .andExpect(jsonPath("$.[*].reserved").value(hasItem(DEFAULT_RESERVED.intValue())))
+            .andExpect(jsonPath("$.[*].entityId").value(hasItem(DEFAULT_ENTITY_ID.intValue())));
     }
 
     @Test
@@ -224,9 +257,9 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY.toString()))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY.toString()))
             .andExpect(jsonPath("$.measureKey").value(DEFAULT_MEASURE_KEY.toString()))
-            .andExpect(jsonPath("$.userKey").value(DEFAULT_USER_KEY.toString()))
             .andExpect(jsonPath("$.amount").value(DEFAULT_AMOUNT.intValue()))
-            .andExpect(jsonPath("$.reserved").value(DEFAULT_RESERVED.intValue()));
+            .andExpect(jsonPath("$.reserved").value(DEFAULT_RESERVED.intValue()))
+            .andExpect(jsonPath("$.entityId").value(DEFAULT_ENTITY_ID.intValue()));
     }
 
     @Test
@@ -251,9 +284,9 @@ public class BalanceResourceIntTest {
             .key(UPDATED_KEY)
             .typeKey(UPDATED_TYPE_KEY)
             .measureKey(UPDATED_MEASURE_KEY)
-            .userKey(UPDATED_USER_KEY)
             .amount(UPDATED_AMOUNT)
-            .reserved(UPDATED_RESERVED);
+            .reserved(UPDATED_RESERVED)
+            .entityId(UPDATED_ENTITY_ID);
 
         restBalanceMockMvc.perform(put("/api/balances")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -267,9 +300,9 @@ public class BalanceResourceIntTest {
         assertThat(testBalance.getKey()).isEqualTo(UPDATED_KEY);
         assertThat(testBalance.getTypeKey()).isEqualTo(UPDATED_TYPE_KEY);
         assertThat(testBalance.getMeasureKey()).isEqualTo(UPDATED_MEASURE_KEY);
-        assertThat(testBalance.getUserKey()).isEqualTo(UPDATED_USER_KEY);
         assertThat(testBalance.getAmount()).isEqualTo(UPDATED_AMOUNT);
         assertThat(testBalance.getReserved()).isEqualTo(UPDATED_RESERVED);
+        assertThat(testBalance.getEntityId()).isEqualTo(UPDATED_ENTITY_ID);
     }
 
     @Test

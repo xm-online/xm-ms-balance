@@ -4,18 +4,27 @@ import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
-import io.github.jhipster.web.util.ResponseUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import io.github.jhipster.web.util.ResponseUtil;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
+
+import javax.validation.Valid;
 
 /**
  * REST controller for managing Pocket.
@@ -23,8 +32,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api")
 public class PocketResource {
-
-    private final Logger log = LoggerFactory.getLogger(PocketResource.class);
 
     private static final String ENTITY_NAME = "pocket";
 
@@ -43,8 +50,8 @@ public class PocketResource {
      */
     @PostMapping("/pockets")
     @Timed
+    @PreAuthorize("hasPermission({'pocket': #pocket}, 'POCKET.CREATE')")
     public ResponseEntity<Pocket> createPocket(@Valid @RequestBody Pocket pocket) throws URISyntaxException {
-        log.debug("REST request to save Pocket : {}", pocket);
         if (pocket.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new pocket cannot already have an ID")).body(null);
         }
@@ -65,8 +72,8 @@ public class PocketResource {
      */
     @PutMapping("/pockets")
     @Timed
+    @PreAuthorize("hasPermission({'id': #pocket.id, 'newPocket': #pocket}, 'pocket', 'POCKET.UPDATE')")
     public ResponseEntity<Pocket> updatePocket(@Valid @RequestBody Pocket pocket) throws URISyntaxException {
-        log.debug("REST request to update Pocket : {}", pocket);
         if (pocket.getId() == null) {
             return createPocket(pocket);
         }
@@ -84,9 +91,8 @@ public class PocketResource {
     @GetMapping("/pockets")
     @Timed
     public List<Pocket> getAllPockets() {
-        log.debug("REST request to get all Pockets");
-        return pocketService.findAll();
-        }
+        return pocketService.findAll(null);
+    }
 
     /**
      * GET  /pockets/:id : get the "id" pocket.
@@ -96,8 +102,8 @@ public class PocketResource {
      */
     @GetMapping("/pockets/{id}")
     @Timed
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'POCKET.GET_LIST.ITEM')")
     public ResponseEntity<Pocket> getPocket(@PathVariable Long id) {
-        log.debug("REST request to get Pocket : {}", id);
         Pocket pocket = pocketService.findOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(pocket));
     }
@@ -110,8 +116,8 @@ public class PocketResource {
      */
     @DeleteMapping("/pockets/{id}")
     @Timed
+    @PreAuthorize("hasPermission({'id': #id}, 'pocket', 'POCKET.DELETE')")
     public ResponseEntity<Void> deletePocket(@PathVariable Long id) {
-        log.debug("REST request to delete Pocket : {}", id);
         pocketService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
     }

@@ -7,24 +7,20 @@ import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT_CONNECTION_PROVID
 import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER;
 
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
-import com.icthh.xm.commons.db.migration.XmMultiTenantSpringLiquibase;
+import com.icthh.xm.commons.migration.db.XmMultiTenantSpringLiquibase;
+import com.icthh.xm.commons.migration.db.XmSpringLiquibase;
 import com.icthh.xm.ms.balance.util.DatabaseUtil;
+
 import io.github.jhipster.config.JHipsterConstants;
-import io.github.jhipster.config.liquibase.AsyncSpringLiquibase;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.sql.DataSource;
+
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import liquibase.integration.spring.SpringLiquibase;
 import lombok.extern.slf4j.Slf4j;
+
 import org.h2.tools.Server;
 import org.hibernate.MultiTenancyStrategy;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -40,6 +35,14 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableJpaRepositories("com.icthh.xm.ms.balance.repository")
@@ -75,11 +78,9 @@ public class DatabaseConfiguration {
     }
 
     @Bean
-    public SpringLiquibase liquibase(@Qualifier("taskExecutor") TaskExecutor taskExecutor,
-            DataSource dataSource, LiquibaseProperties liquibaseProperties) {
+    public SpringLiquibase liquibase(DataSource dataSource, LiquibaseProperties liquibaseProperties) {
         createSchemas(dataSource);
-        // Use liquibase.integration.spring.SpringLiquibase if you don't want Liquibase to start asynchronously
-        SpringLiquibase liquibase = new AsyncSpringLiquibase(taskExecutor, env);
+        SpringLiquibase liquibase = new XmSpringLiquibase();
         liquibase.setDataSource(dataSource);
         liquibase.setChangeLog("classpath:config/liquibase/master.xml");
         liquibase.setContexts(liquibaseProperties.getContexts());
@@ -117,7 +118,11 @@ public class DatabaseConfiguration {
 
     private void createSchemas(DataSource dataSource) {
         for (String schema : getSchemas()) {
-            DatabaseUtil.createSchema(dataSource, schema);
+            try {
+                DatabaseUtil.createSchema(dataSource, schema);
+            } catch (Exception e) {
+                log.error("Failed to create schema '{}', error: {}", schema, e.getMessage(), e);
+            }
         }
     }
 
