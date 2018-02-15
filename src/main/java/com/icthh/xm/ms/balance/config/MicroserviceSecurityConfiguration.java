@@ -1,44 +1,34 @@
 package com.icthh.xm.ms.balance.config;
 
 import com.icthh.xm.commons.permission.constants.RoleConstant;
-
-import com.icthh.xm.ms.balance.security.DomainJwtAccessTokenConverter;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.security.PublicKey;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import org.apache.commons.lang3.StringUtils;
+import com.icthh.xm.ms.balance.config.oauth2.OAuth2JwtAccessTokenConverter;
+import com.icthh.xm.ms.balance.config.oauth2.OAuth2Properties;
+import com.icthh.xm.ms.balance.security.oauth2.OAuth2SignatureVerifierClient;
+import com.icthh.xm.ms.balance.security.AuthoritiesConstants;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.RestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerAdapter {
+    private final OAuth2Properties oAuth2Properties;
 
-    private final DiscoveryClient discoveryClient;
-
-    public MicroserviceSecurityConfiguration(DiscoveryClient discoveryClient) {
-        this.discoveryClient = discoveryClient;
+    public MicroserviceSecurityConfiguration(OAuth2Properties oAuth2Properties) {
+        this.oAuth2Properties = oAuth2Properties;
     }
 
     @Override
@@ -67,37 +57,21 @@ public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerA
     }
 
     @Bean
-    public JwtAccessTokenConverter jwtAccessTokenConverter(
-            @Qualifier("loadBalancedRestTemplate") RestTemplate keyUriRestTemplate) throws CertificateException {
-
-        JwtAccessTokenConverter converter = new DomainJwtAccessTokenConverter();
-        converter.setVerifierKey(getKeyFromAuthorizationServer(keyUriRestTemplate));
-        return converter;
+    public JwtAccessTokenConverter jwtAccessTokenConverter(OAuth2SignatureVerifierClient signatureVerifierClient) {
+        return new OAuth2JwtAccessTokenConverter(oAuth2Properties, signatureVerifierClient);
     }
 
     @Bean
+	@Qualifier("loadBalancedRestTemplate")
     public RestTemplate loadBalancedRestTemplate(RestTemplateCustomizer customizer) {
         RestTemplate restTemplate = new RestTemplate();
         customizer.customize(restTemplate);
         return restTemplate;
     }
 
-    private String getKeyFromAuthorizationServer(RestTemplate keyUriRestTemplate) throws CertificateException {
-        // Load available UAA servers
-        discoveryClient.getServices();
-        HttpEntity<Void> request = new HttpEntity<Void>(new HttpHeaders());
-        String content = keyUriRestTemplate
-            .exchange("http://config/api/token_key", HttpMethod.GET, request, String.class).getBody();
-
-        if (StringUtils.isBlank(content)) {
-            throw new CertificateException("Received empty certificate from config.");
-        }
-
-        InputStream fin = new ByteArrayInputStream(content.getBytes());
-
-        CertificateFactory f = CertificateFactory.getInstance(Constants.CERTIFICATE);
-        X509Certificate certificate = (X509Certificate)f.generateCertificate(fin);
-        PublicKey pk = certificate.getPublicKey();
-        return String.format(Constants.PUBLIC_KEY, new String(Base64.encode(pk.getEncoded())));
+    @Bean
+    @Qualifier("vanillaRestTemplate")
+    public RestTemplate vanillaRestTemplate() {
+        return new RestTemplate();
     }
 }

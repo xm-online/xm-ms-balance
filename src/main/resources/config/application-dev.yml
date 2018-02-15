@@ -13,6 +13,12 @@
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
 
+logging:
+    level:
+        ROOT: DEBUG
+        com.icthh.xm.ms.balance: DEBUG
+        io.github.jhipster: DEBUG
+
 spring:
     profiles:
         active: dev
@@ -86,8 +92,8 @@ liquibase:
 #    ssl:
 #        key-store: keystore.p12
 #        key-store-password: <your-password>
-#        keyStoreType: PKCS12
-#        keyAlias: balance
+#        key-store-type: PKCS12
+#        key-alias: balance
 # ===================================================================
 server:
     port: 8085
@@ -105,13 +111,17 @@ jhipster:
         hazelcast: # Hazelcast distributed cache
             time-to-live-seconds: 3600
             backup-count: 1
+            management-center: # Full reference is available at: http://docs.hazelcast.org/docs/management-center/3.9/manual/html/Deploying_and_Starting.html
+                enabled: false
+                update-interval: 3
+                url: http://localhost:8180/mancenter
     # CORS is disabled by default on microservices, as you should access them through a gateway.
     # If you want to enable it, please uncomment the configuration below.
     # cors:
         # allowed-origins: "*"
         # allowed-methods: "*"
         # allowed-headers: "*"
-        # exposed-headers: "Authorization"
+        # exposed-headers: "Authorization,Link,X-Total-Count"
         # allow-credentials: true
         # max-age: 1800
     security:
@@ -145,6 +155,18 @@ jhipster:
         spectator-metrics: # Reports Spectator Circuit Breaker metrics in the logs
             enabled: false
             # edit spring.metrics.export.delay-millis to set report frequency
+
+oauth2:
+    signature-verification:
+        public-key-endpoint-uri: http://config/api/token_key
+        #ttl for public keys to verify JWT tokens (in ms)
+        ttl: 3600000
+        #max. rate at which public keys will be fetched (in ms)
+        public-key-refresh-rate-limit: 10000
+    web-client-configuration:
+        #keep in sync with UAA configuration
+        client-id: web_app
+        secret: changeit
 
 # ===================================================================
 # Application specific properties

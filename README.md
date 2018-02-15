@@ -1,13 +1,9 @@
 # balance
-This application was generated using JHipster 4.8.2, you can find documentation and help at [http://www.jhipster.tech/documentation-archive/v4.8.2](http://www.jhipster.tech/documentation-archive/v4.8.2).
+This application was generated using JHipster 4.14.0, you can find documentation and help at [http://www.jhipster.tech/documentation-archive/v4.14.0](http://www.jhipster.tech/documentation-archive/v4.14.0).
 
 This is a "microservice" application intended to be part of a microservice architecture, please refer to the [Doing microservices with JHipster][] page of the documentation for more information.
 
 This application is configured for Service Discovery and Configuration with Consul. On launch, it will refuse to start if it is not able to connect to Consul at [http://localhost:8500](http://localhost:8500). For more information, read our documentation on [Service Discovery and Configuration with Consul][].
-
-**Note:** `gradle-local.properties` added to `.gitignore` and must never be committed into GIT project repository. 
-
-For details about gradle script properties substitution see Readme of [Gradle Properties Plugin][].
 
 ## Development
 
@@ -18,19 +14,6 @@ To start your application in the dev profile, simply run:
 
 For further instructions on how to develop with JHipster, have a look at [Using JHipster in development][].
 
-### Using angular-cli
-
-You can also use [Angular CLI][] to generate some custom client code.
-
-For example, the following command:
-
-    ng generate component my-component
-
-will generate few files:
-
-    create src/main/webapp/app/my-component/my-component.component.html
-    create src/main/webapp/app/my-component/my-component.component.ts
-    update src/main/webapp/app/app.module.ts
 
 
 ## Building for production
@@ -62,6 +45,7 @@ For more information, refer to the [Running tests page][].
 ## Using Docker to simplify development (optional)
 
 You can use Docker to improve your JHipster development experience. A number of docker-compose configuration are available in the [src/main/docker](src/main/docker) folder to launch required third party services.
+
 For example, to start a postgresql database in a docker container, run:
 
     docker-compose -f src/main/docker/postgresql.yml up -d
@@ -86,13 +70,13 @@ For more information refer to [Using Docker and Docker-Compose][], this page als
 To configure CI for your project, run the ci-cd sub-generator (`jhipster ci-cd`), this will let you generate configuration files for a number of Continuous Integration systems. Consult the [Setting up Continuous Integration][] page for more information.
 
 [JHipster Homepage and latest documentation]: http://www.jhipster.tech
-[JHipster 4.8.2 archive]: http://www.jhipster.tech/documentation-archive/v4.8.2
-[Doing microservices with JHipster]: http://www.jhipster.tech/documentation-archive/v4.8.2/microservices-architecture/
-[Using JHipster in development]: http://www.jhipster.tech/documentation-archive/v4.8.2/development/
-[Service Discovery and Configuration with Consul]: http://www.jhipster.tech/documentation-archive/v4.8.2/microservices-architecture/#consul
-[Using Docker and Docker-Compose]: http://www.jhipster.tech/documentation-archive/v4.8.2/docker-compose
-[Using JHipster in production]: http://www.jhipster.tech/documentation-archive/v4.8.2/production/
-[Running tests page]: http://www.jhipster.tech/documentation-archive/v4.8.2/running-tests/
-[Setting up Continuous Integration]: http://www.jhipster.tech/documentation-archive/v4.8.2/setting-up-ci/
+[JHipster 4.14.0 archive]: http://www.jhipster.tech/documentation-archive/v4.14.0
+[Doing microservices with JHipster]: http://www.jhipster.tech/documentation-archive/v4.14.0/microservices-architecture/
+[Using JHipster in development]: http://www.jhipster.tech/documentation-archive/v4.14.0/development/
+[Service Discovery and Configuration with Consul]: http://www.jhipster.tech/documentation-archive/v4.14.0/microservices-architecture/#consul
+[Using Docker and Docker-Compose]: http://www.jhipster.tech/documentation-archive/v4.14.0/docker-compose
+[Using JHipster in production]: http://www.jhipster.tech/documentation-archive/v4.14.0/production/
+[Running tests page]: http://www.jhipster.tech/documentation-archive/v4.14.0/running-tests/
+[Setting up Continuous Integration]: http://www.jhipster.tech/documentation-archive/v4.14.0/setting-up-ci/
 
 [Gatling]: http://gatling.io/

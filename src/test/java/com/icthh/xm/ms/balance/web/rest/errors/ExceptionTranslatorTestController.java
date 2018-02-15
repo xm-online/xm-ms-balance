@@ -4,6 +4,7 @@ import com.icthh.xm.commons.exceptions.BusinessException;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -51,6 +52,11 @@ public class ExceptionTranslatorTestController {
     @GetMapping("/test/access-denied")
     public void accessdenied() {
         throw new AccessDeniedException("test access denied!");
+    }
+
+    @GetMapping("/test/unauthorized")
+    public void unauthorized() {
+        throw new BadCredentialsException("test authentication failed!");
     }
 
     @GetMapping("/test/response-status")

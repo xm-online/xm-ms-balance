@@ -13,7 +13,7 @@ services:
             file: postgresql.yml
             service: balance-postgresql
     consul:
-        image: consul:0.8.3
+        image: consul:0.9.3
         command: consul agent -dev -ui -client 0.0.0.0
         ports:
             - 8300:8300

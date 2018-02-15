@@ -13,6 +13,7 @@ gradle-local.properties
 node_tmp/
 node_modules/
 npm-debug.log.*
+/.awcache/*
 
 ######################
 # SASS
@@ -117,7 +118,7 @@ Desktop.ini
 ######################
 # Logs
 ######################
-*.log
+*.log*
 
 ######################
 # Others
