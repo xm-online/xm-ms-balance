@@ -14,8 +14,11 @@ import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.BalanceApp;
+
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
+
 import com.icthh.xm.ms.balance.domain.Pocket;
+import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.PocketService;
 
@@ -35,12 +38,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
 
 /**
  * Test class for the PocketResource REST controller.
@@ -106,6 +110,7 @@ public class PocketResourceIntTest {
         this.restPocketMockMvc = MockMvcBuilders.standaloneSetup(pocketResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
     }
 
@@ -123,6 +128,11 @@ public class PocketResourceIntTest {
             .endDateTime(DEFAULT_END_DATE_TIME)
             .amount(DEFAULT_AMOUNT)
             .reserved(DEFAULT_RESERVED);
+        // Add required entity
+        Balance balance = BalanceResourceIntTest.createEntity(em);
+        em.persist(balance);
+        em.flush();
+        pocket.setBalance(balance);
         return pocket;
     }
 
@@ -266,6 +276,8 @@ public class PocketResourceIntTest {
 
         // Update the pocket
         Pocket updatedPocket = pocketRepository.findOne(pocket.getId());
+        // Disconnect from session so that the updates on updatedPocket are not directly saved in db
+        em.detach(updatedPocket);
         updatedPocket
             .key(UPDATED_KEY)
             .typeKey(UPDATED_TYPE_KEY)

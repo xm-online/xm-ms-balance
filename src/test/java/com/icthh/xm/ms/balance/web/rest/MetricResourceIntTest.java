@@ -14,8 +14,11 @@ import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.BalanceApp;
+
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
+
 import com.icthh.xm.ms.balance.domain.Metric;
+import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.service.MetricService;
 
@@ -35,9 +38,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
 
 /**
  * Test class for the MetricResource REST controller.
@@ -94,6 +98,7 @@ public class MetricResourceIntTest {
         this.restMetricMockMvc = MockMvcBuilders.standaloneSetup(metricResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
     }
 
@@ -108,6 +113,11 @@ public class MetricResourceIntTest {
             .key(DEFAULT_KEY)
             .typeKey(DEFAULT_TYPE_KEY)
             .value(DEFAULT_VALUE);
+        // Add required entity
+        Balance balance = BalanceResourceIntTest.createEntity(em);
+        em.persist(balance);
+        em.flush();
+        metric.setBalance(balance);
         return metric;
     }
 
@@ -242,6 +252,8 @@ public class MetricResourceIntTest {
 
         // Update the metric
         Metric updatedMetric = metricRepository.findOne(metric.getId());
+        // Disconnect from session so that the updates on updatedMetric are not directly saved in db
+        em.detach(updatedMetric);
         updatedMetric
             .key(UPDATED_KEY)
             .typeKey(UPDATED_TYPE_KEY)

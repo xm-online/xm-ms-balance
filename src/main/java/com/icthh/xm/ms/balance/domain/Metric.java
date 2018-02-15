@@ -1,16 +1,21 @@
 package com.icthh.xm.ms.balance.domain;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A Metric.
+ * The balance materic structure to store value like maximum amount of the balance
+ * denoted by this object due to all time of use.
  */
+@ApiModel(description = "The balance materic structure to store value like maximum amount of the balance denoted by this object due to all time of use.")
 @Entity
 @Table(name = "metric")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -23,21 +28,34 @@ public class Metric implements Serializable {
     @SequenceGenerator(name = "sequenceGenerator")
     private Long id;
 
+    /**
+     * This field is used to identify the metric.
+     */
     @NotNull
+    @ApiModelProperty(value = "This field is used to identify the metric.", required = true)
     @Column(name = "jhi_key", nullable = false)
     private String key;
 
+    /**
+     * String with the metric type identifer.
+     */
     @NotNull
+    @ApiModelProperty(value = "String with the metric type identifer.", required = true)
     @Column(name = "type_key", nullable = false)
     private String typeKey;
 
+    /**
+     * String with the metric value.
+     */
+    @ApiModelProperty(value = "String with the metric value.")
     @Column(name = "jhi_value")
     private String value;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @NotNull
     private Balance balance;
 
-    // jhipster-needle-entity-add-field - Jhipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
     }
@@ -97,7 +115,7 @@ public class Metric implements Serializable {
     public void setBalance(Balance balance) {
         this.balance = balance;
     }
-    // jhipster-needle-entity-add-getters-setters - Jhipster will add getters and setters here, do not remove
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
     public boolean equals(Object o) {

@@ -1,29 +1,23 @@
 package com.icthh.xm.ms.balance.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
-
 import io.github.jhipster.web.util.ResponseUtil;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * REST controller for managing Balance.
@@ -52,7 +46,8 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'balance': #balance}, 'BALANCE.CREATE')")
     public ResponseEntity<Balance> createBalance(@Valid @RequestBody Balance balance) throws URISyntaxException {
         if (balance.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new balance cannot already have an ID")).body(null);
+            throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
+                                        "A new balance cannot already have an ID");
         }
         Balance result = balanceService.save(balance);
         return ResponseEntity.created(new URI("/api/balances/" + result.getId()))

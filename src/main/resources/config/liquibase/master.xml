@@ -13,4 +13,5 @@
     <include file="config/liquibase/changelog/20170922082930_added_entity_constraints_Metric.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <include file="config/liquibase/changelog/20171108145000_added_column_entityId_Balance.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20180215145000_added_column_createdBy_Balance.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

@@ -20,7 +20,7 @@ class BalanceGatlingTest extends Simulation {
     // Log failed HTTP requests
     //context.getLogger("io.gatling.http").setLevel(Level.valueOf("DEBUG"))
 
-    val baseURL = Option(System.getProperty("baseURL")) getOrElse """http://127.0.0.1:8080"""
+    val baseURL = Option(System.getProperty("baseURL")) getOrElse """http://localhost:8080"""
 
     val httpConf = http
         .baseURL(baseURL)
@@ -80,7 +80,7 @@ class BalanceGatlingTest extends Simulation {
             .exec(http("Create new balance")
             .post("/balance/api/balances")
             .headers(headers_http_authenticated)
-            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "typeKey":"SAMPLE_TEXT", "measureKey":"SAMPLE_TEXT", "amount":"0", "reserved":"0", "entityId":null}""")).asJSON
+            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "typeKey":"SAMPLE_TEXT", "measureKey":"SAMPLE_TEXT", "amount":"0", "reserved":"0", "entityId":null, "createdBy":"SAMPLE_TEXT"}""")).asJSON
             .check(status.is(201))
             .check(headerRegex("Location", "(.*)").saveAs("new_balance_url"))).exitHereIfFailed
             .pause(10)

@@ -1,27 +1,24 @@
 package com.icthh.xm.ms.balance.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import javax.persistence.*;
+import javax.validation.constraints.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 /**
- * A Balance.
+ * This structure describes the balance definition that came out of the billing systems.
  */
+@ApiModel(description = "This structure describes the balance definition that came out of the billing systems.")
 @Entity
 @Table(name = "balance")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -34,38 +31,80 @@ public class Balance implements Serializable {
     @SequenceGenerator(name = "sequenceGenerator")
     private Long id;
 
+    /**
+     * This field is used to identify the balance.
+     */
     @NotNull
+    @ApiModelProperty(value = "This field is used to identify the balance.", required = true)
     @Column(name = "jhi_key", nullable = false)
     private String key;
 
+    /**
+     * This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)
+     */
     @NotNull
+    @ApiModelProperty(value = "This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)", required = true)
     @Column(name = "type_key", nullable = false)
     private String typeKey;
 
+    /**
+     * The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)
+     */
+    @ApiModelProperty(value = "The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)")
     @Column(name = "measure_key")
     private String measureKey;
 
-    @Column(name = "amount", precision = 10, scale = 2)
+    /**
+     * The value of the balance denoted by this object.
+     * The amount includes the reserved amount (see field reserved).
+     */
+    @ApiModelProperty(value = "The value of the balance denoted by this object. The amount includes the reserved amount (see field reserved).")
+    @Column(name = "amount", precision=10, scale=2)
     private BigDecimal amount;
 
-    @Column(name = "reserved", precision = 10, scale = 2)
+    /**
+     * The reserved amount from the balance for uncommitted reservation transactions.
+     */
+    @ApiModelProperty(value = "The reserved amount from the balance for uncommitted reservation transactions.")
+    @Column(name = "reserved", precision=10, scale=2)
     private BigDecimal reserved;
 
+    /**
+     * The Entity ID related to this balance.
+     */
     @NotNull
-    @Column(name = "entity_id", nullable = false)
+    @ApiModelProperty(value = "The Entity ID related to this balance.")
+    @Column(name = "entity_id")
     private Long entityId;
 
+    /**
+     * Created by user key.
+     */
+    @ApiModelProperty(value = "Created by user key.")
+    @Column(name = "created_by")
+    private String createdBy;
+
+    /**
+     * List of pockets owned by the balance. A null value indicates balances that cannot
+     * have pockets because they are not configured in the specification. An empty list
+     * indicates that are no pockets defined.
+     */
+    @ApiModelProperty(value = "List of pockets owned by the balance. A null value indicates balances that cannot have pockets because they are not configured in the specification. An empty list indicates that are no pockets defined.")
     @OneToMany(mappedBy = "balance")
     @JsonIgnore
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<Pocket> pockets = new HashSet<>();
 
+    /**
+     * List of metrics owned by the balance.
+     */
+    @ApiModelProperty(value = "List of metrics owned by the balance.")
     @OneToMany(mappedBy = "balance")
     @JsonIgnore
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<Metric> metrics = new HashSet<>();
 
-    // jhipster-needle-entity-add-field - Jhipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
     }
@@ -152,6 +191,19 @@ public class Balance implements Serializable {
         this.entityId = entityId;
     }
 
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public Balance createdBy(String createdBy) {
+        this.createdBy = createdBy;
+        return this;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
     public Set<Pocket> getPockets() {
         return pockets;
     }
@@ -201,7 +253,7 @@ public class Balance implements Serializable {
     public void setMetrics(Set<Metric> metrics) {
         this.metrics = metrics;
     }
-    // jhipster-needle-entity-add-getters-setters - Jhipster will add getters and setters here, do not remove
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
     public boolean equals(Object o) {
@@ -225,14 +277,15 @@ public class Balance implements Serializable {
 
     @Override
     public String toString() {
-        return "Balance{"
-            + "id=" + getId()
-            + ", key='" + getKey() + "'"
-            + ", typeKey='" + getTypeKey() + "'"
-            + ", measureKey='" + getMeasureKey() + "'"
-            + ", amount='" + getAmount() + "'"
-            + ", reserved='" + getReserved() + "'"
-            + ", entityId='" + getEntityId() + "'"
-            + "}";
+        return "Balance{" +
+            "id=" + getId() +
+            ", key='" + getKey() + "'" +
+            ", typeKey='" + getTypeKey() + "'" +
+            ", measureKey='" + getMeasureKey() + "'" +
+            ", amount=" + getAmount() +
+            ", reserved=" + getReserved() +
+            ", entityId=" + getEntityId() +
+            ", createdBy='" + getCreatedBy() + "'" +
+            "}";
     }
 }

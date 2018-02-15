@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest;
 
+import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -65,6 +66,9 @@ public class BalanceResourceIntTest {
     private static final Long DEFAULT_ENTITY_ID = 1L;
     private static final Long UPDATED_ENTITY_ID = 2L;
 
+    private static final String DEFAULT_CREATED_BY = "AAAAAAAAAA";
+    private static final String UPDATED_CREATED_BY = "BBBBBBBBBB";
+
     @Autowired
     private BalanceRepository balanceRepository;
 
@@ -102,6 +106,7 @@ public class BalanceResourceIntTest {
         this.restBalanceMockMvc = MockMvcBuilders.standaloneSetup(balanceResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
+            .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
     }
 
@@ -118,7 +123,8 @@ public class BalanceResourceIntTest {
             .measureKey(DEFAULT_MEASURE_KEY)
             .amount(DEFAULT_AMOUNT)
             .reserved(DEFAULT_RESERVED)
-            .entityId(DEFAULT_ENTITY_ID);
+            .entityId(DEFAULT_ENTITY_ID)
+            .createdBy(DEFAULT_CREATED_BY);
         return balance;
     }
 
@@ -148,6 +154,7 @@ public class BalanceResourceIntTest {
         assertThat(testBalance.getAmount()).isEqualTo(DEFAULT_AMOUNT);
         assertThat(testBalance.getReserved()).isEqualTo(DEFAULT_RESERVED);
         assertThat(testBalance.getEntityId()).isEqualTo(DEFAULT_ENTITY_ID);
+        assertThat(testBalance.getCreatedBy()).isEqualTo(DEFAULT_CREATED_BY);
     }
 
     @Test
@@ -240,7 +247,8 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.[*].measureKey").value(hasItem(DEFAULT_MEASURE_KEY.toString())))
             .andExpect(jsonPath("$.[*].amount").value(hasItem(DEFAULT_AMOUNT.intValue())))
             .andExpect(jsonPath("$.[*].reserved").value(hasItem(DEFAULT_RESERVED.intValue())))
-            .andExpect(jsonPath("$.[*].entityId").value(hasItem(DEFAULT_ENTITY_ID.intValue())));
+            .andExpect(jsonPath("$.[*].entityId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
+            .andExpect(jsonPath("$.[*].createdBy").value(hasItem(DEFAULT_CREATED_BY.toString())));
     }
 
     @Test
@@ -259,7 +267,8 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.measureKey").value(DEFAULT_MEASURE_KEY.toString()))
             .andExpect(jsonPath("$.amount").value(DEFAULT_AMOUNT.intValue()))
             .andExpect(jsonPath("$.reserved").value(DEFAULT_RESERVED.intValue()))
-            .andExpect(jsonPath("$.entityId").value(DEFAULT_ENTITY_ID.intValue()));
+            .andExpect(jsonPath("$.entityId").value(DEFAULT_ENTITY_ID.intValue()))
+            .andExpect(jsonPath("$.createdBy").value(DEFAULT_CREATED_BY.toString()));
     }
 
     @Test
@@ -280,13 +289,16 @@ public class BalanceResourceIntTest {
 
         // Update the balance
         Balance updatedBalance = balanceRepository.findOne(balance.getId());
+        // Disconnect from session so that the updates on updatedBalance are not directly saved in db
+        em.detach(updatedBalance);
         updatedBalance
             .key(UPDATED_KEY)
             .typeKey(UPDATED_TYPE_KEY)
             .measureKey(UPDATED_MEASURE_KEY)
             .amount(UPDATED_AMOUNT)
             .reserved(UPDATED_RESERVED)
-            .entityId(UPDATED_ENTITY_ID);
+            .entityId(UPDATED_ENTITY_ID)
+            .createdBy(UPDATED_CREATED_BY);
 
         restBalanceMockMvc.perform(put("/api/balances")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -303,6 +315,7 @@ public class BalanceResourceIntTest {
         assertThat(testBalance.getAmount()).isEqualTo(UPDATED_AMOUNT);
         assertThat(testBalance.getReserved()).isEqualTo(UPDATED_RESERVED);
         assertThat(testBalance.getEntityId()).isEqualTo(UPDATED_ENTITY_ID);
+        assertThat(testBalance.getCreatedBy()).isEqualTo(UPDATED_CREATED_BY);
     }
 
     @Test

@@ -1,18 +1,23 @@
 package com.icthh.xm.ms.balance.domain;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 
 /**
- * A Pocket.
+ * This structure describes the sub-balances called pockets. A pocket defines a
+ * special lifetime for partial amount of a balance.
  */
+@ApiModel(description = "This structure describes the sub-balances called pockets. A pocket defines a special lifetime for partial amount of a balance.")
 @Entity
 @Table(name = "pocket")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -25,30 +30,56 @@ public class Pocket implements Serializable {
     @SequenceGenerator(name = "sequenceGenerator")
     private Long id;
 
+    /**
+     * This field is used to identify the pocket.
+     */
     @NotNull
+    @ApiModelProperty(value = "This field is used to identify the pocket.", required = true)
     @Column(name = "jhi_key", nullable = false)
     private String key;
 
+    /**
+     * String with the pocket type identifer.
+     */
     @NotNull
+    @ApiModelProperty(value = "String with the pocket type identifer.", required = true)
     @Column(name = "type_key", nullable = false)
     private String typeKey;
 
+    /**
+     * Date/DateTime when the pocket becomes valid (date included).
+     */
+    @ApiModelProperty(value = "Date/DateTime when the pocket becomes valid (date included).")
     @Column(name = "start_date_time")
     private Instant startDateTime;
 
+    /**
+     * Date/DateTime when the pocket becomes invalid (date excluded).
+     */
+    @ApiModelProperty(value = "Date/DateTime when the pocket becomes invalid (date excluded).")
     @Column(name = "end_date_time")
     private Instant endDateTime;
 
+    /**
+     * The value of the pocket denoted by this object.
+     * The amount includes the reserved amount (see field reserved).
+     */
+    @ApiModelProperty(value = "The value of the pocket denoted by this object. The amount includes the reserved amount (see field reserved).")
     @Column(name = "amount", precision=10, scale=2)
     private BigDecimal amount;
 
+    /**
+     * The reserved amount from pocket for uncommitted reservation transactions.
+     */
+    @ApiModelProperty(value = "The reserved amount from pocket for uncommitted reservation transactions.")
     @Column(name = "reserved", precision=10, scale=2)
     private BigDecimal reserved;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @NotNull
     private Balance balance;
 
-    // jhipster-needle-entity-add-field - Jhipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
     }
@@ -147,7 +178,7 @@ public class Pocket implements Serializable {
     public void setBalance(Balance balance) {
         this.balance = balance;
     }
-    // jhipster-needle-entity-add-getters-setters - Jhipster will add getters and setters here, do not remove
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
     public boolean equals(Object o) {
@@ -177,8 +208,8 @@ public class Pocket implements Serializable {
             ", typeKey='" + getTypeKey() + "'" +
             ", startDateTime='" + getStartDateTime() + "'" +
             ", endDateTime='" + getEndDateTime() + "'" +
-            ", amount='" + getAmount() + "'" +
-            ", reserved='" + getReserved() + "'" +
+            ", amount=" + getAmount() +
+            ", reserved=" + getReserved() +
             "}";
     }
 }
