@@ -5,17 +5,21 @@ import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
 import com.icthh.xm.ms.balance.BalanceApp;
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.zalando.problem.spring.web.advice.MediaTypes;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,13 +38,25 @@ public class ExceptionTranslatorIntTest {
     @Autowired
     private ExceptionTranslator exceptionTranslator;
 
+    @Autowired
+    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
+
     private MockMvc mockMvc;
 
     @Before
     public void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
             .setControllerAdvice(exceptionTranslator)
+            .setMessageConverters(jacksonMessageConverter)
             .build();
+    }
+
+    @Test
+    public void testConcurrencyFailure() throws Exception {
+        mockMvc.perform(get("/test/concurrency-failure"))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_CONCURRENCY_FAILURE))
+            .andExpect(jsonPath("$.error_description").value("Concurrency failure"));
     }
 
     @Test
@@ -74,11 +90,40 @@ public class ExceptionTranslatorIntTest {
     }
 
     @Test
+    @Ignore("Need migration to Zalando Problem library")
+    public void testMissingServletRequestPartException() throws Exception {
+        mockMvc.perform(get("/test/missing-servlet-request-part"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaTypes.PROBLEM))
+            .andExpect(jsonPath("$.message").value("error.http.400"));
+    }
+
+    @Test
+    @Ignore("Need migration to Zalando Problem library")
+    public void testMissingServletRequestParameterException() throws Exception {
+        mockMvc.perform(get("/test/missing-servlet-request-parameter"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaTypes.PROBLEM))
+            .andExpect(jsonPath("$.message").value("error.http.400"));
+    }
+
+    @Test
     public void testAccessDenied() throws Exception {
         mockMvc.perform(get("/test/access-denied"))
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_ACCESS_DENIED))
-            .andExpect(jsonPath("$.error_description").value("Access denied"));
+               .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_ACCESS_DENIED))
+               .andExpect(jsonPath("$.error_description").value("Access denied"));
+    }
+
+    @Test
+    @Ignore("Need migration to Zalando Problem library")
+    public void testUnauthorized() throws Exception {
+        mockMvc.perform(get("/test/unauthorized"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaTypes.PROBLEM))
+            .andExpect(jsonPath("$.message").value("error.http.401"))
+            .andExpect(jsonPath("$.path").value("/test/unauthorized"))
+            .andExpect(jsonPath("$.detail").value("test authentication failed!"));
     }
 
     @Test

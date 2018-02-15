@@ -4,7 +4,7 @@
       "packageName": "com.icthh.xm.ms.balance",
       "nativeLanguage": "en"
     },
-    "jhipsterVersion": "4.8.2",
+    "jhipsterVersion": "4.14.0",
     "baseName": "balance",
     "packageName": "com.icthh.xm.ms.balance",
     "packageFolder": "com/icthh/xm/ms/balance",
@@ -38,6 +38,8 @@
       "en",
       "ru"
     ],
-    "clientPackageManager": "yarn"
+    "clientPackageManager": "yarn",
+    "cacheProvider": "hazelcast",
+    "enableHibernateCache": true
   }
 }

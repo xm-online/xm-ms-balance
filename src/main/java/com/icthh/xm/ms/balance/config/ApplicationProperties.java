@@ -9,9 +9,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Properties specific to JHipster.
- *
- * <p>Properties are configured in the application.yml file.
+ * Properties specific to Balance.
+ * <p>
+ * Properties are configured in the application.yml file.
+ * See {@link io.github.jhipster.config.JHipsterProperties} for a good example.
  */
 @Component
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)

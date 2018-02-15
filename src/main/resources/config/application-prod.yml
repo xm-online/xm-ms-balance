@@ -13,6 +13,12 @@
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
 
+logging:
+    level:
+        ROOT: INFO
+        com.icthh.xm.ms.balance: INFO
+        io.github.jhipster: INFO
+
 spring:
     devtools:
         restart:
@@ -76,8 +82,10 @@ liquibase:
 #    ssl:
 #        key-store: keystore.p12
 #        key-store-password: <your-password>
-#        keyStoreType: PKCS12
-#        keyAlias: balance
+#        key-store-type: PKCS12
+#        key-alias: balance
+#        # The ciphers suite enforce the security by deactivating some old and deprecated SSL cipher, this list was tested against SSL Labs (https://www.ssllabs.com/ssltest/)
+#        ciphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 ,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 ,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
 # ===================================================================
 server:
     port: 8085
@@ -101,6 +109,10 @@ jhipster:
         hazelcast: # Hazelcast distributed cache
             time-to-live-seconds: 3600
             backup-count: 1
+            management-center: # Full reference is available at: http://docs.hazelcast.org/docs/management-center/3.9/manual/html/Deploying_and_Starting.html
+                enabled: false
+                update-interval: 3
+                url:
     security:
         client-authorization:
             access-token-uri: http://uaa/oauth/token
@@ -132,6 +144,18 @@ jhipster:
         spectator-metrics: # Reports Spectator Circuit Breaker metrics in the logs
             enabled: false
             # edit spring.metrics.export.delay-millis to set report frequency
+
+oauth2:
+    signature-verification:
+        public-key-endpoint-uri: http://config/api/token_key
+        #ttl for public keys to verify JWT tokens (in ms)
+        ttl: 3600000
+        #max. rate at which public keys will be fetched (in ms)
+        public-key-refresh-rate-limit: 10000
+    web-client-configuration:
+        #change client secret in production, keep in sync with UAA configuration
+        client-id: web_app
+        secret: changeit
 
 # ===================================================================
 # Application specific properties

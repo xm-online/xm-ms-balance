@@ -35,7 +35,8 @@ import javax.annotation.PreDestroy;
 
 @ComponentScan(
     value = "com.icthh.xm",
-    excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = OAuth2InterceptedFeignConfiguration.class)
+    excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes =
+        {OAuth2InterceptedFeignConfiguration.class})
 )
 @EnableAutoConfiguration(exclude = {MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class})
 @EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
@@ -55,10 +56,10 @@ public class BalanceApp {
 
     /**
      * Initializes balance.
-     *
-     * <p>Spring profiles can be configured with a program arguments --spring.profiles.active=your-active-profile
-     *
-     * <p>You can find more information on how profiles work with JHipster on <a href="http://www.jhipster.tech/profiles/">http://www.jhipster.tech/profiles/</a>.
+     * <p>
+     * Spring profiles can be configured with a program arguments --spring.profiles.active=your-active-profile
+     * <p>
+     * You can find more information on how profiles work with JHipster on <a href="http://www.jhipster.tech/profiles/">http://www.jhipster.tech/profiles/</a>.
      */
     @PostConstruct
     public void initApplication() {
@@ -112,11 +113,11 @@ public class BalanceApp {
         if (env.getProperty("server.ssl.key-store") != null) {
             protocol = "https";
         }
-        log.info("\n----------------------------------------------------------\n\t"
-                + "Application '{}' is running! Access URLs:\n\t"
-                + "Local: \t\t{}://localhost:{}\n\t"
-                + "External: \t{}://{}:{}\n\t"
-                + "Profile(s): \t{}\n----------------------------------------------------------",
+        log.info("\n----------------------------------------------------------\n\t" +
+                "Application '{}' is running! Access URLs:\n\t" +
+                "Local: \t\t{}://localhost:{}\n\t" +
+                "External: \t{}://{}:{}\n\t" +
+                "Profile(s): \t{}\n----------------------------------------------------------",
             env.getProperty("spring.application.name"),
             protocol,
             env.getProperty("server.port"),
@@ -126,8 +127,8 @@ public class BalanceApp {
             env.getActiveProfiles());
 
         String configServerStatus = env.getProperty("configserver.status");
-        log.info("\n----------------------------------------------------------\n\t"
-                + "Config Server: \t{}\n----------------------------------------------------------",
+        log.info("\n----------------------------------------------------------\n\t" +
+                "Config Server: \t{}\n----------------------------------------------------------",
             configServerStatus == null ? "Not found or not setup for this application" : configServerStatus);
     }
 }
