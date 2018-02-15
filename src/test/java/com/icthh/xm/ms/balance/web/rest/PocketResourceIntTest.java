@@ -1,15 +1,5 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
@@ -21,6 +11,8 @@ import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.PocketService;
+import com.icthh.xm.ms.balance.service.dto.PocketDTO;
+import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +37,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Test class for the PocketResource REST controller.
@@ -75,6 +71,9 @@ public class PocketResourceIntTest {
 
     @Autowired
     private PocketRepository pocketRepository;
+
+    @Autowired
+    private PocketMapper pocketMapper;
 
     @Autowired
     private PocketService pocketService;
@@ -147,9 +146,10 @@ public class PocketResourceIntTest {
         int databaseSizeBeforeCreate = pocketRepository.findAll().size();
 
         // Create the Pocket
+        PocketDTO pocketDTO = pocketMapper.toDto(pocket);
         restPocketMockMvc.perform(post("/api/pockets")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(pocket)))
+            .content(TestUtil.convertObjectToJsonBytes(pocketDTO)))
             .andExpect(status().isCreated());
 
         // Validate the Pocket in the database
@@ -171,11 +171,12 @@ public class PocketResourceIntTest {
 
         // Create the Pocket with an existing ID
         pocket.setId(1L);
+        PocketDTO pocketDTO = pocketMapper.toDto(pocket);
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restPocketMockMvc.perform(post("/api/pockets")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(pocket)))
+            .content(TestUtil.convertObjectToJsonBytes(pocketDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Pocket in the database
@@ -191,10 +192,11 @@ public class PocketResourceIntTest {
         pocket.setKey(null);
 
         // Create the Pocket, which fails.
+        PocketDTO pocketDTO = pocketMapper.toDto(pocket);
 
         restPocketMockMvc.perform(post("/api/pockets")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(pocket)))
+            .content(TestUtil.convertObjectToJsonBytes(pocketDTO)))
             .andExpect(status().isBadRequest());
 
         List<Pocket> pocketList = pocketRepository.findAll();
@@ -209,10 +211,11 @@ public class PocketResourceIntTest {
         pocket.setTypeKey(null);
 
         // Create the Pocket, which fails.
+        PocketDTO pocketDTO = pocketMapper.toDto(pocket);
 
         restPocketMockMvc.perform(post("/api/pockets")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(pocket)))
+            .content(TestUtil.convertObjectToJsonBytes(pocketDTO)))
             .andExpect(status().isBadRequest());
 
         List<Pocket> pocketList = pocketRepository.findAll();
@@ -270,8 +273,7 @@ public class PocketResourceIntTest {
     @Transactional
     public void updatePocket() throws Exception {
         // Initialize the database
-        pocketService.save(pocket);
-
+        pocketRepository.saveAndFlush(pocket);
         int databaseSizeBeforeUpdate = pocketRepository.findAll().size();
 
         // Update the pocket
@@ -285,10 +287,11 @@ public class PocketResourceIntTest {
             .endDateTime(UPDATED_END_DATE_TIME)
             .amount(UPDATED_AMOUNT)
             .reserved(UPDATED_RESERVED);
+        PocketDTO pocketDTO = pocketMapper.toDto(updatedPocket);
 
         restPocketMockMvc.perform(put("/api/pockets")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(updatedPocket)))
+            .content(TestUtil.convertObjectToJsonBytes(pocketDTO)))
             .andExpect(status().isOk());
 
         // Validate the Pocket in the database
@@ -309,11 +312,12 @@ public class PocketResourceIntTest {
         int databaseSizeBeforeUpdate = pocketRepository.findAll().size();
 
         // Create the Pocket
+        PocketDTO pocketDTO = pocketMapper.toDto(pocket);
 
         // If the entity doesn't have an ID, it will be created instead of just being updated
         restPocketMockMvc.perform(put("/api/pockets")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
-            .content(TestUtil.convertObjectToJsonBytes(pocket)))
+            .content(TestUtil.convertObjectToJsonBytes(pocketDTO)))
             .andExpect(status().isCreated());
 
         // Validate the Pocket in the database
@@ -325,8 +329,7 @@ public class PocketResourceIntTest {
     @Transactional
     public void deletePocket() throws Exception {
         // Initialize the database
-        pocketService.save(pocket);
-
+        pocketRepository.saveAndFlush(pocket);
         int databaseSizeBeforeDelete = pocketRepository.findAll().size();
 
         // Get the pocket
@@ -352,5 +355,28 @@ public class PocketResourceIntTest {
         assertThat(pocket1).isNotEqualTo(pocket2);
         pocket1.setId(null);
         assertThat(pocket1).isNotEqualTo(pocket2);
+    }
+
+    @Test
+    @Transactional
+    public void dtoEqualsVerifier() throws Exception {
+        TestUtil.equalsVerifier(PocketDTO.class);
+        PocketDTO pocketDTO1 = new PocketDTO();
+        pocketDTO1.setId(1L);
+        PocketDTO pocketDTO2 = new PocketDTO();
+        assertThat(pocketDTO1).isNotEqualTo(pocketDTO2);
+        pocketDTO2.setId(pocketDTO1.getId());
+        assertThat(pocketDTO1).isEqualTo(pocketDTO2);
+        pocketDTO2.setId(2L);
+        assertThat(pocketDTO1).isNotEqualTo(pocketDTO2);
+        pocketDTO1.setId(null);
+        assertThat(pocketDTO1).isNotEqualTo(pocketDTO2);
+    }
+
+    @Test
+    @Transactional
+    public void testEntityFromId() {
+        assertThat(pocketMapper.fromId(42L).getId()).isEqualTo(42);
+        assertThat(pocketMapper.fromId(null)).isNull();
     }
 }

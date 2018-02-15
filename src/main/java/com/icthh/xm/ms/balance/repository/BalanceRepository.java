@@ -12,6 +12,6 @@ import org.springframework.data.jpa.repository.*;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface BalanceRepository extends JpaRepository<Balance, Long>, ResourceRepository {
+public interface BalanceRepository extends JpaRepository<Balance, Long>, JpaSpecificationExecutor<Balance>, ResourceRepository {
 
 }

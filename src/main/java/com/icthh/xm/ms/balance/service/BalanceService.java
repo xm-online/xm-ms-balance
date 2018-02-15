@@ -4,10 +4,13 @@ import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
+import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
+import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 /**
  * Service Implementation for managing Balance.
@@ -19,32 +22,39 @@ public class BalanceService {
     private final BalanceRepository balanceRepository;
     private final PermittedRepository permittedRepository;
 
-    public BalanceService(
-                    BalanceRepository balanceRepository,
-                    PermittedRepository permittedRepository) {
+    private final BalanceMapper balanceMapper;
+
+    public BalanceService(BalanceRepository balanceRepository,
+                          BalanceMapper balanceMapper,
+                          PermittedRepository permittedRepository) {
         this.balanceRepository = balanceRepository;
+        this.balanceMapper = balanceMapper;
         this.permittedRepository = permittedRepository;
     }
 
     /**
      * Save a balance.
      *
-     * @param balance the entity to save
+     * @param balanceDTO the entity to save
      * @return the persisted entity
      */
-    public Balance save(Balance balance) {
-        return balanceRepository.save(balance);
+    public BalanceDTO save(BalanceDTO balanceDTO) {
+        Balance balance = balanceMapper.toEntity(balanceDTO);
+        balance = balanceRepository.save(balance);
+        return balanceMapper.toDto(balance);
     }
 
     /**
      * Get all the balances.
      *
+     * @param pageable the pagination information
      * @return the list of entities
      */
-    @Transactional(readOnly = true)
     @FindWithPermission("BALANCE.GET_LIST")
-    public List<Balance> findAll(String privilegeKey) {
-        return permittedRepository.findAll(Balance.class, privilegeKey);
+    @Transactional(readOnly = true)
+    public Page<BalanceDTO> findAll(Pageable pageable, String privilegeKey) {
+        return permittedRepository.findAll(pageable, Balance.class, privilegeKey)
+            .map(balanceMapper::toDto);
     }
 
     /**
@@ -54,8 +64,9 @@ public class BalanceService {
      * @return the entity
      */
     @Transactional(readOnly = true)
-    public Balance findOne(Long id) {
-        return balanceRepository.findOne(id);
+    public BalanceDTO findOne(Long id) {
+        Balance balance = balanceRepository.findOne(id);
+        return balanceMapper.toDto(balance);
     }
 
     /**

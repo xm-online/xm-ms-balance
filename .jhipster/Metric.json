@@ -35,7 +35,7 @@
     "changelogDate": "20180215145907",
     "javadoc": "The balance materic structure to store value like maximum amount of the balance\ndenoted by this object due to all time of use.",
     "entityTableName": "metric",
-    "dto": "no",
+    "dto": "mapstruct",
     "pagination": "no",
     "service": "serviceClass",
     "jpaMetamodelFiltering": false,

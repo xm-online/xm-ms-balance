@@ -50,7 +50,7 @@
     "changelogDate": "20180215145906",
     "javadoc": "This structure describes the sub-balances called pockets. A pocket defines a\nspecial lifetime for partial amount of a balance.",
     "entityTableName": "pocket",
-    "dto": "no",
+    "dto": "mapstruct",
     "pagination": "no",
     "service": "serviceClass",
     "jpaMetamodelFiltering": false,

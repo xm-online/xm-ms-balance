@@ -3,10 +3,14 @@ package com.icthh.xm.ms.balance.service;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
+import com.icthh.xm.ms.balance.service.dto.PocketDTO;
+import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service Implementation for managing Pocket.
@@ -18,21 +22,26 @@ public class PocketService {
     private final PocketRepository pocketRepository;
     private final PermittedRepository permittedRepository;
 
-    public PocketService(
-                    PocketRepository pocketRepository,
-                    PermittedRepository permittedRepository) {
+    private final PocketMapper pocketMapper;
+
+    public PocketService(PocketRepository pocketRepository,
+                         PocketMapper pocketMapper,
+                         PermittedRepository permittedRepository) {
         this.pocketRepository = pocketRepository;
+        this.pocketMapper = pocketMapper;
         this.permittedRepository = permittedRepository;
     }
 
     /**
      * Save a pocket.
      *
-     * @param pocket the entity to save
+     * @param pocketDTO the entity to save
      * @return the persisted entity
      */
-    public Pocket save(Pocket pocket) {
-        return pocketRepository.save(pocket);
+    public PocketDTO save(PocketDTO pocketDTO) {
+        Pocket pocket = pocketMapper.toEntity(pocketDTO);
+        pocket = pocketRepository.save(pocket);
+        return pocketMapper.toDto(pocket);
     }
 
     /**
@@ -41,8 +50,10 @@ public class PocketService {
      * @return the list of entities
      */
     @Transactional(readOnly = true)
-    public List<Pocket> findAll(String privilegeKey) {
-        return permittedRepository.findAll(Pocket.class, privilegeKey);
+    public List<PocketDTO> findAll(String privilegeKey) {
+        return permittedRepository.findAll(Pocket.class, privilegeKey).stream()
+            .map(pocketMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -52,8 +63,9 @@ public class PocketService {
      * @return the entity
      */
     @Transactional(readOnly = true)
-    public Pocket findOne(Long id) {
-        return pocketRepository.findOne(id);
+    public PocketDTO findOne(Long id) {
+        Pocket pocket = pocketRepository.findOne(id);
+        return pocketMapper.toDto(pocket);
     }
 
     /**

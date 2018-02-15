@@ -65,8 +65,8 @@
     "changelogDate": "20180215145905",
     "javadoc": "This structure describes the balance definition that came out of the billing systems.",
     "entityTableName": "balance",
-    "dto": "no",
-    "pagination": "no",
+    "dto": "mapstruct",
+    "pagination": "pagination",
     "service": "serviceClass",
     "jpaMetamodelFiltering": true,
     "microserviceName": "balance"

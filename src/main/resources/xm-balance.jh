@@ -100,3 +100,5 @@ relationship OneToMany {
 service all with serviceClass
 microservice * with 'balance'
 filter Balance
+paginate Balance with pagination
+dto * with mapstruct
