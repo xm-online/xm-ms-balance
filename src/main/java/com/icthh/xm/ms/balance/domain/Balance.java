@@ -73,8 +73,8 @@ public class Balance implements Serializable {
      * The Entity ID related to this balance.
      */
     @NotNull
-    @ApiModelProperty(value = "The Entity ID related to this balance.")
-    @Column(name = "entity_id")
+    @ApiModelProperty(value = "The Entity ID related to this balance.", required = true)
+    @Column(name = "entity_id", nullable = false)
     private Long entityId;
 
     /**

@@ -51,7 +51,10 @@
         {
             "fieldName": "entityId",
             "javadoc": "The Entity ID related to this balance.",
-            "fieldType": "Long"
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
         },
         {
             "fieldName": "createdBy",
@@ -65,6 +68,6 @@
     "dto": "no",
     "pagination": "no",
     "service": "serviceClass",
-    "jpaMetamodelFiltering": false,
+    "jpaMetamodelFiltering": true,
     "microserviceName": "balance"
 }
