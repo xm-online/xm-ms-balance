@@ -17,6 +17,7 @@ import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
@@ -287,6 +288,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByKeyIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -300,6 +302,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByKeyIsInShouldWork() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -313,6 +316,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByKeyIsNullOrNotNull() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -326,6 +330,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByTypeKeyIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -339,6 +344,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByTypeKeyIsInShouldWork() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -352,6 +358,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByTypeKeyIsNullOrNotNull() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -365,6 +372,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByMeasureKeyIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -378,6 +386,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByMeasureKeyIsInShouldWork() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -391,6 +400,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByMeasureKeyIsNullOrNotNull() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -404,6 +414,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByAmountIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -417,6 +428,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByAmountIsInShouldWork() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -430,6 +442,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByAmountIsNullOrNotNull() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -443,6 +456,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByReservedIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -456,6 +470,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByReservedIsInShouldWork() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -467,6 +482,7 @@ public class BalanceResourceIntTest {
         defaultBalanceShouldNotBeFound("reserved.in=" + UPDATED_RESERVED);
     }
 
+    @WithMockUser(authorities = "SUPER-ADMIN")
     @Test
     @Transactional
     public void getAllBalancesByReservedIsNullOrNotNull() throws Exception {
@@ -482,6 +498,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByEntityIdIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -495,6 +512,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByEntityIdIsInShouldWork() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -508,6 +526,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByEntityIdIsNullOrNotNull() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -521,6 +540,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByEntityIdIsGreaterThanOrEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -534,6 +554,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByEntityIdIsLessThanSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -548,6 +569,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByCreatedByIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -561,6 +583,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByCreatedByIsInShouldWork() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -574,6 +597,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByCreatedByIsNullOrNotNull() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -587,6 +611,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @Ignore("Filter by reference entity is not supported due to dynamic permission (see PermittedRepository.findByCondition)")
     public void getAllBalancesByPocketsIsEqualToSomething() throws Exception {
         // Initialize the database
         Pocket pockets = PocketResourceIntTest.createEntity(em);
@@ -606,6 +631,7 @@ public class BalanceResourceIntTest {
 
     @Test
     @Transactional
+    @Ignore("Filter by reference entity is not supported due to dynamic permission (see PermittedRepository.findByCondition)")
     public void getAllBalancesByMetricsIsEqualToSomething() throws Exception {
         // Initialize the database
         Metric metrics = MetricResourceIntTest.createEntity(em);

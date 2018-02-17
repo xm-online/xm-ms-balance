@@ -42,10 +42,6 @@ public class BalanceCriteria implements Serializable {
 
     private StringFilter createdBy;
 
-    private LongFilter pocketsId;
-
-    private LongFilter metricsId;
-
     public BalanceCriteria() {
     }
 
@@ -113,22 +109,6 @@ public class BalanceCriteria implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public LongFilter getPocketsId() {
-        return pocketsId;
-    }
-
-    public void setPocketsId(LongFilter pocketsId) {
-        this.pocketsId = pocketsId;
-    }
-
-    public LongFilter getMetricsId() {
-        return metricsId;
-    }
-
-    public void setMetricsId(LongFilter metricsId) {
-        this.metricsId = metricsId;
-    }
-
     @Override
     public String toString() {
         return "BalanceCriteria{" +
@@ -140,8 +120,6 @@ public class BalanceCriteria implements Serializable {
                 (reserved != null ? "reserved=" + reserved + ", " : "") +
                 (entityId != null ? "entityId=" + entityId + ", " : "") +
                 (createdBy != null ? "createdBy=" + createdBy + ", " : "") +
-                (pocketsId != null ? "pocketsId=" + pocketsId + ", " : "") +
-                (metricsId != null ? "metricsId=" + metricsId + ", " : "") +
             "}";
     }
 

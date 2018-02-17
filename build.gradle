@@ -252,6 +252,10 @@ dependencies {
     compile "io.springfox:springfox-bean-validators"
     compile "org.postgresql:postgresql"
     compile "org.mapstruct:mapstruct-jdk8:${mapstruct_version}"
+
+    testCompile "org.projectlombok:lombok:${lombok_version}"
+    testApt "org.projectlombok:lombok:${lombok_version}"
+
     testCompile "com.jayway.jsonpath:json-path"
     testCompile "info.cukes:cucumber-junit"
     testCompile "info.cukes:cucumber-spring"
