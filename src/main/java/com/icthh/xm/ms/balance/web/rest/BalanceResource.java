@@ -97,7 +97,6 @@ public class BalanceResource {
     @GetMapping("/balances")
     @Timed
     public ResponseEntity<List<BalanceDTO>> getAllBalances(BalanceCriteria criteria, Pageable pageable) {
-        // TODO - use permissioned service: balanceService.findAll(null);
         Page<BalanceDTO> page = balanceQueryService.findByCriteria(criteria, pageable, null);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/balances");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
