@@ -89,6 +89,7 @@ public class BalanceQueryService extends QueryService<Balance> {
         if (queryPart.isEmpty()) {
             result = permittedRepository.findAll(page, type, privilegeKey);
         } else {
+            log.debug("find with condition: {}", queryPart);
             result = permittedRepository.findByCondition(queryPart.getQuery().toString(),
                                                          queryPart.getParams(),
                                                          page,
