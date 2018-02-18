@@ -1,0 +1,104 @@
+/**
+ * This structure describes the balance definition that came out of the billing systems.
+ */
+entity Balance {
+    /**
+     * This field is used to identify the balance.
+     */
+    key String required,
+    /**
+     * This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)
+     */
+    typeKey String required,
+    /**
+     * The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)
+     */
+    measureKey String,
+    /**
+     * The value of the balance denoted by this object.
+     * The amount includes the reserved amount (see field reserved).
+     */
+    amount BigDecimal,
+    /**
+     * The reserved amount from the balance for uncommitted reservation transactions.
+     */
+    reserved BigDecimal,
+    /**
+     * The Entity ID related to this balance.
+     */
+    entityId Long required,
+    /**
+     * Created by user key.
+     */
+    createdBy String
+}
+
+/**
+ * This structure describes the sub-balances called pockets. A pocket defines a
+ * special lifetime for partial amount of a balance.
+ */
+entity Pocket {
+    /**
+     * This field is used to identify the pocket.
+     */
+    key String required,
+    /**
+     * String with the pocket type identifer.
+     */
+    typeKey String required,
+    /**
+     * Date/DateTime when the pocket becomes valid (date included).
+     */
+    startDateTime Instant,
+    /**
+     * Date/DateTime when the pocket becomes invalid (date excluded).
+     */
+    endDateTime Instant,
+    /**
+     * The value of the pocket denoted by this object.
+     * The amount includes the reserved amount (see field reserved).
+     */
+    amount BigDecimal,
+    /**
+     * The reserved amount from pocket for uncommitted reservation transactions.
+     */
+    reserved BigDecimal
+}
+
+/**
+ * The balance materic structure to store value like maximum amount of the balance
+ * denoted by this object due to all time of use.
+ */
+entity Metric {
+    /**
+     * This field is used to identify the metric.
+     */
+    key String required,
+    /**
+     * String with the metric type identifer.
+     */
+    typeKey String required,
+    /**
+     * String with the metric value.
+     */
+    value String
+}
+
+relationship OneToMany {
+    /**
+     * List of pockets owned by the balance. A null value indicates balances that cannot
+     * have pockets because they are not configured in the specification. An empty list
+     * indicates that are no pockets defined.
+     */
+    Balance{pockets} to Pocket{balance required},
+    /**
+     * List of metrics owned by the balance.
+     */
+    Balance{metrics} to Metric{balance required}
+}
+
+service all with serviceClass
+microservice * with 'balance'
+filter Balance
+paginate Balance with pagination
+dto * with mapstruct

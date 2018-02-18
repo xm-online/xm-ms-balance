@@ -1,30 +1,23 @@
 package com.icthh.xm.ms.balance.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
-import com.icthh.xm.ms.balance.domain.Pocket;
+import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
-
+import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import io.github.jhipster.web.util.ResponseUtil;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * REST controller for managing Pocket.
@@ -44,18 +37,19 @@ public class PocketResource {
     /**
      * POST  /pockets : Create a new pocket.
      *
-     * @param pocket the pocket to create
-     * @return the ResponseEntity with status 201 (Created) and with body the new pocket, or with status 400 (Bad Request) if the pocket has already an ID
+     * @param pocketDTO the pocketDTO to create
+     * @return the ResponseEntity with status 201 (Created) and with body the new pocketDTO, or with status 400 (Bad Request) if the pocket has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
+    @PreAuthorize("hasPermission({'pocket': #pocket}, 'POCKET.CREATE')")
     @PostMapping("/pockets")
     @Timed
-    @PreAuthorize("hasPermission({'pocket': #pocket}, 'POCKET.CREATE')")
-    public ResponseEntity<Pocket> createPocket(@Valid @RequestBody Pocket pocket) throws URISyntaxException {
-        if (pocket.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new pocket cannot already have an ID")).body(null);
+    public ResponseEntity<PocketDTO> createPocket(@Valid @RequestBody PocketDTO pocketDTO) throws URISyntaxException {
+        if (pocketDTO.getId() != null) {
+            throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
+                                        "A new balance cannot already have an ID");
         }
-        Pocket result = pocketService.save(pocket);
+        PocketDTO result = pocketService.save(pocketDTO);
         return ResponseEntity.created(new URI("/api/pockets/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -64,22 +58,22 @@ public class PocketResource {
     /**
      * PUT  /pockets : Updates an existing pocket.
      *
-     * @param pocket the pocket to update
-     * @return the ResponseEntity with status 200 (OK) and with body the updated pocket,
-     * or with status 400 (Bad Request) if the pocket is not valid,
-     * or with status 500 (Internal Server Error) if the pocket couldn't be updated
+     * @param pocketDTO the pocketDTO to update
+     * @return the ResponseEntity with status 200 (OK) and with body the updated pocketDTO,
+     * or with status 400 (Bad Request) if the pocketDTO is not valid,
+     * or with status 500 (Internal Server Error) if the pocketDTO couldn't be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
+    @PreAuthorize("hasPermission({'id': #pocket.id, 'newPocket': #pocket}, 'pocket', 'POCKET.UPDATE')")
     @PutMapping("/pockets")
     @Timed
-    @PreAuthorize("hasPermission({'id': #pocket.id, 'newPocket': #pocket}, 'pocket', 'POCKET.UPDATE')")
-    public ResponseEntity<Pocket> updatePocket(@Valid @RequestBody Pocket pocket) throws URISyntaxException {
-        if (pocket.getId() == null) {
-            return createPocket(pocket);
+    public ResponseEntity<PocketDTO> updatePocket(@Valid @RequestBody PocketDTO pocketDTO) throws URISyntaxException {
+        if (pocketDTO.getId() == null) {
+            return createPocket(pocketDTO);
         }
-        Pocket result = pocketService.save(pocket);
+        PocketDTO result = pocketService.save(pocketDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, pocket.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, pocketDTO.getId().toString()))
             .body(result);
     }
 
@@ -90,33 +84,33 @@ public class PocketResource {
      */
     @GetMapping("/pockets")
     @Timed
-    public List<Pocket> getAllPockets() {
+    public List<PocketDTO> getAllPockets() {
         return pocketService.findAll(null);
-    }
+        }
 
     /**
      * GET  /pockets/:id : get the "id" pocket.
      *
-     * @param id the id of the pocket to retrieve
-     * @return the ResponseEntity with status 200 (OK) and with body the pocket, or with status 404 (Not Found)
+     * @param id the id of the pocketDTO to retrieve
+     * @return the ResponseEntity with status 200 (OK) and with body the pocketDTO, or with status 404 (Not Found)
      */
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'POCKET.GET_LIST.ITEM')")
     @GetMapping("/pockets/{id}")
     @Timed
-    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'POCKET.GET_LIST.ITEM')")
-    public ResponseEntity<Pocket> getPocket(@PathVariable Long id) {
-        Pocket pocket = pocketService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(pocket));
+    public ResponseEntity<PocketDTO> getPocket(@PathVariable Long id) {
+        PocketDTO pocketDTO = pocketService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(pocketDTO));
     }
 
     /**
      * DELETE  /pockets/:id : delete the "id" pocket.
      *
-     * @param id the id of the pocket to delete
+     * @param id the id of the pocketDTO to delete
      * @return the ResponseEntity with status 200 (OK)
      */
+    @PreAuthorize("hasPermission({'id': #id}, 'pocket', 'POCKET.DELETE')")
     @DeleteMapping("/pockets/{id}")
     @Timed
-    @PreAuthorize("hasPermission({'id': #id}, 'pocket', 'POCKET.DELETE')")
     public ResponseEntity<Void> deletePocket(@PathVariable Long id) {
         pocketService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();

@@ -1,0 +1,19 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20180215145000" author="amedvedchuk">
+
+        <addColumn tableName="balance">
+            <column name="created_by" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+        <addNotNullConstraint tableName="pocket" columnName="balance_id" columnDataType="bigint"/>
+        <addNotNullConstraint tableName="metric" columnName="balance_id" columnDataType="bigint"/>
+
+    </changeSet>
+
+</databaseChangeLog>

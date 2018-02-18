@@ -1,30 +1,23 @@
 package com.icthh.xm.ms.balance.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
-import com.icthh.xm.ms.balance.domain.Metric;
+import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
-
+import com.icthh.xm.ms.balance.service.dto.MetricDTO;
 import io.github.jhipster.web.util.ResponseUtil;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * REST controller for managing Metric.
@@ -44,18 +37,19 @@ public class MetricResource {
     /**
      * POST  /metrics : Create a new metric.
      *
-     * @param metric the metric to create
-     * @return the ResponseEntity with status 201 (Created) and with body the new metric, or with status 400 (Bad Request) if the metric has already an ID
+     * @param metricDTO the metricDTO to create
+     * @return the ResponseEntity with status 201 (Created) and with body the new metricDTO, or with status 400 (Bad Request) if the metric has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
+    @PreAuthorize("hasPermission({'metric': #metric}, 'METRIC.CREATE')")
     @PostMapping("/metrics")
     @Timed
-    @PreAuthorize("hasPermission({'metric': #metric}, 'METRIC.CREATE')")
-    public ResponseEntity<Metric> createMetric(@Valid @RequestBody Metric metric) throws URISyntaxException {
-        if (metric.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new metric cannot already have an ID")).body(null);
+    public ResponseEntity<MetricDTO> createMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
+        if (metricDTO.getId() != null) {
+            throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
+                                        "A new balance cannot already have an ID");
         }
-        Metric result = metricService.save(metric);
+        MetricDTO result = metricService.save(metricDTO);
         return ResponseEntity.created(new URI("/api/metrics/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -64,22 +58,22 @@ public class MetricResource {
     /**
      * PUT  /metrics : Updates an existing metric.
      *
-     * @param metric the metric to update
-     * @return the ResponseEntity with status 200 (OK) and with body the updated metric,
-     * or with status 400 (Bad Request) if the metric is not valid,
-     * or with status 500 (Internal Server Error) if the metric couldn't be updated
+     * @param metricDTO the metricDTO to update
+     * @return the ResponseEntity with status 200 (OK) and with body the updated metricDTO,
+     * or with status 400 (Bad Request) if the metricDTO is not valid,
+     * or with status 500 (Internal Server Error) if the metricDTO couldn't be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
+    @PreAuthorize("hasPermission({'id': #metric.id, 'newMetric': #metric}, 'metric', 'METRIC.UPDATE')")
     @PutMapping("/metrics")
     @Timed
-    @PreAuthorize("hasPermission({'id': #metric.id, 'newMetric': #metric}, 'metric', 'METRIC.UPDATE')")
-    public ResponseEntity<Metric> updateMetric(@Valid @RequestBody Metric metric) throws URISyntaxException {
-        if (metric.getId() == null) {
-            return createMetric(metric);
+    public ResponseEntity<MetricDTO> updateMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
+        if (metricDTO.getId() == null) {
+            return createMetric(metricDTO);
         }
-        Metric result = metricService.save(metric);
+        MetricDTO result = metricService.save(metricDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, metric.getId().toString()))
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, metricDTO.getId().toString()))
             .body(result);
     }
 
@@ -90,33 +84,33 @@ public class MetricResource {
      */
     @GetMapping("/metrics")
     @Timed
-    public List<Metric> getAllMetrics() {
+    public List<MetricDTO> getAllMetrics() {
         return metricService.findAll(null);
-    }
+        }
 
     /**
      * GET  /metrics/:id : get the "id" metric.
      *
-     * @param id the id of the metric to retrieve
-     * @return the ResponseEntity with status 200 (OK) and with body the metric, or with status 404 (Not Found)
+     * @param id the id of the metricDTO to retrieve
+     * @return the ResponseEntity with status 200 (OK) and with body the metricDTO, or with status 404 (Not Found)
      */
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'METRIC.GET_LIST.ITEM')")
     @GetMapping("/metrics/{id}")
     @Timed
-    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'METRIC.GET_LIST.ITEM')")
-    public ResponseEntity<Metric> getMetric(@PathVariable Long id) {
-        Metric metric = metricService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(metric));
+    public ResponseEntity<MetricDTO> getMetric(@PathVariable Long id) {
+        MetricDTO metricDTO = metricService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(metricDTO));
     }
 
     /**
      * DELETE  /metrics/:id : delete the "id" metric.
      *
-     * @param id the id of the metric to delete
+     * @param id the id of the metricDTO to delete
      * @return the ResponseEntity with status 200 (OK)
      */
+    @PreAuthorize("hasPermission({'id': #id}, 'metric', 'METRIC.DELETE')")
     @DeleteMapping("/metrics/{id}")
     @Timed
-    @PreAuthorize("hasPermission({'id': #id}, 'metric', 'METRIC.DELETE')")
     public ResponseEntity<Void> deleteMetric(@PathVariable Long id) {
         metricService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
