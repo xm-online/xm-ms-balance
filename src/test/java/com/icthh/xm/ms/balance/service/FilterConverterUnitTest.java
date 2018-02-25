@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.icthh.xm.ms.balance.service.FilterConverter.QueryPart;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
+import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
 import io.github.jhipster.service.filter.BigDecimalFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
@@ -156,7 +157,17 @@ public class FilterConverterUnitTest {
 
     }
 
-    private QueryPart createQueryPart(final BalanceCriteria criteria) {
+    @Test
+    public void testForeignKeyColumnConversion() {
+        PocketCriteria criteria = new PocketCriteria();
+        criteria.setBalanceId((LongFilter) new LongFilter().setEquals(42L));
+        QueryPart queryPart = createQueryPart(criteria);
+
+        assertEquals("balance_id = :balance_id", queryPart.getQuery().toString());
+        assertEquals(42L, queryPart.getParams().get("balance_id"));
+    }
+
+    private QueryPart createQueryPart(final Object criteria) {
         return FilterConverter.toJpql(criteria);
     }
 

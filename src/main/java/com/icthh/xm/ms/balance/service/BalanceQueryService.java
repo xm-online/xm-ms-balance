@@ -4,10 +4,7 @@ package com.icthh.xm.ms.balance.service;
 import java.util.List;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
-import com.icthh.xm.commons.permission.repository.PermittedRepository;
-import com.icthh.xm.ms.balance.service.FilterConverter.QueryPart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.icthh.xm.ms.balance.repository.CriteriaPermittedRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specifications;
@@ -33,14 +30,11 @@ import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 @Transactional(readOnly = true)
 public class BalanceQueryService extends QueryService<Balance> {
 
-    private final Logger log = LoggerFactory.getLogger(BalanceQueryService.class);
-
-
-    private final PermittedRepository permittedRepository;
+    private final CriteriaPermittedRepository permittedRepository;
 
     private final BalanceMapper balanceMapper;
 
-    public BalanceQueryService(PermittedRepository permittedRepository, BalanceMapper balanceMapper) {
+    public BalanceQueryService(CriteriaPermittedRepository permittedRepository, BalanceMapper balanceMapper) {
         this.permittedRepository = permittedRepository;
         this.balanceMapper = balanceMapper;
     }
@@ -53,7 +47,8 @@ public class BalanceQueryService extends QueryService<Balance> {
     @FindWithPermission("BALANCE.GET_LIST")
     @Transactional(readOnly = true)
     public List<BalanceDTO> findByCriteria(BalanceCriteria criteria, String privilegeKey) {
-        List<Balance> result = findWithPermission(Balance.class, criteria, null, privilegeKey).getContent();
+        List<Balance> result = permittedRepository.findWithPermission(Balance.class, criteria, null, privilegeKey)
+                                                  .getContent();
         return balanceMapper.toDto(result);
     }
 
@@ -66,37 +61,8 @@ public class BalanceQueryService extends QueryService<Balance> {
     @FindWithPermission("BALANCE.GET_LIST")
     @Transactional(readOnly = true)
     public Page<BalanceDTO> findByCriteria(BalanceCriteria criteria, Pageable page, String privilegeKey) {
-        Page<Balance> result = findWithPermission(Balance.class, criteria, page, privilegeKey);
+        Page<Balance> result = permittedRepository.findWithPermission(Balance.class, criteria, page, privilegeKey);
         return result.map(balanceMapper::toDto);
-    }
-
-    /**
-     * Find entities with applied filtering and dynamic permissions written in SpEL (rresource condition).
-     * @param type Entity class
-     * @param criteria Filtering criteria from request
-     * @param page page
-     * @param privilegeKey privilege key
-     * @param <T> Entity type
-     * @return Entity page.
-     */
-    private <T> Page<T> findWithPermission(final Class<T> type,
-                                           final BalanceCriteria criteria,
-                                           final Pageable page,
-                                           final String privilegeKey) {
-        QueryPart queryPart = FilterConverter.toJpql(criteria);
-
-        Page<T> result;
-        if (queryPart.isEmpty()) {
-            result = permittedRepository.findAll(page, type, privilegeKey);
-        } else {
-            log.debug("find with condition: {}", queryPart);
-            result = permittedRepository.findByCondition(queryPart.getQuery().toString(),
-                                                         queryPart.getParams(),
-                                                         page,
-                                                         type,
-                                                         privilegeKey);
-        }
-        return result;
     }
 
     /**

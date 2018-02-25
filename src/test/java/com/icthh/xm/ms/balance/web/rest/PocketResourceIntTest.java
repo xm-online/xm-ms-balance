@@ -13,6 +13,8 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
+import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
+import com.icthh.xm.ms.balance.service.PocketQueryService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -79,6 +81,9 @@ public class PocketResourceIntTest {
     private PocketService pocketService;
 
     @Autowired
+    private PocketQueryService pocketQueryService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -105,7 +110,7 @@ public class PocketResourceIntTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final PocketResource pocketResource = new PocketResource(pocketService);
+        final PocketResource pocketResource = new PocketResource(pocketService, pocketQueryService);
         this.restPocketMockMvc = MockMvcBuilders.standaloneSetup(pocketResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -260,6 +265,305 @@ public class PocketResourceIntTest {
             .andExpect(jsonPath("$.amount").value(DEFAULT_AMOUNT.intValue()))
             .andExpect(jsonPath("$.reserved").value(DEFAULT_RESERVED.intValue()));
     }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByKeyIsEqualToSomething() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where key equals to DEFAULT_KEY
+        defaultPocketShouldBeFound("key.equals=" + DEFAULT_KEY);
+
+        // Get all the pocketList where key equals to UPDATED_KEY
+        defaultPocketShouldNotBeFound("key.equals=" + UPDATED_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByKeyIsInShouldWork() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where key in DEFAULT_KEY or UPDATED_KEY
+        defaultPocketShouldBeFound("key.in=" + DEFAULT_KEY + "," + UPDATED_KEY);
+
+        // Get all the pocketList where key equals to UPDATED_KEY
+        defaultPocketShouldNotBeFound("key.in=" + UPDATED_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByKeyIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where key is not null
+        defaultPocketShouldBeFound("key.specified=true");
+
+        // Get all the pocketList where key is null
+        defaultPocketShouldNotBeFound("key.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByTypeKeyIsEqualToSomething() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where typeKey equals to DEFAULT_TYPE_KEY
+        defaultPocketShouldBeFound("typeKey.equals=" + DEFAULT_TYPE_KEY);
+
+        // Get all the pocketList where typeKey equals to UPDATED_TYPE_KEY
+        defaultPocketShouldNotBeFound("typeKey.equals=" + UPDATED_TYPE_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByTypeKeyIsInShouldWork() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where typeKey in DEFAULT_TYPE_KEY or UPDATED_TYPE_KEY
+        defaultPocketShouldBeFound("typeKey.in=" + DEFAULT_TYPE_KEY + "," + UPDATED_TYPE_KEY);
+
+        // Get all the pocketList where typeKey equals to UPDATED_TYPE_KEY
+        defaultPocketShouldNotBeFound("typeKey.in=" + UPDATED_TYPE_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByTypeKeyIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where typeKey is not null
+        defaultPocketShouldBeFound("typeKey.specified=true");
+
+        // Get all the pocketList where typeKey is null
+        defaultPocketShouldNotBeFound("typeKey.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByStartDateTimeIsEqualToSomething() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where startDateTime equals to DEFAULT_START_DATE_TIME
+        defaultPocketShouldBeFound("startDateTime.equals=" + DEFAULT_START_DATE_TIME);
+
+        // Get all the pocketList where startDateTime equals to UPDATED_START_DATE_TIME
+        defaultPocketShouldNotBeFound("startDateTime.equals=" + UPDATED_START_DATE_TIME);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByStartDateTimeIsInShouldWork() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where startDateTime in DEFAULT_START_DATE_TIME or UPDATED_START_DATE_TIME
+        defaultPocketShouldBeFound("startDateTime.in=" + DEFAULT_START_DATE_TIME + "," + UPDATED_START_DATE_TIME);
+
+        // Get all the pocketList where startDateTime equals to UPDATED_START_DATE_TIME
+        defaultPocketShouldNotBeFound("startDateTime.in=" + UPDATED_START_DATE_TIME);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByStartDateTimeIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where startDateTime is not null
+        defaultPocketShouldBeFound("startDateTime.specified=true");
+
+        // Get all the pocketList where startDateTime is null
+        defaultPocketShouldNotBeFound("startDateTime.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByEndDateTimeIsEqualToSomething() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where endDateTime equals to DEFAULT_END_DATE_TIME
+        defaultPocketShouldBeFound("endDateTime.equals=" + DEFAULT_END_DATE_TIME);
+
+        // Get all the pocketList where endDateTime equals to UPDATED_END_DATE_TIME
+        defaultPocketShouldNotBeFound("endDateTime.equals=" + UPDATED_END_DATE_TIME);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByEndDateTimeIsInShouldWork() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where endDateTime in DEFAULT_END_DATE_TIME or UPDATED_END_DATE_TIME
+        defaultPocketShouldBeFound("endDateTime.in=" + DEFAULT_END_DATE_TIME + "," + UPDATED_END_DATE_TIME);
+
+        // Get all the pocketList where endDateTime equals to UPDATED_END_DATE_TIME
+        defaultPocketShouldNotBeFound("endDateTime.in=" + UPDATED_END_DATE_TIME);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByEndDateTimeIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where endDateTime is not null
+        defaultPocketShouldBeFound("endDateTime.specified=true");
+
+        // Get all the pocketList where endDateTime is null
+        defaultPocketShouldNotBeFound("endDateTime.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByAmountIsEqualToSomething() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where amount equals to DEFAULT_AMOUNT
+        defaultPocketShouldBeFound("amount.equals=" + DEFAULT_AMOUNT);
+
+        // Get all the pocketList where amount equals to UPDATED_AMOUNT
+        defaultPocketShouldNotBeFound("amount.equals=" + UPDATED_AMOUNT);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByAmountIsInShouldWork() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where amount in DEFAULT_AMOUNT or UPDATED_AMOUNT
+        defaultPocketShouldBeFound("amount.in=" + DEFAULT_AMOUNT + "," + UPDATED_AMOUNT);
+
+        // Get all the pocketList where amount equals to UPDATED_AMOUNT
+        defaultPocketShouldNotBeFound("amount.in=" + UPDATED_AMOUNT);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByAmountIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where amount is not null
+        defaultPocketShouldBeFound("amount.specified=true");
+
+        // Get all the pocketList where amount is null
+        defaultPocketShouldNotBeFound("amount.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByReservedIsEqualToSomething() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where reserved equals to DEFAULT_RESERVED
+        defaultPocketShouldBeFound("reserved.equals=" + DEFAULT_RESERVED);
+
+        // Get all the pocketList where reserved equals to UPDATED_RESERVED
+        defaultPocketShouldNotBeFound("reserved.equals=" + UPDATED_RESERVED);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByReservedIsInShouldWork() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where reserved in DEFAULT_RESERVED or UPDATED_RESERVED
+        defaultPocketShouldBeFound("reserved.in=" + DEFAULT_RESERVED + "," + UPDATED_RESERVED);
+
+        // Get all the pocketList where reserved equals to UPDATED_RESERVED
+        defaultPocketShouldNotBeFound("reserved.in=" + UPDATED_RESERVED);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByReservedIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        pocketRepository.saveAndFlush(pocket);
+
+        // Get all the pocketList where reserved is not null
+        defaultPocketShouldBeFound("reserved.specified=true");
+
+        // Get all the pocketList where reserved is null
+        defaultPocketShouldNotBeFound("reserved.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllPocketsByBalanceIsEqualToSomething() throws Exception {
+        // Initialize the database
+        Balance balance = BalanceResourceIntTest.createEntity(em);
+        em.persist(balance);
+        em.flush();
+        pocket.setBalance(balance);
+        pocketRepository.saveAndFlush(pocket);
+        Long balanceId = balance.getId();
+
+        // Get all the pocketList where balance equals to balanceId
+        defaultPocketShouldBeFound("balanceId.equals=" + balanceId);
+
+        // Get all the pocketList where balance equals to balanceId + 1
+        defaultPocketShouldNotBeFound("balanceId.equals=" + (balanceId + 1));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned
+     */
+    private void defaultPocketShouldBeFound(String filter) throws Exception {
+        restPocketMockMvc.perform(get("/api/pockets?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(pocket.getId().intValue())))
+            .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
+            .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
+            .andExpect(jsonPath("$.[*].startDateTime").value(hasItem(DEFAULT_START_DATE_TIME.toString())))
+            .andExpect(jsonPath("$.[*].endDateTime").value(hasItem(DEFAULT_END_DATE_TIME.toString())))
+            .andExpect(jsonPath("$.[*].amount").value(hasItem(DEFAULT_AMOUNT.intValue())))
+            .andExpect(jsonPath("$.[*].reserved").value(hasItem(DEFAULT_RESERVED.intValue())));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned
+     */
+    private void defaultPocketShouldNotBeFound(String filter) throws Exception {
+        restPocketMockMvc.perform(get("/api/pockets?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
 
     @Test
     @Transactional

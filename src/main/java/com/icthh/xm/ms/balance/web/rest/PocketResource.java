@@ -6,6 +6,8 @@ import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
+import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
+import com.icthh.xm.ms.balance.service.PocketQueryService;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -30,8 +32,11 @@ public class PocketResource {
 
     private final PocketService pocketService;
 
-    public PocketResource(PocketService pocketService) {
+    private final PocketQueryService pocketQueryService;
+
+    public PocketResource(PocketService pocketService, PocketQueryService pocketQueryService) {
         this.pocketService = pocketService;
+        this.pocketQueryService = pocketQueryService;
     }
 
     /**
@@ -47,7 +52,7 @@ public class PocketResource {
     public ResponseEntity<PocketDTO> createPocket(@Valid @RequestBody PocketDTO pocketDTO) throws URISyntaxException {
         if (pocketDTO.getId() != null) {
             throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
-                                        "A new balance cannot already have an ID");
+                                        "A new pocket cannot already have an ID");
         }
         PocketDTO result = pocketService.save(pocketDTO);
         return ResponseEntity.created(new URI("/api/pockets/" + result.getId()))
@@ -80,13 +85,15 @@ public class PocketResource {
     /**
      * GET  /pockets : get all the pockets.
      *
+     * @param criteria the criterias which the requested entities should match
      * @return the ResponseEntity with status 200 (OK) and the list of pockets in body
      */
     @GetMapping("/pockets")
     @Timed
-    public List<PocketDTO> getAllPockets() {
-        return pocketService.findAll(null);
-        }
+    public ResponseEntity<List<PocketDTO>> getAllPockets(PocketCriteria criteria) {
+        List<PocketDTO> entityList = pocketQueryService.findByCriteria(criteria, null);
+        return ResponseEntity.ok().body(entityList);
+    }
 
     /**
      * GET  /pockets/:id : get the "id" pocket.
