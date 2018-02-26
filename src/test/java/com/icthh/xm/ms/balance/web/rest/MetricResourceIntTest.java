@@ -13,6 +13,8 @@ import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.dto.MetricDTO;
 import com.icthh.xm.ms.balance.service.mapper.MetricMapper;
+import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
+import com.icthh.xm.ms.balance.service.MetricQueryService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -67,6 +69,9 @@ public class MetricResourceIntTest {
     private MetricService metricService;
 
     @Autowired
+    private MetricQueryService metricQueryService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -93,7 +98,7 @@ public class MetricResourceIntTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final MetricResource metricResource = new MetricResource(metricService);
+        final MetricResource metricResource = new MetricResource(metricService, metricQueryService);
         this.restMetricMockMvc = MockMvcBuilders.standaloneSetup(metricResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -236,6 +241,176 @@ public class MetricResourceIntTest {
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY.toString()))
             .andExpect(jsonPath("$.value").value(DEFAULT_VALUE.toString()));
     }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByKeyIsEqualToSomething() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where key equals to DEFAULT_KEY
+        defaultMetricShouldBeFound("key.equals=" + DEFAULT_KEY);
+
+        // Get all the metricList where key equals to UPDATED_KEY
+        defaultMetricShouldNotBeFound("key.equals=" + UPDATED_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByKeyIsInShouldWork() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where key in DEFAULT_KEY or UPDATED_KEY
+        defaultMetricShouldBeFound("key.in=" + DEFAULT_KEY + "," + UPDATED_KEY);
+
+        // Get all the metricList where key equals to UPDATED_KEY
+        defaultMetricShouldNotBeFound("key.in=" + UPDATED_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByKeyIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where key is not null
+        defaultMetricShouldBeFound("key.specified=true");
+
+        // Get all the metricList where key is null
+        defaultMetricShouldNotBeFound("key.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByTypeKeyIsEqualToSomething() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where typeKey equals to DEFAULT_TYPE_KEY
+        defaultMetricShouldBeFound("typeKey.equals=" + DEFAULT_TYPE_KEY);
+
+        // Get all the metricList where typeKey equals to UPDATED_TYPE_KEY
+        defaultMetricShouldNotBeFound("typeKey.equals=" + UPDATED_TYPE_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByTypeKeyIsInShouldWork() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where typeKey in DEFAULT_TYPE_KEY or UPDATED_TYPE_KEY
+        defaultMetricShouldBeFound("typeKey.in=" + DEFAULT_TYPE_KEY + "," + UPDATED_TYPE_KEY);
+
+        // Get all the metricList where typeKey equals to UPDATED_TYPE_KEY
+        defaultMetricShouldNotBeFound("typeKey.in=" + UPDATED_TYPE_KEY);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByTypeKeyIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where typeKey is not null
+        defaultMetricShouldBeFound("typeKey.specified=true");
+
+        // Get all the metricList where typeKey is null
+        defaultMetricShouldNotBeFound("typeKey.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByValueIsEqualToSomething() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where value equals to DEFAULT_VALUE
+        defaultMetricShouldBeFound("value.equals=" + DEFAULT_VALUE);
+
+        // Get all the metricList where value equals to UPDATED_VALUE
+        defaultMetricShouldNotBeFound("value.equals=" + UPDATED_VALUE);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByValueIsInShouldWork() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where value in DEFAULT_VALUE or UPDATED_VALUE
+        defaultMetricShouldBeFound("value.in=" + DEFAULT_VALUE + "," + UPDATED_VALUE);
+
+        // Get all the metricList where value equals to UPDATED_VALUE
+        defaultMetricShouldNotBeFound("value.in=" + UPDATED_VALUE);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByValueIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        metricRepository.saveAndFlush(metric);
+
+        // Get all the metricList where value is not null
+        defaultMetricShouldBeFound("value.specified=true");
+
+        // Get all the metricList where value is null
+        defaultMetricShouldNotBeFound("value.specified=false");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getAllMetricsByBalanceIsEqualToSomething() throws Exception {
+        // Initialize the database
+        Balance balance = BalanceResourceIntTest.createEntity(em);
+        em.persist(balance);
+        em.flush();
+        metric.setBalance(balance);
+        metricRepository.saveAndFlush(metric);
+        Long balanceId = balance.getId();
+
+        // Get all the metricList where balance equals to balanceId
+        defaultMetricShouldBeFound("balanceId.equals=" + balanceId);
+
+        // Get all the metricList where balance equals to balanceId + 1
+        defaultMetricShouldNotBeFound("balanceId.equals=" + (balanceId + 1));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned
+     */
+    private void defaultMetricShouldBeFound(String filter) throws Exception {
+        restMetricMockMvc.perform(get("/api/metrics?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(metric.getId().intValue())))
+            .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
+            .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
+            .andExpect(jsonPath("$.[*].value").value(hasItem(DEFAULT_VALUE.toString())));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned
+     */
+    private void defaultMetricShouldNotBeFound(String filter) throws Exception {
+        restMetricMockMvc.perform(get("/api/metrics?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
 
     @Test
     @Transactional

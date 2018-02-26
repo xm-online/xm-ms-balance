@@ -6,6 +6,8 @@ import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import com.icthh.xm.ms.balance.service.dto.MetricDTO;
+import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
+import com.icthh.xm.ms.balance.service.MetricQueryService;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -30,8 +32,11 @@ public class MetricResource {
 
     private final MetricService metricService;
 
-    public MetricResource(MetricService metricService) {
+    private final MetricQueryService metricQueryService;
+
+    public MetricResource(MetricService metricService, MetricQueryService metricQueryService) {
         this.metricService = metricService;
+        this.metricQueryService = metricQueryService;
     }
 
     /**
@@ -47,7 +52,7 @@ public class MetricResource {
     public ResponseEntity<MetricDTO> createMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
         if (metricDTO.getId() != null) {
             throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
-                                        "A new balance cannot already have an ID");
+                                        "A new metric cannot already have an ID");
         }
         MetricDTO result = metricService.save(metricDTO);
         return ResponseEntity.created(new URI("/api/metrics/" + result.getId()))
@@ -80,13 +85,15 @@ public class MetricResource {
     /**
      * GET  /metrics : get all the metrics.
      *
+     * @param criteria the criterias which the requested entities should match
      * @return the ResponseEntity with status 200 (OK) and the list of metrics in body
      */
     @GetMapping("/metrics")
     @Timed
-    public List<MetricDTO> getAllMetrics() {
-        return metricService.findAll(null);
-        }
+    public ResponseEntity<List<MetricDTO>> getAllMetrics(MetricCriteria criteria) {
+        List<MetricDTO> entityList = metricQueryService.findByCriteria(criteria, null);
+        return ResponseEntity.ok().body(entityList);
+    }
 
     /**
      * GET  /metrics/:id : get the "id" metric.

@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Converts
+ * Converts Criteria to JPQL statement.
  */
 public class FilterConverter {
 
@@ -41,7 +41,7 @@ public class FilterConverter {
         Stream.Builder<Expression> expressions = Stream.builder();
 
         Filter<?> filter = entry.getValue();
-        String fieldName = entry.getKey();
+        String fieldName = preProcessForeignKeyField(entry.getKey());
 
         if (filter.getEquals() != null) {
             expressions.add(new Expression(fieldName, Operation.EQUALS, filter.getEquals()));
@@ -87,6 +87,21 @@ public class FilterConverter {
         return expressions.build();
     }
 
+    /**
+     * Pre-processes foreign key field name from camelCase to snake_case.
+     *
+     * The reason to preprocess is because jhipster generates FK fields in snake case in DB.
+     *
+     * @param fieldName field name
+     * @return preprocessed field name if field ends with 'Id'
+     */
+    private static String preProcessForeignKeyField(String fieldName) {
+        if (fieldName.endsWith("Id")) {
+            return fieldName.replaceFirst("Id$", "_id");
+        }
+        return fieldName;
+    }
+
     @Getter
     @ToString
     public static class QueryPart {
@@ -97,7 +112,7 @@ public class FilterConverter {
         Map<String, Object> params = new HashMap<>();
         Multiset<String> aliases = HashMultiset.create();
 
-        boolean isEmpty() {
+        public boolean isEmpty() {
             return query.length() == 0;
         }
 
@@ -139,7 +154,7 @@ public class FilterConverter {
     @ToString
     public static class Expression {
 
-        public static final String JPQL_ALIS_PREFIX = ":";
+        public static final String JPQL_ALIAS_PREFIX = ":";
 
         String fieldName;
         Operation operation;
@@ -152,7 +167,7 @@ public class FilterConverter {
         String toJpql(String alias) {
             String jpql = fieldName + operation.getJpqlOp();
             if (operation.isParamRequired()) {
-                jpql += JPQL_ALIS_PREFIX + alias;
+                jpql += JPQL_ALIAS_PREFIX + alias;
             }
             return jpql;
         }

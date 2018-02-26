@@ -48,11 +48,11 @@
         }
     ],
     "changelogDate": "20180215145906",
-    "javadoc": "This structure describes the sub-balances called pockets. A pocket defines a\nspecial lifetime for partial amount of a balance.",
+    "javadoc": "This structure describes the sub-balances called pockets. A pocket defines a\nspecial lifetime for partial amount of the balance.",
     "entityTableName": "pocket",
     "dto": "mapstruct",
     "pagination": "no",
     "service": "serviceClass",
-    "jpaMetamodelFiltering": false,
+    "jpaMetamodelFiltering": true,
     "microserviceName": "balance"
 }

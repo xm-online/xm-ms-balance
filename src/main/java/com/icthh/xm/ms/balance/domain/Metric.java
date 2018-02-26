@@ -12,10 +12,10 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * The balance materic structure to store value like maximum amount of the balance
+ * The balance metric structure to store value like maximum amount of the balance
  * denoted by this object due to all time of use.
  */
-@ApiModel(description = "The balance materic structure to store value like maximum amount of the balance denoted by this object due to all time of use.")
+@ApiModel(description = "The balance metric structure to store value like maximum amount of the balance denoted by this object due to all time of use.")
 @Entity
 @Table(name = "metric")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

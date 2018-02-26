@@ -15,9 +15,9 @@ import java.util.Objects;
 
 /**
  * This structure describes the sub-balances called pockets. A pocket defines a
- * special lifetime for partial amount of a balance.
+ * special lifetime for partial amount of the balance.
  */
-@ApiModel(description = "This structure describes the sub-balances called pockets. A pocket defines a special lifetime for partial amount of a balance.")
+@ApiModel(description = "This structure describes the sub-balances called pockets. A pocket defines a special lifetime for partial amount of the balance.")
 @Entity
 @Table(name = "pocket")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
