@@ -13,14 +13,15 @@ script:
 - "./gradlew --no-daemon --refresh-dependencies clean check test"
 - "./gradlew -x test -Pprod --no-daemon bootRepackage"
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
-- docker build -t $TRAVIS_REPO_SLUG:$TRAVIS_BRANCH -t $TRAVIS_REPO_SLUG:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER  
+- export DOCKER_REPO=$(echo  -n $TRAVIS_REPO_SLUG | sed -e 's/-//g'); 
+- docker build -t $DOCKER_REPO:$TRAVIS_BRANCH -t $DOCKER_REPO:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER  
   --label commit_id="$TRAVIS_COMMIT" --label commit_message="$TRAVIS_COMMIT_MESSAGE" 
   -f src/main/docker/Dockerfile .
-- docker push $TRAVIS_REPO_SLUG:$TRAVIS_BRANCH
-- docker push $TRAVIS_REPO_SLUG:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER
+- docker push $DOCKER_REPO:$TRAVIS_BRANCH
+- docker push $DOCKER_REPO:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER
 - if [ "$TRAVIS_BRANCH" == "master" ]; then 
-  docker tag $TRAVIS_REPO_SLUG:$TRAVIS_BRANCH $TRAVIS_REPO_SLUG:latest; 
-  docker push $TRAVIS_REPO_SLUG:latest; 
+  docker tag $DOCKER_REPO:$TRAVIS_BRANCH $DOCKER_REPO:latest; 
+  docker push $DOCKER_REPO:latest; 
   export SONAR_PK=$(echo  -n $TRAVIS_REPO_SLUG | sed -e 's/\//:/g'); 
   ./gradlew -x test --no-daemon sonarqube -Dsonar.projectKey="$SONAR_PK" -Dsonar.projectName="$SONAR_PK" -Dsonar.java.binaries="." -Dsonar.projectVersion="$TRAVIS_BRANCH"; fi
 cache:
