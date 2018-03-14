@@ -10,8 +10,9 @@ addons:
     branches:
     - master
 script:
-- "./gradlew --no-daemon --refresh-dependencies clean check test"
-- "./gradlew -x test -Pprod --no-daemon bootRepackage"
+- set -e
+- ./gradlew --no-daemon --refresh-dependencies clean check test
+- ./gradlew -x test -Pprod --no-daemon bootRepackage
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
 - export DOCKER_REPO=$(echo  -n $TRAVIS_REPO_SLUG | sed -e 's/^xm-online\//xmonline\//g'); 
 - docker build -t $DOCKER_REPO:$TRAVIS_BRANCH -t $DOCKER_REPO:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER  
