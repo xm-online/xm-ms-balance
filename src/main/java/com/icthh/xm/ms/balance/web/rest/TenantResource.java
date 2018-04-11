@@ -1,9 +1,9 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.gen.api.TenantsApiDelegate;
 import com.icthh.xm.commons.gen.model.Tenant;
 
+import com.icthh.xm.ms.balance.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,19 +19,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TenantResource implements TenantsApiDelegate {
 
-    private final TenantListRepository tenantListRepository;
+    private final TenantService tenantService;
 
     @Override
     @PreAuthorize("hasPermission({'tenant':#tenant}, 'BALANCE.TENANT.CREATE')")
     public ResponseEntity<Void> addTenant(Tenant tenant) {
-        tenantListRepository.addTenant(tenant.getTenantKey().toLowerCase());
+        tenantService.createTenant(tenant.getTenantKey());
         return ResponseEntity.ok().build();
     }
 
     @Override
     @PreAuthorize("hasPermission({'tenantKey':#tenantKey}, 'BALANCE.TENANT.DELETE')")
     public ResponseEntity<Void> deleteTenant(String tenantKey) {
-        tenantListRepository.deleteTenant(tenantKey.toLowerCase());
+        tenantService.deleteTenant(tenantKey);
         return ResponseEntity.ok().build();
     }
 
@@ -50,7 +50,7 @@ public class TenantResource implements TenantsApiDelegate {
     @Override
     @PreAuthorize("hasPermission({'tenant':#tenant, 'state':#state}, 'BALANCE.TENANT.UPDATE')")
     public ResponseEntity<Void> manageTenant(String tenant, String state) {
-        tenantListRepository.updateTenant(tenant.toLowerCase(), state.toUpperCase());
+        tenantService.manageTenant(tenant, state);
         return ResponseEntity.ok().build();
     }
 }

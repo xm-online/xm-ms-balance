@@ -28,6 +28,7 @@ public final class Constants {
 
     public static final String CERTIFICATE = "X.509";
     public static final String PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----%n%s%n-----END PUBLIC KEY-----";
+    public static final String TENANT_XM = "XM";
 
     private Constants() {
     }
