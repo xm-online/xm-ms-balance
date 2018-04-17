@@ -105,6 +105,7 @@ if (OperatingSystem.current().isWindows()) {
 }
 
 test {
+    systemProperty "spring.profiles.active", "test"
     include '**/*UnitTest*'
     include '**/*IntTest*'
 
@@ -202,9 +203,6 @@ dependencies {
     compile "com.fasterxml.jackson.core:jackson-databind"
     compile "com.fasterxml.jackson.module:jackson-module-afterburner"
     compile "com.ryantenney.metrics:metrics-spring"
-    compile "com.hazelcast:hazelcast"
-    compile "com.hazelcast:hazelcast-hibernate52"
-    compile "com.hazelcast:hazelcast-spring"
     compile "javax.cache:cache-api"
     compile "org.hibernate:hibernate-core"
     compile "com.zaxxer:HikariCP"
