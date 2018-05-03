@@ -16,6 +16,9 @@ public interface BalanceMapper extends EntityMapper<BalanceDTO, Balance> {
     @Mapping(target = "metrics", ignore = true)
     Balance toEntity(BalanceDTO balanceDTO);
 
+    @Mapping(target = "amount", ignore = true)
+    BalanceDTO toDto(Balance balance);
+
     default Balance fromId(Long id) {
         if (id == null) {
             return null;

@@ -34,8 +34,6 @@ public class BalanceCriteria implements Serializable {
 
     private StringFilter measureKey;
 
-    private BigDecimalFilter amount;
-
     private BigDecimalFilter reserved;
 
     private LongFilter entityId;
@@ -77,14 +75,6 @@ public class BalanceCriteria implements Serializable {
         this.measureKey = measureKey;
     }
 
-    public BigDecimalFilter getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimalFilter amount) {
-        this.amount = amount;
-    }
-
     public BigDecimalFilter getReserved() {
         return reserved;
     }
@@ -116,7 +106,6 @@ public class BalanceCriteria implements Serializable {
                 (key != null ? "key=" + key + ", " : "") +
                 (typeKey != null ? "typeKey=" + typeKey + ", " : "") +
                 (measureKey != null ? "measureKey=" + measureKey + ", " : "") +
-                (amount != null ? "amount=" + amount + ", " : "") +
                 (reserved != null ? "reserved=" + reserved + ", " : "") +
                 (entityId != null ? "entityId=" + entityId + ", " : "") +
                 (createdBy != null ? "createdBy=" + createdBy + ", " : "") +

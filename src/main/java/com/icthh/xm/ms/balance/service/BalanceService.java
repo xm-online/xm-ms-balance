@@ -1,15 +1,27 @@
 package com.icthh.xm.ms.balance.service;
 
+import static java.time.Instant.now;
+import static java.util.stream.Collectors.toMap;
+
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.repository.BalanceAmountDto;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
+import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import io.github.jhipster.service.filter.LongFilter;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -53,8 +65,11 @@ public class BalanceService {
     @FindWithPermission("BALANCE.GET_LIST")
     @Transactional(readOnly = true)
     public Page<BalanceDTO> findAll(Pageable pageable, String privilegeKey) {
-        return permittedRepository.findAll(pageable, Balance.class, privilegeKey)
-            .map(balanceMapper::toDto);
+        Page<Balance> page = permittedRepository.findAll(pageable, Balance.class, privilegeKey);
+        List<BalanceDTO> dtos = page.map(balanceMapper::toDto).getContent();
+        Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmount(page.getContent());
+        dtos.forEach(it -> it.setAmount(balancesAmount.getOrDefault(it.getId(), new BigDecimal("0"))));
+        return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 
     /**
@@ -66,7 +81,11 @@ public class BalanceService {
     @Transactional(readOnly = true)
     public BalanceDTO findOne(Long id) {
         Balance balance = balanceRepository.findOne(id);
-        return balanceMapper.toDto(balance);
+        BalanceDTO balanceDTO = balanceMapper.toDto(balance);
+        if (balanceDTO != null) {
+            balanceDTO.setAmount(balanceRepository.getBalanceAmount(balance, now()).orElse(new BigDecimal("0")));
+        }
+        return balanceDTO;
     }
 
     /**
@@ -77,4 +96,6 @@ public class BalanceService {
     public void delete(Long id) {
         balanceRepository.delete(id);
     }
+
+
 }

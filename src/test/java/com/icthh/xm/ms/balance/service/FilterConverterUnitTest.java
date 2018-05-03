@@ -27,19 +27,6 @@ import java.util.List;
 public class FilterConverterUnitTest {
 
     @Test
-    public void testTwoExpressions() {
-        BalanceCriteria criteria = new BalanceCriteria();
-        criteria.setId((LongFilter) new LongFilter().setEquals(42L));
-        criteria.setAmount((BigDecimalFilter) new BigDecimalFilter().setEquals(BigDecimal.ONE));
-        QueryPart queryPart = createQueryPart(criteria);
-
-        assertEquals("amount = :amount and id = :id", queryPart.getQuery().toString());
-        assertEquals(42L, queryPart.getParams().get("id"));
-        assertEquals(BigDecimal.ONE, queryPart.getParams().get("amount"));
-
-    }
-
-    @Test
     public void testSpecifiedTrueExpression() {
         BalanceCriteria criteria = new BalanceCriteria();
         criteria.setId((LongFilter) new LongFilter().setSpecified(true));
@@ -136,8 +123,6 @@ public class FilterConverterUnitTest {
     @Test
     public void testComplexExpression() {
         BalanceCriteria criteria = new BalanceCriteria();
-        criteria.setAmount((BigDecimalFilter) new BigDecimalFilter().setGreaterThan(BigDecimal.ONE)
-                                                                    .setLessThan(BigDecimal.TEN));
         criteria.setKey(new StringFilter().setContains("key_"));
         criteria.setTypeKey((StringFilter) new StringFilter().setIn(Arrays.asList("1", "2", "3")));
         criteria.setMeasureKey((StringFilter) new StringFilter().setEquals("measureKey_"));
@@ -145,11 +130,9 @@ public class FilterConverterUnitTest {
         QueryPart queryPart = createQueryPart(criteria);
 
         assertEquals(
-            "measureKey = :measureKey and amount > :amount and amount < :amount1 "
+            "measureKey = :measureKey "
             + "and typeKey in :typeKey and key like :key",
             queryPart.getQuery().toString());
-        assertEquals(BigDecimal.ONE, queryPart.getParams().get("amount"));
-        assertEquals(BigDecimal.TEN, queryPart.getParams().get("amount1"));
         assertEquals("key_", queryPart.getParams().get("key"));
         assertArrayEquals(Arrays.asList("1", "2", "3").toArray(),
                           ((List) queryPart.getParams().get("typeKey")).toArray());

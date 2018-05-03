@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -53,14 +54,6 @@ public class Balance implements Serializable {
     @ApiModelProperty(value = "The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)")
     @Column(name = "measure_key")
     private String measureKey;
-
-    /**
-     * The value of the balance denoted by this object.
-     * The amount includes the reserved amount (see field reserved).
-     */
-    @ApiModelProperty(value = "The value of the balance denoted by this object. The amount includes the reserved amount (see field reserved).")
-    @Column(name = "amount", precision=10, scale=2)
-    private BigDecimal amount;
 
     /**
      * The reserved amount from the balance for uncommitted reservation transactions.
@@ -150,19 +143,6 @@ public class Balance implements Serializable {
 
     public void setMeasureKey(String measureKey) {
         this.measureKey = measureKey;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public Balance amount(BigDecimal amount) {
-        this.amount = amount;
-        return this;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
     }
 
     public BigDecimal getReserved() {
@@ -282,7 +262,6 @@ public class Balance implements Serializable {
             ", key='" + getKey() + "'" +
             ", typeKey='" + getTypeKey() + "'" +
             ", measureKey='" + getMeasureKey() + "'" +
-            ", amount=" + getAmount() +
             ", reserved=" + getReserved() +
             ", entityId=" + getEntityId() +
             ", createdBy='" + getCreatedBy() + "'" +
