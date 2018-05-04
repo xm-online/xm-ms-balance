@@ -89,6 +89,9 @@ public class BalanceQueryService extends QueryService<Balance> {
             if (criteria.getMeasureKey() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getMeasureKey(), Balance_.measureKey));
             }
+            if (criteria.getAmount() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getAmount(), Balance_.amount));
+            }
             if (criteria.getReserved() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getReserved(), Balance_.reserved));
             }
