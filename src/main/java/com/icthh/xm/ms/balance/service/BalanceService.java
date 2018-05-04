@@ -2,6 +2,7 @@ package com.icthh.xm.ms.balance.service;
 
 import static java.math.BigDecimal.ZERO;
 
+import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
@@ -12,6 +13,7 @@ import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +29,7 @@ import java.util.Optional;
 /**
  * Service Implementation for managing Balance.
  */
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -92,8 +95,36 @@ public class BalanceService {
 
     @Transactional
     public void reload(ReloadBalanceRequest reloadRequest) {
-        Balance balance = balanceRepository.findOneByIdForUpdate(reloadRequest.getBalanceId());
-        pocketRepository.findByLabelAndStartDateTimeAndEndDateTime(reloadRequest.getLabel(),
-            reloadRequest.getStartDateTime(), reloadRequest.getEndDateTime()).map();
+        log.info("Start reload balance with request {}", reloadRequest);
+
+        Balance balance = balanceRepository.findOneByIdForUpdate(reloadRequest.getBalanceId())
+            .orElseThrow(() -> new EntityNotFoundException("Balance with id " + reloadRequest.getBalanceId() + "not found"));
+
+        log.debug("Found balance {}", balance);
+
+        Pocket pocket = findPocketForReload(reloadRequest, balance)
+            .map(Pocket::getId)
+            .flatMap(pocketRepository::findOneByIdForUpdate)
+            .map(existingPocket -> existingPocket.addMount(reloadRequest.getAmount()))
+            .orElse(new Pocket()
+                .balance(balance)
+                .amount(reloadRequest.getAmount())
+                .endDateTime(reloadRequest.getEndDateTime())
+                .startDateTime(reloadRequest.getStartDateTime())
+                .label(reloadRequest.getLabel())
+            );
+
+        pocketRepository.save(pocket);
+    }
+
+    private Optional<Pocket> findPocketForReload(ReloadBalanceRequest reloadRequest, Balance balance) {
+        Optional<Pocket> pocket = pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(reloadRequest.getLabel(),
+            reloadRequest.getStartDateTime(), reloadRequest.getEndDateTime(), balance);
+        if (pocket.isPresent()) {
+            log.info("Found pocket {} for reload", pocket);
+        } else {
+            log.info("Pocket for reload not found. New pocket will be created");
+        }
+        return pocket;
     }
 }
