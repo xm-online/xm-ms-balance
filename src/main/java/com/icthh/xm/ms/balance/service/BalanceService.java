@@ -1,15 +1,17 @@
 package com.icthh.xm.ms.balance.service;
 
 import static java.math.BigDecimal.ZERO;
-import static java.time.Instant.now;
-import static java.util.stream.Collectors.toMap;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
+import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 /**
@@ -26,20 +29,13 @@ import java.util.Map;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class BalanceService {
 
     private final BalanceRepository balanceRepository;
     private final PermittedRepository permittedRepository;
-
+    private final PocketRepository pocketRepository;
     private final BalanceMapper balanceMapper;
-
-    public BalanceService(BalanceRepository balanceRepository,
-                          BalanceMapper balanceMapper,
-                          PermittedRepository permittedRepository) {
-        this.balanceRepository = balanceRepository;
-        this.balanceMapper = balanceMapper;
-        this.permittedRepository = permittedRepository;
-    }
 
     /**
      * Save a balance.
@@ -92,5 +88,12 @@ public class BalanceService {
      */
     public void delete(Long id) {
         balanceRepository.delete(id);
+    }
+
+    @Transactional
+    public void reload(ReloadBalanceRequest reloadRequest) {
+        Balance balance = balanceRepository.findOneByIdForUpdate(reloadRequest.getBalanceId());
+        pocketRepository.findByLabelAndStartDateTimeAndEndDateTime(reloadRequest.getLabel(),
+            reloadRequest.getStartDateTime(), reloadRequest.getEndDateTime()).map();
     }
 }

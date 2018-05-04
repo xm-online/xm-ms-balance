@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.data.jpa.repository.*;
 
+import java.time.Instant;
+import java.util.Optional;
+
 
 /**
  * Spring Data JPA repository for the Pocket entity.
@@ -13,5 +16,5 @@ import org.springframework.data.jpa.repository.*;
 @SuppressWarnings("unused")
 @Repository
 public interface PocketRepository extends JpaRepository<Pocket, Long>, ResourceRepository {
-
+    Optional<Pocket> findByLabelAndStartDateTimeAndEndDateTime(String label, Instant startDateTime, Instant endDateTime);
 }
