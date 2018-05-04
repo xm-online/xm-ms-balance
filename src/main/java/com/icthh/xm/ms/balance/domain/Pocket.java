@@ -223,7 +223,7 @@ public class Pocket implements Serializable {
 
     public Pocket addMount(BigDecimal amount) {
         log.info("Add amount:{} to pocket {}", amount, this);
-        this.amount.add(amount);
+        this.amount = this.amount.add(amount);
         return this;
     }
 }
