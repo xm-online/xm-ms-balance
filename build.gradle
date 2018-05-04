@@ -283,7 +283,6 @@ dependencies {
 
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
 
-    //compile 'org.bitsofinfo:hazelcast-consul-discovery-spi:1.0-RC7'
     compile "com.icthh.xm.commons:xm-commons-timeline:${xm_commons_version}"
     compile "com.icthh.xm.commons:xm-commons-migration-db:${xm_commons_version}"
     compile "com.icthh.xm.commons:xm-commons-tenant-endpoint:${xm_commons_version}"

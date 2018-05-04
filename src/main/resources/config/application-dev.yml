@@ -53,10 +53,10 @@ spring:
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: true
-            hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
-            hibernate.cache.hazelcast.instance_name: balance
+            #hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
+            #hibernate.cache.hazelcast.instance_name: balance
             hibernate.cache.use_minimal_puts: true
-            hibernate.cache.hazelcast.use_lite_member: true
+            #hibernate.cache.hazelcast.use_lite_member: true
     kafka:
         bootstrap-servers: localhost:9093
     mail:
