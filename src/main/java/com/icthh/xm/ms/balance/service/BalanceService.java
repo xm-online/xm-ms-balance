@@ -105,7 +105,7 @@ public class BalanceService {
         Pocket pocket = findPocketForReload(reloadRequest, balance)
             .map(Pocket::getId)
             .flatMap(pocketRepository::findOneByIdForUpdate)
-            .map(existingPocket -> existingPocket.addMount(reloadRequest.getAmount()))
+            .map(existingPocket -> existingPocket.addAmount(reloadRequest.getAmount()))
             .orElse(new Pocket()
                 .balance(balance)
                 .amount(reloadRequest.getAmount())
