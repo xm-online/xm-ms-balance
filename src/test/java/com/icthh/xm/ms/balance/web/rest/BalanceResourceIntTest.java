@@ -10,12 +10,14 @@ import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
+import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -30,17 +32,21 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -48,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @see BalanceResource
  */
+@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {BalanceApp.class, SecurityBeanOverrideConfiguration.class})
 public class BalanceResourceIntTest {
@@ -72,6 +79,8 @@ public class BalanceResourceIntTest {
 
     private static final String DEFAULT_CREATED_BY = "AAAAAAAAAA";
     private static final String UPDATED_CREATED_BY = "BBBBBBBBBB";
+
+    private static final BigDecimal AMOUNT = new BigDecimal("55.0");
 
     @Autowired
     private BalanceRepository balanceRepository;
@@ -99,6 +108,9 @@ public class BalanceResourceIntTest {
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
+
+    @Autowired
+    private PocketRepository pocketRepository;
 
     private MockMvc restBalanceMockMvc;
 
@@ -159,6 +171,7 @@ public class BalanceResourceIntTest {
         List<Balance> balanceList = balanceRepository.findAll();
         assertThat(balanceList).hasSize(databaseSizeBeforeCreate + 1);
         Balance testBalance = balanceList.get(balanceList.size() - 1);
+        log.info("{}", testBalance);
         assertThat(testBalance.getKey()).isEqualTo(DEFAULT_KEY);
         assertThat(testBalance.getTypeKey()).isEqualTo(DEFAULT_TYPE_KEY);
         assertThat(testBalance.getMeasureKey()).isEqualTo(DEFAULT_MEASURE_KEY);
@@ -252,6 +265,8 @@ public class BalanceResourceIntTest {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
 
+        expectBalanceHasPockets(balance);
+
         // Get all the balanceList
         restBalanceMockMvc.perform(get("/api/balances?sort=id,desc"))
             .andExpect(status().isOk())
@@ -260,10 +275,11 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
             .andExpect(jsonPath("$.[*].measureKey").value(hasItem(DEFAULT_MEASURE_KEY.toString())))
-            .andExpect(jsonPath("$.[*].amount").value(hasItem(DEFAULT_AMOUNT.intValue())))
             .andExpect(jsonPath("$.[*].reserved").value(hasItem(DEFAULT_RESERVED.intValue())))
             .andExpect(jsonPath("$.[*].entityId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
-            .andExpect(jsonPath("$.[*].createdBy").value(hasItem(DEFAULT_CREATED_BY.toString())));
+            .andExpect(jsonPath("$.[*].createdBy").value(hasItem(DEFAULT_CREATED_BY.toString())))
+            .andExpect(jsonPath("$.[*].amount").value(hasItem(AMOUNT.doubleValue())))
+            .andDo(print());
     }
 
     @Test
@@ -271,6 +287,8 @@ public class BalanceResourceIntTest {
     public void getBalance() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
+
+        expectBalanceHasPockets(balance);
 
         // Get the balance
         restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()))
@@ -280,10 +298,11 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY.toString()))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY.toString()))
             .andExpect(jsonPath("$.measureKey").value(DEFAULT_MEASURE_KEY.toString()))
-            .andExpect(jsonPath("$.amount").value(DEFAULT_AMOUNT.intValue()))
             .andExpect(jsonPath("$.reserved").value(DEFAULT_RESERVED.intValue()))
             .andExpect(jsonPath("$.entityId").value(DEFAULT_ENTITY_ID.intValue()))
-            .andExpect(jsonPath("$.createdBy").value(DEFAULT_CREATED_BY.toString()));
+            .andExpect(jsonPath("$.createdBy").value(DEFAULT_CREATED_BY.toString()))
+            .andExpect(jsonPath("$.amount").value(AMOUNT.doubleValue()))
+            .andDo(print());
     }
 
     @Test
@@ -659,7 +678,6 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
             .andExpect(jsonPath("$.[*].measureKey").value(hasItem(DEFAULT_MEASURE_KEY.toString())))
-            .andExpect(jsonPath("$.[*].amount").value(hasItem(DEFAULT_AMOUNT.intValue())))
             .andExpect(jsonPath("$.[*].reserved").value(hasItem(DEFAULT_RESERVED.intValue())))
             .andExpect(jsonPath("$.[*].entityId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
             .andExpect(jsonPath("$.[*].createdBy").value(hasItem(DEFAULT_CREATED_BY.toString())));
@@ -718,7 +736,6 @@ public class BalanceResourceIntTest {
         assertThat(testBalance.getKey()).isEqualTo(UPDATED_KEY);
         assertThat(testBalance.getTypeKey()).isEqualTo(UPDATED_TYPE_KEY);
         assertThat(testBalance.getMeasureKey()).isEqualTo(UPDATED_MEASURE_KEY);
-        assertThat(testBalance.getAmount()).isEqualTo(UPDATED_AMOUNT);
         assertThat(testBalance.getReserved()).isEqualTo(UPDATED_RESERVED);
         assertThat(testBalance.getEntityId()).isEqualTo(UPDATED_ENTITY_ID);
         assertThat(testBalance.getCreatedBy()).isEqualTo(UPDATED_CREATED_BY);
@@ -797,4 +814,17 @@ public class BalanceResourceIntTest {
         assertThat(balanceMapper.fromId(42L).getId()).isEqualTo(42);
         assertThat(balanceMapper.fromId(null)).isNull();
     }
+
+    private void expectBalanceHasPockets(Balance balance) {
+        Pocket pocket = new Pocket().amount(new BigDecimal("5")).balance(balance).startDateTime(now().minusSeconds(500))
+            .endDateTime(now().plusSeconds(500)).label("TYPEKEY").key("KEY");
+        Pocket pocket1 = new Pocket().amount(new BigDecimal("50")).balance(balance).startDateTime(now().minusSeconds(500))
+            .endDateTime(now().plusSeconds(500)).label("TYPEKEY").key("KEY");
+        Pocket expired = new Pocket().amount(new BigDecimal("50")).balance(balance).startDateTime(now().minusSeconds(500))
+            .endDateTime(now().minusSeconds(500)).label("TYPEKEY").key("KEY");
+        pocketRepository.saveAndFlush(pocket);
+        pocketRepository.saveAndFlush(pocket1);
+        pocketRepository.saveAndFlush(expired);
+    }
+
 }

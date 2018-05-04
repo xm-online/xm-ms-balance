@@ -270,6 +270,17 @@ dependencies {
     optional ("org.springframework.boot:spring-boot-configuration-processor") {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
+    testCompile (group: 'org.testcontainers', name: 'testcontainers', version: '1.6.0') {
+        exclude group: 'commons-io', module: 'commons-io'
+    }
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.6.0'
+    testCompile ("com.github.database-rider:rider-spring:1.2.7") {
+        exclude module: 'slf4j-api'
+        exclude module: 'slf4j-simple'
+    }
+    testCompile "com.h2database:h2"
+
+
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
 
     //compile 'org.bitsofinfo:hazelcast-consul-discovery-spi:1.0-RC7'

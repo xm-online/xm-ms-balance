@@ -43,8 +43,8 @@ public class Pocket implements Serializable {
      */
     @NotNull
     @ApiModelProperty(value = "String with the pocket type identifer.", required = true)
-    @Column(name = "type_key", nullable = false)
-    private String typeKey;
+    @Column(name = "label", nullable = false)
+    private String label;
 
     /**
      * Date/DateTime when the pocket becomes valid (date included).
@@ -101,17 +101,17 @@ public class Pocket implements Serializable {
         this.key = key;
     }
 
-    public String getTypeKey() {
-        return typeKey;
+    public String getLabel() {
+        return label;
     }
 
-    public Pocket typeKey(String typeKey) {
-        this.typeKey = typeKey;
+    public Pocket label(String label) {
+        this.label = label;
         return this;
     }
 
-    public void setTypeKey(String typeKey) {
-        this.typeKey = typeKey;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public Instant getStartDateTime() {
@@ -205,7 +205,7 @@ public class Pocket implements Serializable {
         return "Pocket{" +
             "id=" + getId() +
             ", key='" + getKey() + "'" +
-            ", typeKey='" + getTypeKey() + "'" +
+            ", label='" + getLabel() + "'" +
             ", startDateTime='" + getStartDateTime() + "'" +
             ", endDateTime='" + getEndDateTime() + "'" +
             ", amount=" + getAmount() +

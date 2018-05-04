@@ -80,7 +80,7 @@ class BalanceGatlingTest extends Simulation {
             .exec(http("Create new balance")
             .post("/balance/api/balances")
             .headers(headers_http_authenticated)
-            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "typeKey":"SAMPLE_TEXT", "measureKey":"SAMPLE_TEXT", "amount":"0", "reserved":"0", "entityId":null, "createdBy":"SAMPLE_TEXT"}""")).asJSON
+            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "label":"SAMPLE_TEXT", "measureKey":"SAMPLE_TEXT", "amount":"0", "reserved":"0", "entityId":null, "createdBy":"SAMPLE_TEXT"}""")).asJSON
             .check(status.is(201))
             .check(headerRegex("Location", "(.*)").saveAs("new_balance_url"))).exitHereIfFailed
             .pause(10)
