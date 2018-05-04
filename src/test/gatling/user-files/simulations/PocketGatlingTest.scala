@@ -80,7 +80,7 @@ class PocketGatlingTest extends Simulation {
             .exec(http("Create new pocket")
             .post("/balance/api/pockets")
             .headers(headers_http_authenticated)
-            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "typeKey":"SAMPLE_TEXT", "startDateTime":"2020-01-01T00:00:00.000Z", "endDateTime":"2020-01-01T00:00:00.000Z", "amount":"0", "reserved":"0"}""")).asJSON
+            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "label":"SAMPLE_TEXT", "startDateTime":"2020-01-01T00:00:00.000Z", "endDateTime":"2020-01-01T00:00:00.000Z", "amount":"0", "reserved":"0"}""")).asJSON
             .check(status.is(201))
             .check(headerRegex("Location", "(.*)").saveAs("new_pocket_url"))).exitHereIfFailed
             .pause(10)

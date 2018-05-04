@@ -79,8 +79,8 @@ public class PocketQueryService extends QueryService<Pocket> {
             if (criteria.getKey() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getKey(), Pocket_.key));
             }
-            if (criteria.getTypeKey() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getTypeKey(), Pocket_.typeKey));
+            if (criteria.getLabel() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getLabel(), Pocket_.label));
             }
             if (criteria.getStartDateTime() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getStartDateTime(), Pocket_.startDateTime));

@@ -9,7 +9,7 @@ entity Balance {
     /**
      * This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)
      */
-    typeKey String required,
+    label String required,
     /**
      * The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)
      */
@@ -45,7 +45,7 @@ entity Pocket {
     /**
      * String with the pocket type identifer.
      */
-    typeKey String required,
+    label String required,
     /**
      * Date/DateTime when the pocket becomes valid (date included).
      */
@@ -77,7 +77,7 @@ entity Metric {
     /**
      * String with the metric type identifer.
      */
-    typeKey String required,
+    label String required,
     /**
      * String with the metric value.
      */

@@ -13,7 +13,6 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
-import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
 import com.icthh.xm.ms.balance.service.PocketQueryService;
 
 import org.junit.Before;
@@ -56,8 +55,8 @@ public class PocketResourceIntTest {
     private static final String DEFAULT_KEY = "AAAAAAAAAA";
     private static final String UPDATED_KEY = "BBBBBBBBBB";
 
-    private static final String DEFAULT_TYPE_KEY = "AAAAAAAAAA";
-    private static final String UPDATED_TYPE_KEY = "BBBBBBBBBB";
+    private static final String DEFAULT_LABEL = "AAAAAAAAAA";
+    private static final String UPDATED_LABEL = "BBBBBBBBBB";
 
     private static final Instant DEFAULT_START_DATE_TIME = Instant.ofEpochMilli(0L);
     private static final Instant UPDATED_START_DATE_TIME = Instant.now().truncatedTo(ChronoUnit.MILLIS);
@@ -127,7 +126,7 @@ public class PocketResourceIntTest {
     public static Pocket createEntity(EntityManager em) {
         Pocket pocket = new Pocket()
             .key(DEFAULT_KEY)
-            .typeKey(DEFAULT_TYPE_KEY)
+            .label(DEFAULT_LABEL)
             .startDateTime(DEFAULT_START_DATE_TIME)
             .endDateTime(DEFAULT_END_DATE_TIME)
             .amount(DEFAULT_AMOUNT)
@@ -162,7 +161,7 @@ public class PocketResourceIntTest {
         assertThat(pocketList).hasSize(databaseSizeBeforeCreate + 1);
         Pocket testPocket = pocketList.get(pocketList.size() - 1);
         assertThat(testPocket.getKey()).isEqualTo(DEFAULT_KEY);
-        assertThat(testPocket.getTypeKey()).isEqualTo(DEFAULT_TYPE_KEY);
+        assertThat(testPocket.getLabel()).isEqualTo(DEFAULT_LABEL);
         assertThat(testPocket.getStartDateTime()).isEqualTo(DEFAULT_START_DATE_TIME);
         assertThat(testPocket.getEndDateTime()).isEqualTo(DEFAULT_END_DATE_TIME);
         assertThat(testPocket.getAmount()).isEqualTo(DEFAULT_AMOUNT);
@@ -210,10 +209,10 @@ public class PocketResourceIntTest {
 
     @Test
     @Transactional
-    public void checkTypeKeyIsRequired() throws Exception {
+    public void checkLabelIsRequired() throws Exception {
         int databaseSizeBeforeTest = pocketRepository.findAll().size();
         // set the field null
-        pocket.setTypeKey(null);
+        pocket.setLabel(null);
 
         // Create the Pocket, which fails.
         PocketDTO pocketDTO = pocketMapper.toDto(pocket);
@@ -240,7 +239,7 @@ public class PocketResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(pocket.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
-            .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
+            .andExpect(jsonPath("$.[*].label").value(hasItem(DEFAULT_LABEL.toString())))
             .andExpect(jsonPath("$.[*].startDateTime").value(hasItem(DEFAULT_START_DATE_TIME.toString())))
             .andExpect(jsonPath("$.[*].endDateTime").value(hasItem(DEFAULT_END_DATE_TIME.toString())))
             .andExpect(jsonPath("$.[*].amount").value(hasItem(DEFAULT_AMOUNT.intValue())))
@@ -259,7 +258,7 @@ public class PocketResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.id").value(pocket.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY.toString()))
-            .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY.toString()))
+            .andExpect(jsonPath("$.label").value(DEFAULT_LABEL.toString()))
             .andExpect(jsonPath("$.startDateTime").value(DEFAULT_START_DATE_TIME.toString()))
             .andExpect(jsonPath("$.endDateTime").value(DEFAULT_END_DATE_TIME.toString()))
             .andExpect(jsonPath("$.amount").value(DEFAULT_AMOUNT.intValue()))
@@ -311,43 +310,43 @@ public class PocketResourceIntTest {
     @Test
     @WithMockUser(authorities = "SUPER-ADMIN")
     @Transactional
-    public void getAllPocketsByTypeKeyIsEqualToSomething() throws Exception {
+    public void getAllPocketsByLabelIsEqualToSomething() throws Exception {
         // Initialize the database
         pocketRepository.saveAndFlush(pocket);
 
-        // Get all the pocketList where typeKey equals to DEFAULT_TYPE_KEY
-        defaultPocketShouldBeFound("typeKey.equals=" + DEFAULT_TYPE_KEY);
+        // Get all the pocketList where label equals to DEFAULT_LABEL
+        defaultPocketShouldBeFound("label.equals=" + DEFAULT_LABEL);
 
-        // Get all the pocketList where typeKey equals to UPDATED_TYPE_KEY
-        defaultPocketShouldNotBeFound("typeKey.equals=" + UPDATED_TYPE_KEY);
+        // Get all the pocketList where label equals to UPDATED_LABEL
+        defaultPocketShouldNotBeFound("label.equals=" + UPDATED_LABEL);
     }
 
     @Test
     @WithMockUser(authorities = "SUPER-ADMIN")
     @Transactional
-    public void getAllPocketsByTypeKeyIsInShouldWork() throws Exception {
+    public void getAllPocketsByLabelIsInShouldWork() throws Exception {
         // Initialize the database
         pocketRepository.saveAndFlush(pocket);
 
-        // Get all the pocketList where typeKey in DEFAULT_TYPE_KEY or UPDATED_TYPE_KEY
-        defaultPocketShouldBeFound("typeKey.in=" + DEFAULT_TYPE_KEY + "," + UPDATED_TYPE_KEY);
+        // Get all the pocketList where label in DEFAULT_LABEL or UPDATED_LABEL
+        defaultPocketShouldBeFound("label.in=" + DEFAULT_LABEL + "," + UPDATED_LABEL);
 
-        // Get all the pocketList where typeKey equals to UPDATED_TYPE_KEY
-        defaultPocketShouldNotBeFound("typeKey.in=" + UPDATED_TYPE_KEY);
+        // Get all the pocketList where label equals to UPDATED_LABEL
+        defaultPocketShouldNotBeFound("label.in=" + UPDATED_LABEL);
     }
 
     @Test
     @WithMockUser(authorities = "SUPER-ADMIN")
     @Transactional
-    public void getAllPocketsByTypeKeyIsNullOrNotNull() throws Exception {
+    public void getAllPocketsByLabelIsNullOrNotNull() throws Exception {
         // Initialize the database
         pocketRepository.saveAndFlush(pocket);
 
-        // Get all the pocketList where typeKey is not null
-        defaultPocketShouldBeFound("typeKey.specified=true");
+        // Get all the pocketList where label is not null
+        defaultPocketShouldBeFound("label.specified=true");
 
-        // Get all the pocketList where typeKey is null
-        defaultPocketShouldNotBeFound("typeKey.specified=false");
+        // Get all the pocketList where label is null
+        defaultPocketShouldNotBeFound("label.specified=false");
     }
 
     @Test
@@ -546,7 +545,7 @@ public class PocketResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(pocket.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
-            .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
+            .andExpect(jsonPath("$.[*].label").value(hasItem(DEFAULT_LABEL.toString())))
             .andExpect(jsonPath("$.[*].startDateTime").value(hasItem(DEFAULT_START_DATE_TIME.toString())))
             .andExpect(jsonPath("$.[*].endDateTime").value(hasItem(DEFAULT_END_DATE_TIME.toString())))
             .andExpect(jsonPath("$.[*].amount").value(hasItem(DEFAULT_AMOUNT.intValue())))
@@ -586,7 +585,7 @@ public class PocketResourceIntTest {
         em.detach(updatedPocket);
         updatedPocket
             .key(UPDATED_KEY)
-            .typeKey(UPDATED_TYPE_KEY)
+            .label(UPDATED_LABEL)
             .startDateTime(UPDATED_START_DATE_TIME)
             .endDateTime(UPDATED_END_DATE_TIME)
             .amount(UPDATED_AMOUNT)
@@ -603,7 +602,7 @@ public class PocketResourceIntTest {
         assertThat(pocketList).hasSize(databaseSizeBeforeUpdate);
         Pocket testPocket = pocketList.get(pocketList.size() - 1);
         assertThat(testPocket.getKey()).isEqualTo(UPDATED_KEY);
-        assertThat(testPocket.getTypeKey()).isEqualTo(UPDATED_TYPE_KEY);
+        assertThat(testPocket.getLabel()).isEqualTo(UPDATED_LABEL);
         assertThat(testPocket.getStartDateTime()).isEqualTo(UPDATED_START_DATE_TIME);
         assertThat(testPocket.getEndDateTime()).isEqualTo(UPDATED_END_DATE_TIME);
         assertThat(testPocket.getAmount()).isEqualTo(UPDATED_AMOUNT);

@@ -5,8 +5,6 @@ import java.time.Instant;
 import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
 
 /**
@@ -20,7 +18,7 @@ public class PocketDTO implements Serializable {
     private String key;
 
     @NotNull
-    private String typeKey;
+    private String label;
 
     private Instant startDateTime;
 
@@ -48,12 +46,12 @@ public class PocketDTO implements Serializable {
         this.key = key;
     }
 
-    public String getTypeKey() {
-        return typeKey;
+    public String getLabel() {
+        return label;
     }
 
-    public void setTypeKey(String typeKey) {
-        this.typeKey = typeKey;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public Instant getStartDateTime() {
@@ -122,7 +120,7 @@ public class PocketDTO implements Serializable {
         return "PocketDTO{" +
             "id=" + getId() +
             ", key='" + getKey() + "'" +
-            ", typeKey='" + getTypeKey() + "'" +
+            ", label='" + getLabel() + "'" +
             ", startDateTime='" + getStartDateTime() + "'" +
             ", endDateTime='" + getEndDateTime() + "'" +
             ", amount=" + getAmount() +

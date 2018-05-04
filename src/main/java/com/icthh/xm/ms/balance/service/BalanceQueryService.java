@@ -1,11 +1,16 @@
 package com.icthh.xm.ms.balance.service;
 
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.CriteriaPermittedRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
@@ -28,16 +33,14 @@ import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class BalanceQueryService extends QueryService<Balance> {
 
     private final CriteriaPermittedRepository permittedRepository;
 
     private final BalanceMapper balanceMapper;
 
-    public BalanceQueryService(CriteriaPermittedRepository permittedRepository, BalanceMapper balanceMapper) {
-        this.permittedRepository = permittedRepository;
-        this.balanceMapper = balanceMapper;
-    }
+    private final BalanceRepository balanceRepository;
 
     /**
      * Return a {@link List} of {@link BalanceDTO} which matches the criteria from the database
@@ -55,14 +58,17 @@ public class BalanceQueryService extends QueryService<Balance> {
     /**
      * Return a {@link Page} of {@link BalanceDTO} which matches the criteria from the database
      * @param criteria The object which holds all the filters, which the entities should match.
-     * @param page The page, which should be returned.
+     * @param pageable The page, which should be returned.
      * @return the matching entities.
      */
     @FindWithPermission("BALANCE.GET_LIST")
     @Transactional(readOnly = true)
-    public Page<BalanceDTO> findByCriteria(BalanceCriteria criteria, Pageable page, String privilegeKey) {
-        Page<Balance> result = permittedRepository.findWithPermission(Balance.class, criteria, page, privilegeKey);
-        return result.map(balanceMapper::toDto);
+    public Page<BalanceDTO> findByCriteria(BalanceCriteria criteria, Pageable pageable, String privilegeKey) {
+        Page<Balance> page = permittedRepository.findWithPermission(Balance.class, criteria, pageable, privilegeKey);
+        List<BalanceDTO> dtos = page.map(balanceMapper::toDto).getContent();
+        Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmountMap(page.getContent());
+        dtos.forEach(it -> it.setAmount(balancesAmount.getOrDefault(it.getId(), BigDecimal.ZERO)));
+        return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 
     /**
