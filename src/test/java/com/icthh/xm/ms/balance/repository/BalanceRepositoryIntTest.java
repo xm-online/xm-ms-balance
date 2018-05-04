@@ -1,24 +1,15 @@
 package com.icthh.xm.ms.balance.repository;
 
-import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.icthh.xm.ms.balance.domain.Balance;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.dbunit.dataset.ReplacementDataSet;
-import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
-import org.dbunit.operation.DatabaseOperation;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
