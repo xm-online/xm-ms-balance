@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.persistence.LockModeType;
 import java.time.Instant;
 import java.util.Optional;
@@ -20,7 +21,8 @@ import java.util.Optional;
 @SuppressWarnings("unused")
 @Repository
 public interface PocketRepository extends JpaRepository<Pocket, Long>, ResourceRepository {
-    Optional<Pocket> findByLabelAndStartDateTimeAndEndDateTimeAndBalance(String label, Instant startDateTime, Instant endDateTime, Balance balance);
+    Optional<Pocket> findByLabelAndStartDateTimeAndEndDateTimeAndBalance(String label, @Nullable Instant startDateTime,
+                                                                         @Nullable Instant endDateTime, Balance balance);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Pocket e WHERE e.id = :id")

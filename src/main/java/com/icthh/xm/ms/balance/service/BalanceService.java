@@ -114,12 +114,14 @@ public class BalanceService {
                 .label(reloadRequest.getLabel())
             );
 
-        pocketRepository.save(pocket);
+        Pocket savedPocket = pocketRepository.save(pocket);
+        log.info("Pocket affected by reload {}", savedPocket);
     }
 
     private Optional<Pocket> findPocketForReload(ReloadBalanceRequest reloadRequest, Balance balance) {
         Optional<Pocket> pocket = pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(reloadRequest.getLabel(),
             reloadRequest.getStartDateTime(), reloadRequest.getEndDateTime(), balance);
+
         if (pocket.isPresent()) {
             log.info("Found pocket {} for reload", pocket);
         } else {
