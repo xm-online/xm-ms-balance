@@ -7,6 +7,7 @@ import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
+import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import com.icthh.xm.ms.balance.web.rest.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -134,5 +135,13 @@ public class BalanceResource {
     public ResponseEntity<Void> deleteBalance(@PathVariable Long id) {
         balanceService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+    }
+
+    @PreAuthorize("hasPermission({'reloadRequest': #reloadRequest}, 'BALANCE.RELOAD')")
+    @PostMapping("/balances/reload")
+    @Timed
+    public ResponseEntity<BalanceDTO> createBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
+        balanceService.reload(reloadRequest);
+        return ResponseEntity.ok().build();
     }
 }
