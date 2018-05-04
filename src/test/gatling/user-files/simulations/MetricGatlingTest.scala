@@ -80,7 +80,7 @@ class MetricGatlingTest extends Simulation {
             .exec(http("Create new metric")
             .post("/balance/api/metrics")
             .headers(headers_http_authenticated)
-            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "typeKey":"SAMPLE_TEXT", "value":"SAMPLE_TEXT"}""")).asJSON
+            .body(StringBody("""{"id":null, "key":"SAMPLE_TEXT", "label":"SAMPLE_TEXT", "value":"SAMPLE_TEXT"}""")).asJSON
             .check(status.is(201))
             .check(headerRegex("Location", "(.*)").saveAs("new_metric_url"))).exitHereIfFailed
             .pause(10)

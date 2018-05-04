@@ -1,11 +1,8 @@
 package com.icthh.xm.ms.balance.service.dto;
 
 import java.io.Serializable;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
+
 import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
-import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
 import io.github.jhipster.service.filter.BigDecimalFilter;
@@ -30,7 +27,7 @@ public class PocketCriteria implements Serializable {
 
     private StringFilter key;
 
-    private StringFilter typeKey;
+    private StringFilter label;
 
     private InstantFilter startDateTime;
 
@@ -61,12 +58,12 @@ public class PocketCriteria implements Serializable {
         this.key = key;
     }
 
-    public StringFilter getTypeKey() {
-        return typeKey;
+    public StringFilter getLabel() {
+        return label;
     }
 
-    public void setTypeKey(StringFilter typeKey) {
-        this.typeKey = typeKey;
+    public void setLabel(StringFilter label) {
+        this.label = label;
     }
 
     public InstantFilter getStartDateTime() {
@@ -114,7 +111,7 @@ public class PocketCriteria implements Serializable {
         return "PocketCriteria{" +
                 (id != null ? "id=" + id + ", " : "") +
                 (key != null ? "key=" + key + ", " : "") +
-                (typeKey != null ? "typeKey=" + typeKey + ", " : "") +
+                (label != null ? "label=" + label + ", " : "") +
                 (startDateTime != null ? "startDateTime=" + startDateTime + ", " : "") +
                 (endDateTime != null ? "endDateTime=" + endDateTime + ", " : "") +
                 (amount != null ? "amount=" + amount + ", " : "") +

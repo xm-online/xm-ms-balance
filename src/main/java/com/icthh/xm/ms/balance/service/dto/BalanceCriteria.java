@@ -1,17 +1,13 @@
 package com.icthh.xm.ms.balance.service.dto;
 
-import java.io.Serializable;
-import io.github.jhipster.service.filter.BooleanFilter;
-import io.github.jhipster.service.filter.DoubleFilter;
+import io.github.jhipster.service.filter.BigDecimalFilter;
 import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.FloatFilter;
-import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
-import io.github.jhipster.service.filter.BigDecimalFilter;
+import lombok.Getter;
+import lombok.Setter;
 
-
-
+import java.io.Serializable;
 
 
 /**
@@ -22,6 +18,8 @@ import io.github.jhipster.service.filter.BigDecimalFilter;
  * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use
  * fix type specific filters.
  */
+@Getter
+@Setter
 public class BalanceCriteria implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -36,67 +34,13 @@ public class BalanceCriteria implements Serializable {
 
     private BigDecimalFilter reserved;
 
+    private BigDecimalFilter amount;
+
     private LongFilter entityId;
 
     private StringFilter createdBy;
 
     public BalanceCriteria() {
-    }
-
-    public LongFilter getId() {
-        return id;
-    }
-
-    public void setId(LongFilter id) {
-        this.id = id;
-    }
-
-    public StringFilter getKey() {
-        return key;
-    }
-
-    public void setKey(StringFilter key) {
-        this.key = key;
-    }
-
-    public StringFilter getTypeKey() {
-        return typeKey;
-    }
-
-    public void setTypeKey(StringFilter typeKey) {
-        this.typeKey = typeKey;
-    }
-
-    public StringFilter getMeasureKey() {
-        return measureKey;
-    }
-
-    public void setMeasureKey(StringFilter measureKey) {
-        this.measureKey = measureKey;
-    }
-
-    public BigDecimalFilter getReserved() {
-        return reserved;
-    }
-
-    public void setReserved(BigDecimalFilter reserved) {
-        this.reserved = reserved;
-    }
-
-    public LongFilter getEntityId() {
-        return entityId;
-    }
-
-    public void setEntityId(LongFilter entityId) {
-        this.entityId = entityId;
-    }
-
-    public StringFilter getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(StringFilter createdBy) {
-        this.createdBy = createdBy;
     }
 
     @Override

@@ -8,10 +8,6 @@ import java.util.Map;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.CriteriaPermittedRepository;
-import com.icthh.xm.ms.balance.repository.PocketRepository;
-import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
-import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.LongFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -70,8 +66,8 @@ public class BalanceQueryService extends QueryService<Balance> {
     public Page<BalanceDTO> findByCriteria(BalanceCriteria criteria, Pageable pageable, String privilegeKey) {
         Page<Balance> page = permittedRepository.findWithPermission(Balance.class, criteria, pageable, privilegeKey);
         List<BalanceDTO> dtos = page.map(balanceMapper::toDto).getContent();
-        Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmount(page.getContent());
-        dtos.forEach(it -> it.setAmount(balancesAmount.getOrDefault(it.getId(), new BigDecimal("0"))));
+        Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmountMap(page.getContent());
+        dtos.forEach(it -> it.setAmount(balancesAmount.getOrDefault(it.getId(), BigDecimal.ZERO)));
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 

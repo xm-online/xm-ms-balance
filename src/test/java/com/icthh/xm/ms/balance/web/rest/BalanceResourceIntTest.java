@@ -14,7 +14,6 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
-import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 
 import org.junit.Before;
@@ -31,7 +30,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -766,11 +764,11 @@ public class BalanceResourceIntTest {
 
     private void expectBalanceHasPockets(Balance balance) {
         Pocket pocket = new Pocket().amount(new BigDecimal("5")).balance(balance).startDateTime(now().minusSeconds(500))
-            .endDateTime(now().plusSeconds(500)).typeKey("TYPEKEY").key("KEY");
+            .endDateTime(now().plusSeconds(500)).label("TYPEKEY").key("KEY");
         Pocket pocket1 = new Pocket().amount(new BigDecimal("50")).balance(balance).startDateTime(now().minusSeconds(500))
-            .endDateTime(now().plusSeconds(500)).typeKey("TYPEKEY").key("KEY");
+            .endDateTime(now().plusSeconds(500)).label("TYPEKEY").key("KEY");
         Pocket expired = new Pocket().amount(new BigDecimal("50")).balance(balance).startDateTime(now().minusSeconds(500))
-            .endDateTime(now().minusSeconds(500)).typeKey("TYPEKEY").key("KEY");
+            .endDateTime(now().minusSeconds(500)).label("TYPEKEY").key("KEY");
         pocketRepository.saveAndFlush(pocket);
         pocketRepository.saveAndFlush(pocket1);
         pocketRepository.saveAndFlush(expired);

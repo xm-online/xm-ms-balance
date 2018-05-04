@@ -3,6 +3,8 @@ package com.icthh.xm.ms.balance.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -18,6 +20,8 @@ import java.util.Objects;
 /**
  * This structure describes the balance definition that came out of the billing systems.
  */
+@Getter
+@Setter
 @ApiModel(description = "This structure describes the balance definition that came out of the billing systems.")
 @Entity
 @Table(name = "balance")
@@ -53,6 +57,14 @@ public class Balance implements Serializable {
     @ApiModelProperty(value = "The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)")
     @Column(name = "measure_key")
     private String measureKey;
+
+    /**
+     * The value of the balance denoted by this object.
+     * The amount includes the reserved amount (see field reserved).
+     */
+    @ApiModelProperty(value = "The value of the balance denoted by this object. The amount includes the reserved amount (see field reserved).")
+    @Column(name = "amount", precision=10, scale=2)
+    private BigDecimal amount;
 
     /**
      * The reserved amount from the balance for uncommitted reservation transactions.
@@ -96,30 +108,9 @@ public class Balance implements Serializable {
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     private Set<Metric> metrics = new HashSet<>();
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
     public Balance key(String key) {
         this.key = key;
         return this;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getTypeKey() {
-        return typeKey;
     }
 
     public Balance typeKey(String typeKey) {
@@ -127,25 +118,9 @@ public class Balance implements Serializable {
         return this;
     }
 
-    public void setTypeKey(String typeKey) {
-        this.typeKey = typeKey;
-    }
-
-    public String getMeasureKey() {
-        return measureKey;
-    }
-
     public Balance measureKey(String measureKey) {
         this.measureKey = measureKey;
         return this;
-    }
-
-    public void setMeasureKey(String measureKey) {
-        this.measureKey = measureKey;
-    }
-
-    public BigDecimal getReserved() {
-        return reserved;
     }
 
     public Balance reserved(BigDecimal reserved) {
@@ -153,38 +128,14 @@ public class Balance implements Serializable {
         return this;
     }
 
-    public void setReserved(BigDecimal reserved) {
-        this.reserved = reserved;
-    }
-
-    public Long getEntityId() {
-        return entityId;
-    }
-
     public Balance entityId(Long entityId) {
         this.entityId = entityId;
         return this;
     }
 
-    public void setEntityId(Long entityId) {
-        this.entityId = entityId;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public Balance createdBy(String createdBy) {
+   public Balance createdBy(String createdBy) {
         this.createdBy = createdBy;
         return this;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Set<Pocket> getPockets() {
-        return pockets;
     }
 
     public Balance pockets(Set<Pocket> pockets) {
@@ -204,14 +155,6 @@ public class Balance implements Serializable {
         return this;
     }
 
-    public void setPockets(Set<Pocket> pockets) {
-        this.pockets = pockets;
-    }
-
-    public Set<Metric> getMetrics() {
-        return metrics;
-    }
-
     public Balance metrics(Set<Metric> metrics) {
         this.metrics = metrics;
         return this;
@@ -228,11 +171,6 @@ public class Balance implements Serializable {
         metric.setBalance(null);
         return this;
     }
-
-    public void setMetrics(Set<Metric> metrics) {
-        this.metrics = metrics;
-    }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
     public boolean equals(Object o) {
