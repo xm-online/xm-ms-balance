@@ -36,6 +36,6 @@ public interface BalanceRepository extends JpaRepository<Balance, Long>, JpaSpec
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Balance e WHERE e.id = :id")
-    Balance findOneByIdForUpdate(@Param("id") Long id);
+    Optional<Balance> findOneByIdForUpdate(@Param("id") Long id);
 
 }

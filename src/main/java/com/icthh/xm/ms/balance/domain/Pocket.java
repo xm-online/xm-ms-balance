@@ -2,12 +2,19 @@ package com.icthh.xm.ms.balance.domain;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
-
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -17,6 +24,7 @@ import java.util.Objects;
  * This structure describes the sub-balances called pockets. A pocket defines a
  * special lifetime for partial amount of the balance.
  */
+@Slf4j
 @ApiModel(description = "This structure describes the sub-balances called pockets. A pocket defines a special lifetime for partial amount of the balance.")
 @Entity
 @Table(name = "pocket")
@@ -211,5 +219,11 @@ public class Pocket implements Serializable {
             ", amount=" + getAmount() +
             ", reserved=" + getReserved() +
             "}";
+    }
+
+    public Pocket addAmount(BigDecimal amount) {
+        log.info("Add amount:{} to pocket {}", amount, this);
+        this.amount = this.amount.add(amount);
+        return this;
     }
 }
