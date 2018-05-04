@@ -133,7 +133,12 @@ public class Balance implements Serializable {
         return this;
     }
 
-   public Balance createdBy(String createdBy) {
+    public Balance amount(BigDecimal amount) {
+        this.amount = amount;
+        return this;
+    }
+
+    public Balance createdBy(String createdBy) {
         this.createdBy = createdBy;
         return this;
     }
@@ -199,9 +204,11 @@ public class Balance implements Serializable {
             ", key='" + getKey() + "'" +
             ", typeKey='" + getTypeKey() + "'" +
             ", measureKey='" + getMeasureKey() + "'" +
+            ", amount=" + getAmount() +
             ", reserved=" + getReserved() +
             ", entityId=" + getEntityId() +
             ", createdBy='" + getCreatedBy() + "'" +
             "}";
     }
+
 }

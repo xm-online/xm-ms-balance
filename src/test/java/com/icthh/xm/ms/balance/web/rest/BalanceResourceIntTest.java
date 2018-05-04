@@ -14,8 +14,10 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -30,6 +32,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @see BalanceResource
  */
+@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {BalanceApp.class, SecurityBeanOverrideConfiguration.class})
 public class BalanceResourceIntTest {
@@ -63,6 +67,9 @@ public class BalanceResourceIntTest {
 
     private static final String DEFAULT_MEASURE_KEY = "AAAAAAAAAA";
     private static final String UPDATED_MEASURE_KEY = "BBBBBBBBBB";
+
+    private static final BigDecimal DEFAULT_AMOUNT = new BigDecimal(1);
+    private static final BigDecimal UPDATED_AMOUNT = new BigDecimal(2);
 
     private static final BigDecimal DEFAULT_RESERVED = new BigDecimal(1);
     private static final BigDecimal UPDATED_RESERVED = new BigDecimal(2);
@@ -136,6 +143,7 @@ public class BalanceResourceIntTest {
             .key(DEFAULT_KEY)
             .typeKey(DEFAULT_TYPE_KEY)
             .measureKey(DEFAULT_MEASURE_KEY)
+            .amount(DEFAULT_AMOUNT)
             .reserved(DEFAULT_RESERVED)
             .entityId(DEFAULT_ENTITY_ID)
             .createdBy(DEFAULT_CREATED_BY);
@@ -163,9 +171,11 @@ public class BalanceResourceIntTest {
         List<Balance> balanceList = balanceRepository.findAll();
         assertThat(balanceList).hasSize(databaseSizeBeforeCreate + 1);
         Balance testBalance = balanceList.get(balanceList.size() - 1);
+        log.info("{}", testBalance);
         assertThat(testBalance.getKey()).isEqualTo(DEFAULT_KEY);
         assertThat(testBalance.getTypeKey()).isEqualTo(DEFAULT_TYPE_KEY);
         assertThat(testBalance.getMeasureKey()).isEqualTo(DEFAULT_MEASURE_KEY);
+        assertThat(testBalance.getAmount()).isEqualTo(DEFAULT_AMOUNT);
         assertThat(testBalance.getReserved()).isEqualTo(DEFAULT_RESERVED);
         assertThat(testBalance.getEntityId()).isEqualTo(DEFAULT_ENTITY_ID);
         assertThat(testBalance.getCreatedBy()).isEqualTo(DEFAULT_CREATED_BY);
@@ -424,6 +434,48 @@ public class BalanceResourceIntTest {
     @Test
     @Transactional
     @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByAmountIsEqualToSomething() throws Exception {
+        // Initialize the database
+        balanceRepository.saveAndFlush(balance);
+
+        // Get all the balanceList where amount equals to DEFAULT_AMOUNT
+        defaultBalanceShouldBeFound("amount.equals=" + DEFAULT_AMOUNT);
+
+        // Get all the balanceList where amount equals to UPDATED_AMOUNT
+        defaultBalanceShouldNotBeFound("amount.equals=" + UPDATED_AMOUNT);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByAmountIsInShouldWork() throws Exception {
+        // Initialize the database
+        balanceRepository.saveAndFlush(balance);
+
+        // Get all the balanceList where amount in DEFAULT_AMOUNT or UPDATED_AMOUNT
+        defaultBalanceShouldBeFound("amount.in=" + DEFAULT_AMOUNT + "," + UPDATED_AMOUNT);
+
+        // Get all the balanceList where amount equals to UPDATED_AMOUNT
+        defaultBalanceShouldNotBeFound("amount.in=" + UPDATED_AMOUNT);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByAmountIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        balanceRepository.saveAndFlush(balance);
+
+        // Get all the balanceList where amount is not null
+        defaultBalanceShouldBeFound("amount.specified=true");
+
+        // Get all the balanceList where amount is null
+        defaultBalanceShouldNotBeFound("amount.specified=false");
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
     public void getAllBalancesByReservedIsEqualToSomething() throws Exception {
         // Initialize the database
         balanceRepository.saveAndFlush(balance);
@@ -666,6 +718,7 @@ public class BalanceResourceIntTest {
             .key(UPDATED_KEY)
             .typeKey(UPDATED_TYPE_KEY)
             .measureKey(UPDATED_MEASURE_KEY)
+            .amount(UPDATED_AMOUNT)
             .reserved(UPDATED_RESERVED)
             .entityId(UPDATED_ENTITY_ID)
             .createdBy(UPDATED_CREATED_BY);
