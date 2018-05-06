@@ -11,6 +11,7 @@ import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import com.icthh.xm.ms.balance.web.rest.requests.CheckoutBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +80,7 @@ public class BalanceService {
         Balance balance = balanceRepository.findOne(id);
         BalanceDTO balanceDTO = balanceMapper.toDto(balance);
         if (balanceDTO != null) {
-            balanceDTO.setAmount(balanceRepository.getBalanceAmount(balance).orElse(ZERO));
+            balanceDTO.setAmount(balanceRepository.findBalanceAmount(balance).orElse(ZERO));
         }
         return balanceDTO;
     }
@@ -96,12 +97,19 @@ public class BalanceService {
     @Transactional
     public void reload(ReloadBalanceRequest reloadRequest) {
         log.info("Start reload balance with request {}", reloadRequest);
+        Balance balance = getBalance(reloadRequest.getBalanceId());
+        reloadPocket(reloadRequest, balance);
+    }
 
-        Balance balance = balanceRepository.findOneByIdForUpdate(reloadRequest.getBalanceId())
-            .orElseThrow(() -> new EntityNotFoundException("Balance with id " + reloadRequest.getBalanceId() + "not found"));
+    private Balance getBalance(Long balanceId) {
+        Balance balance = balanceRepository.findOneByIdForUpdate(balanceId)
+            .orElseThrow(() -> new EntityNotFoundException("Balance with id " + balanceId + "not found"));
 
         log.debug("Found balance {}", balance);
+        return balance;
+    }
 
+    private void reloadPocket(ReloadBalanceRequest reloadRequest, Balance balance) {
         Pocket pocket = findPocketForReload(reloadRequest, balance)
             .map(Pocket::getId)
             .flatMap(pocketRepository::findOneByIdForUpdate)
@@ -128,5 +136,28 @@ public class BalanceService {
             log.info("Pocket for reload not found. New pocket will be created");
         }
         return pocket;
+    }
+
+    @Transactional
+    public void checkout(CheckoutBalanceRequest checkoutRequest) {
+        log.info("Start checkout balance with request {}", checkoutRequest);
+        Balance balance = getBalance(checkoutRequest.getBalanceId());
+        assertBalanceAmout(balance, checkoutRequest.getAmount());
+        List<Pocket> pockets = findPocketsForCheckout(balance);
+        checkoutPockets(pockets);
+    }
+
+    private void checkoutPockets(List<Pocket> pockets) {
+
+    }
+
+    private List<Pocket> findPocketsForCheckout(Balance balance) {
+        return null;
+    }
+
+    private void assertBalanceAmout(Balance balance, BigDecimal amount) {
+        if (balanceRepository.findBalanceAmount(balance).orElse(ZERO).compareTo(amount) < 0) {
+            throw new NoEnoughMoneyException(balance.getId(), balance.getAmount());
+        }
     }
 }
