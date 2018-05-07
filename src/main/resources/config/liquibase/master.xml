@@ -16,4 +16,6 @@
     <include file="config/liquibase/changelog/20180215145000_added_column_createdBy_Balance.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20180501113500_rename_column_type_key_in_pocket_to_label_Balance.xml" relativeToChangelogFile="false"/>
 
+    <include file="config/liquibase/changelog/20180507110200_add_pocket_version.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>

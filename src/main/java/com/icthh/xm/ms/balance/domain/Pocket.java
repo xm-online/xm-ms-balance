@@ -2,18 +2,13 @@ package com.icthh.xm.ms.balance.domain;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -29,6 +24,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "pocket")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+@Getter @Setter
 public class Pocket implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -87,30 +83,13 @@ public class Pocket implements Serializable {
     @NotNull
     private Balance balance;
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
+    @Version
+    @Column(name = "version")
+    private Integer version;
 
     public Pocket key(String key) {
         this.key = key;
         return this;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getLabel() {
-        return label;
     }
 
     public Pocket label(String label) {
@@ -118,25 +97,9 @@ public class Pocket implements Serializable {
         return this;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public Instant getStartDateTime() {
-        return startDateTime;
-    }
-
     public Pocket startDateTime(Instant startDateTime) {
         this.startDateTime = startDateTime;
         return this;
-    }
-
-    public void setStartDateTime(Instant startDateTime) {
-        this.startDateTime = startDateTime;
-    }
-
-    public Instant getEndDateTime() {
-        return endDateTime;
     }
 
     public Pocket endDateTime(Instant endDateTime) {
@@ -144,25 +107,9 @@ public class Pocket implements Serializable {
         return this;
     }
 
-    public void setEndDateTime(Instant endDateTime) {
-        this.endDateTime = endDateTime;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
     public Pocket amount(BigDecimal amount) {
         this.amount = amount;
         return this;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public BigDecimal getReserved() {
-        return reserved;
     }
 
     public Pocket reserved(BigDecimal reserved) {
@@ -170,23 +117,10 @@ public class Pocket implements Serializable {
         return this;
     }
 
-    public void setReserved(BigDecimal reserved) {
-        this.reserved = reserved;
-    }
-
-    public Balance getBalance() {
-        return balance;
-    }
-
     public Pocket balance(Balance balance) {
         this.balance = balance;
         return this;
     }
-
-    public void setBalance(Balance balance) {
-        this.balance = balance;
-    }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 
     @Override
     public boolean equals(Object o) {
@@ -218,6 +152,7 @@ public class Pocket implements Serializable {
             ", endDateTime='" + getEndDateTime() + "'" +
             ", amount=" + getAmount() +
             ", reserved=" + getReserved() +
+            ", version=" + getVersion() +
             "}";
     }
 
@@ -225,5 +160,9 @@ public class Pocket implements Serializable {
         log.info("Add amount:{} to pocket {}", amount, this);
         this.amount = this.amount.add(amount);
         return this;
+    }
+
+    public void subtractAmount(BigDecimal amount) {
+        this.amount = this.amount.subtract(amount);
     }
 }

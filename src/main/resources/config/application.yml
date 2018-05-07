@@ -147,3 +147,4 @@ application:
     timelines-enabled: true
     kafka-enabled: true
     kafka-system-queue: system_queue
+    pocket-checkout-batch-size: 100

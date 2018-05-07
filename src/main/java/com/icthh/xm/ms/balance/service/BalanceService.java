@@ -5,23 +5,28 @@ import static java.math.BigDecimal.ZERO;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
+import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
+import com.icthh.xm.ms.balance.service.dto.PocketCheckout;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.CheckoutBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +45,7 @@ public class BalanceService {
     private final PermittedRepository permittedRepository;
     private final PocketRepository pocketRepository;
     private final BalanceMapper balanceMapper;
+    private final ApplicationProperties applicationProperties;
 
     /**
      * Save a balance.
@@ -97,11 +103,11 @@ public class BalanceService {
     @Transactional
     public void reload(ReloadBalanceRequest reloadRequest) {
         log.info("Start reload balance with request {}", reloadRequest);
-        Balance balance = getBalance(reloadRequest.getBalanceId());
+        Balance balance = getBalanceForUpdate(reloadRequest.getBalanceId());
         reloadPocket(reloadRequest, balance);
     }
 
-    private Balance getBalance(Long balanceId) {
+    private Balance getBalanceForUpdate(Long balanceId) {
         Balance balance = balanceRepository.findOneByIdForUpdate(balanceId)
             .orElseThrow(() -> new EntityNotFoundException("Balance with id " + balanceId + "not found"));
 
@@ -141,22 +147,77 @@ public class BalanceService {
     @Transactional
     public void checkout(CheckoutBalanceRequest checkoutRequest) {
         log.info("Start checkout balance with request {}", checkoutRequest);
-        Balance balance = getBalance(checkoutRequest.getBalanceId());
+        Balance balance = getBalanceForUpdate(checkoutRequest.getBalanceId());
         assertBalanceAmout(balance, checkoutRequest.getAmount());
-        List<Pocket> pockets = findPocketsForCheckout(balance);
-        checkoutPockets(pockets);
+        checkoutPockets(balance, checkoutRequest.getAmount());
     }
 
-    private void checkoutPockets(List<Pocket> pockets) {
+    @Transactional
+    public void transfer(TransferBalanceRequest transferRequest) {
+        Long targetBalanceId = transferRequest.getTargetBalanceId();
 
+        log.info("Start transfer balance with request {}", transferRequest);
+        Balance sourceBalance = getBalanceForUpdate(transferRequest.getSourceBalanceId());
+        assertBalanceAmout(sourceBalance, transferRequest.getAmount());
+
+        List<PocketCheckout> pockets = checkoutPockets(sourceBalance, transferRequest.getAmount());
+
+        Balance targetBalance = getBalanceForUpdate(targetBalanceId);
+        pockets.stream().map(pocketCheckout -> toReloadRequest(pocketCheckout, targetBalanceId))
+            .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance));
     }
 
-    private List<Pocket> findPocketsForCheckout(Balance balance) {
-        return null;
+    private ReloadBalanceRequest toReloadRequest(PocketCheckout pocket, Long targetBalanceId) {
+        return new ReloadBalanceRequest()
+            .setAmount(pocket.getAmount())
+            .setBalanceId(targetBalanceId)
+            .setAmount(pocket.getAmount())
+            .setEndDateTime(pocket.getEndDateTime())
+            .setStartDateTime(pocket.getStartDateTime())
+            .setLabel(pocket.getLabel());
+    }
+
+
+    private List<PocketCheckout> checkoutPockets(Balance balance, BigDecimal amount) {
+        BigDecimal amountToCheckout = amount;
+        List<PocketCheckout> affectedPockets = new ArrayList<>();
+        Integer pocketCheckoutBatchSize = applicationProperties.getPocketCheckoutBatchSize();
+
+        for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
+            PageRequest pageable = new PageRequest(i, pocketCheckoutBatchSize);
+            Page<Pocket> pocketsPage = pocketRepository.findPocketForCheckoutOrderByDates(balance, pageable);
+            List<Pocket> pockets = pocketsPage.getContent();
+            assertNotEmpty(balance, amount, amountToCheckout, pockets);
+
+            amountToCheckout = checkoutPockets(amountToCheckout, affectedPockets, pockets);
+        }
+
+        return affectedPockets;
+    }
+
+    private BigDecimal checkoutPockets(BigDecimal amountToBalanceCheckout, List<PocketCheckout> affectedPockets, List<Pocket> pockets) {
+        for(Pocket pocket: pockets) {
+            BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocket.getAmount());
+            pocket.subtractAmount(amountToPocketCheckout);
+            amountToBalanceCheckout = amountToBalanceCheckout.subtract(amountToPocketCheckout);
+            affectedPockets.add(new PocketCheckout(pocket, amountToPocketCheckout));
+
+            if (amountToBalanceCheckout.equals(ZERO)) {
+                break;
+            }
+        }
+        return amountToBalanceCheckout;
+    }
+
+    private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
+        if (pockets.isEmpty()) {
+            throw new NoEnoughMoneyException(balance.getId(), amount.subtract(amountToCheckout));
+        }
     }
 
     private void assertBalanceAmout(Balance balance, BigDecimal amount) {
-        if (balanceRepository.findBalanceAmount(balance).orElse(ZERO).compareTo(amount) < 0) {
+        BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
+        if (currentAmount.compareTo(amount) < 0) {
             throw new NoEnoughMoneyException(balance.getId(), balance.getAmount());
         }
     }
