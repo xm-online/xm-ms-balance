@@ -142,7 +142,7 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'reloadRequest': #reloadRequest}, 'BALANCE.RELOAD')")
     @PostMapping("/balances/reload")
     @Timed
-    public void createBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
+    public void reloadBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
         balanceService.reload(reloadRequest);
     }
 
