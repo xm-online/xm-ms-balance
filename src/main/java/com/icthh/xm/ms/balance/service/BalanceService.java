@@ -1,7 +1,6 @@
 package com.icthh.xm.ms.balance.service;
 
 import static java.math.BigDecimal.ZERO;
-import static java.util.UUID.randomUUID;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
@@ -14,7 +13,7 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.PocketCheckout;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
-import com.icthh.xm.ms.balance.web.rest.requests.CheckoutBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import lombok.RequiredArgsConstructor;
@@ -147,11 +146,11 @@ public class BalanceService {
     }
 
     @Transactional
-    public void checkout(CheckoutBalanceRequest checkoutRequest) {
-        log.info("Start checkout balance with request {}", checkoutRequest);
-        Balance balance = getBalanceForUpdate(checkoutRequest.getBalanceId());
-        assertBalanceAmout(balance, checkoutRequest.getAmount());
-        checkoutPockets(balance, checkoutRequest.getAmount());
+    public void charging(ChargingBalanceRequest chargingRequest) {
+        log.info("Start charging balance with request {}", chargingRequest);
+        Balance balance = getBalanceForUpdate(chargingRequest.getBalanceId());
+        assertBalanceAmout(balance, chargingRequest.getAmount());
+        chargingPockets(balance, chargingRequest.getAmount());
     }
 
     @Transactional
@@ -162,7 +161,7 @@ public class BalanceService {
         Balance sourceBalance = getBalanceForUpdate(transferRequest.getSourceBalanceId());
         assertBalanceAmout(sourceBalance, transferRequest.getAmount());
 
-        List<PocketCheckout> pockets = checkoutPockets(sourceBalance, transferRequest.getAmount());
+        List<PocketCheckout> pockets = chargingPockets(sourceBalance, transferRequest.getAmount());
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
         pockets.stream().map(pocketCheckout -> toReloadRequest(pocketCheckout, targetBalanceId))
@@ -180,10 +179,10 @@ public class BalanceService {
     }
 
 
-    private List<PocketCheckout> checkoutPockets(Balance balance, BigDecimal amount) {
+    private List<PocketCheckout> chargingPockets(Balance balance, BigDecimal amount) {
         BigDecimal amountToCheckout = amount;
         List<PocketCheckout> affectedPockets = new ArrayList<>();
-        Integer pocketCheckoutBatchSize = applicationProperties.getPocketCheckoutBatchSize();
+        Integer pocketCheckoutBatchSize = applicationProperties.getPocketChargingBatchSize();
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
             PageRequest pageable = new PageRequest(i, pocketCheckoutBatchSize);
@@ -192,13 +191,13 @@ public class BalanceService {
             log.debug("Fetch pockets {} by {}", pockets, pageable);
             assertNotEmpty(balance, amount, amountToCheckout, pockets);
 
-            amountToCheckout = checkoutPockets(amountToCheckout, affectedPockets, pockets);
+            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pockets);
         }
 
         return affectedPockets;
     }
 
-    private BigDecimal checkoutPockets(BigDecimal amountToBalanceCheckout, List<PocketCheckout> affectedPockets, List<Pocket> pockets) {
+    private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCheckout> affectedPockets, List<Pocket> pockets) {
         for(Pocket pocket: pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
             BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocketAmount);

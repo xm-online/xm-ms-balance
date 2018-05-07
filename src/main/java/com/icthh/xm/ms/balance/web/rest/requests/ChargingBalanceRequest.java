@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Data
 @Accessors(chain = true)
-public class CheckoutBalanceRequest {
+public class ChargingBalanceRequest {
     @NotNull
     private Long balanceId;
     @NotNull
