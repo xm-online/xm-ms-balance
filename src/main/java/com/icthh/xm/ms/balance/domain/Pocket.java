@@ -83,10 +83,6 @@ public class Pocket implements Serializable {
     @NotNull
     private Balance balance;
 
-    @Version
-    @Column(name = "version")
-    private Integer version;
-
     public Pocket key(String key) {
         this.key = key;
         return this;
@@ -152,7 +148,6 @@ public class Pocket implements Serializable {
             ", endDateTime='" + getEndDateTime() + "'" +
             ", amount=" + getAmount() +
             ", reserved=" + getReserved() +
-            ", version=" + getVersion() +
             "}";
     }
 
@@ -162,7 +157,8 @@ public class Pocket implements Serializable {
         return this;
     }
 
-    public void subtractAmount(BigDecimal amount) {
+    public Pocket subtractAmount(BigDecimal amount) {
         this.amount = this.amount.subtract(amount);
+        return this;
     }
 }

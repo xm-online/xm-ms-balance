@@ -1,6 +1,7 @@
 package com.icthh.xm.ms.balance.service;
 
 import static java.math.BigDecimal.ZERO;
+import static java.util.UUID.randomUUID;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
@@ -26,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 /**
@@ -121,6 +119,7 @@ public class BalanceService {
             .flatMap(pocketRepository::findOneByIdForUpdate)
             .map(existingPocket -> existingPocket.addAmount(reloadRequest.getAmount()))
             .orElse(new Pocket()
+                .key(UUID.randomUUID().toString())
                 .balance(balance)
                 .amount(reloadRequest.getAmount())
                 .endDateTime(reloadRequest.getEndDateTime())
@@ -133,6 +132,9 @@ public class BalanceService {
     }
 
     private Optional<Pocket> findPocketForReload(ReloadBalanceRequest reloadRequest, Balance balance) {
+
+        log.debug("Search pocket for reload balance with request {}", reloadRequest);
+
         Optional<Pocket> pocket = pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(reloadRequest.getLabel(),
             reloadRequest.getStartDateTime(), reloadRequest.getEndDateTime(), balance);
 
@@ -187,6 +189,7 @@ public class BalanceService {
             PageRequest pageable = new PageRequest(i, pocketCheckoutBatchSize);
             Page<Pocket> pocketsPage = pocketRepository.findPocketForCheckoutOrderByDates(balance, pageable);
             List<Pocket> pockets = pocketsPage.getContent();
+            log.debug("Fetch pockets {} by {}", pockets, pageable);
             assertNotEmpty(balance, amount, amountToCheckout, pockets);
 
             amountToCheckout = checkoutPockets(amountToCheckout, affectedPockets, pockets);
@@ -197,12 +200,18 @@ public class BalanceService {
 
     private BigDecimal checkoutPockets(BigDecimal amountToBalanceCheckout, List<PocketCheckout> affectedPockets, List<Pocket> pockets) {
         for(Pocket pocket: pockets) {
-            BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocket.getAmount());
+            BigDecimal pocketAmount = pocket.getAmount();
+            BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocketAmount);
             pocket.subtractAmount(amountToPocketCheckout);
             amountToBalanceCheckout = amountToBalanceCheckout.subtract(amountToPocketCheckout);
             affectedPockets.add(new PocketCheckout(pocket, amountToPocketCheckout));
+            pocketRepository.save(pocket);
 
-            if (amountToBalanceCheckout.equals(ZERO)) {
+            log.info("Checkout pocket id:{} label:{}, from {} -> {} | leftCheckoutAmound: {}",
+                pocket.getId(), pocket.getLabel(), pocketAmount, pocket.getAmount(), amountToBalanceCheckout);
+
+            if (amountToBalanceCheckout.compareTo(ZERO) <= 0) {
+                log.info("Checkout pockets finished.");
                 break;
             }
         }

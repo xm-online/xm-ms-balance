@@ -15,6 +15,7 @@ import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
 import com.icthh.xm.ms.balance.service.PocketQueryService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @see PocketResource
  */
+@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {BalanceApp.class, SecurityBeanOverrideConfiguration.class})
 public class PocketResourceIntTest {
@@ -591,6 +593,8 @@ public class PocketResourceIntTest {
             .amount(UPDATED_AMOUNT)
             .reserved(UPDATED_RESERVED);
         PocketDTO pocketDTO = pocketMapper.toDto(updatedPocket);
+
+        log.info("{}", pocketDTO);
 
         restPocketMockMvc.perform(put("/api/pockets")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
