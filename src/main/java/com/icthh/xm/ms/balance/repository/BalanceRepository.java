@@ -25,7 +25,7 @@ import java.util.Optional;
 public interface BalanceRepository extends JpaRepository<Balance, Long>, JpaSpecificationExecutor<Balance>, ResourceRepository {
 
     @Query("SELECT SUM(p.amount) FROM Pocket as p WHERE p.balance = :balance AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL)) AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL))")
-    Optional<BigDecimal> getBalanceAmount(@Param("balance") Balance balance);
+    Optional<BigDecimal> findBalanceAmount(@Param("balance") Balance balance);
 
     @Query("SELECT new com.icthh.xm.ms.balance.repository.BalanceAmountDto(p.balance.id, SUM(p.amount)) FROM Pocket as p WHERE p.balance in :balances AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL)) AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL)) GROUP BY p.balance")
     List<BalanceAmountDto> getBalancesAmount(@Param("balances") List<Balance> balances);
