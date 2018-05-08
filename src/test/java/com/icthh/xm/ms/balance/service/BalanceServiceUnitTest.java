@@ -16,7 +16,7 @@ import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
-import com.icthh.xm.ms.balance.web.rest.requests.CheckoutBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import org.junit.Test;
@@ -100,7 +100,7 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("19.73")));
 
-        balanceService.checkout(new CheckoutBalanceRequest()
+        balanceService.charging(new ChargingBalanceRequest()
             .setAmount(new BigDecimal("20"))
             .setBalanceId(1L)
         );
@@ -113,7 +113,7 @@ public class BalanceServiceUnitTest {
 
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("600")));
-        when(applicationProperties.getPocketCheckoutBatchSize()).thenReturn(100);
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
         Page<Pocket> pockets = new PageImpl<>(asList(
             pocket("600", "label1"),
             pocket("300", "label2")
@@ -121,8 +121,8 @@ public class BalanceServiceUnitTest {
         when(pocketRepository.findPocketForCheckoutOrderByDates(balance, new PageRequest(0, 100)))
             .thenReturn(pockets);
 
-        balanceService.checkout(
-            new CheckoutBalanceRequest()
+        balanceService.charging(
+            new ChargingBalanceRequest()
                 .setAmount(new BigDecimal("501.22"))
                 .setBalanceId(1L)
         );
@@ -139,7 +139,7 @@ public class BalanceServiceUnitTest {
 
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("600")));
-        when(applicationProperties.getPocketCheckoutBatchSize()).thenReturn(3);
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
 
         when(pocketRepository.findPocketForCheckoutOrderByDates(balance, new PageRequest(0, 3)))
             .thenReturn(new PageImpl<>(asList(
@@ -154,8 +154,8 @@ public class BalanceServiceUnitTest {
                 pocket("15", "label6")
             )));
 
-        balanceService.checkout(
-            new CheckoutBalanceRequest()
+        balanceService.charging(
+            new ChargingBalanceRequest()
                 .setAmount(new BigDecimal("201"))
                 .setBalanceId(1L)
         );
@@ -177,7 +177,7 @@ public class BalanceServiceUnitTest {
 
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("600")));
-        when(applicationProperties.getPocketCheckoutBatchSize()).thenReturn(3);
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
 
         when(pocketRepository.findPocketForCheckoutOrderByDates(balance, new PageRequest(0, 3)))
             .thenReturn(new PageImpl<>(asList(
@@ -188,8 +188,8 @@ public class BalanceServiceUnitTest {
         when(pocketRepository.findPocketForCheckoutOrderByDates(balance, new PageRequest(1, 3)))
             .thenReturn(new PageImpl<>(emptyList()));
 
-        balanceService.checkout(
-            new CheckoutBalanceRequest()
+        balanceService.charging(
+            new ChargingBalanceRequest()
                 .setAmount(new BigDecimal("201"))
                 .setBalanceId(1L)
         );
@@ -229,7 +229,7 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(sourceBalance));
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
-        when(applicationProperties.getPocketCheckoutBatchSize()).thenReturn(100);
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
 
         Page<Pocket> pockets = new PageImpl<>(asList(
             pocket("600", "label1"),
@@ -271,7 +271,7 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(sourceBalance));
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
-        when(applicationProperties.getPocketCheckoutBatchSize()).thenReturn(100);
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
 
         Page<Pocket> pockets = new PageImpl<>(asList(
             pocket("600", "label1"),
@@ -308,7 +308,7 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(sourceBalance));
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
-        when(applicationProperties.getPocketCheckoutBatchSize()).thenReturn(3);
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
         when(pocketRepository.findPocketForCheckoutOrderByDates(sourceBalance, new PageRequest(0, 3)))
             .thenReturn(new PageImpl<>(asList(
                 pocket("50", "label1"),

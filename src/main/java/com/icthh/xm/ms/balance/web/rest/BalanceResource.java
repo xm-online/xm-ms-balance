@@ -7,7 +7,7 @@ import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
-import com.icthh.xm.ms.balance.web.rest.requests.CheckoutBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
@@ -146,11 +146,11 @@ public class BalanceResource {
         balanceService.reload(reloadRequest);
     }
 
-    @PreAuthorize("hasPermission({'checkoutRequest': #checkoutRequest}, 'BALANCE.CHECKOUT')")
-    @PostMapping("/balances/checkout")
+    @PreAuthorize("hasPermission({'chargingRequest': #chargingRequest}, 'BALANCE.CHARGING')")
+    @PostMapping("/balances/charging")
     @Timed
-    public void checkoutBalance(@Valid @RequestBody CheckoutBalanceRequest checkoutRequest) {
-        balanceService.checkout(checkoutRequest);
+    public void chargingBalance(@Valid @RequestBody ChargingBalanceRequest chargingRequest) {
+        balanceService.charging(chargingRequest);
     }
 
     @PreAuthorize("hasPermission({'transferRequest': #transferRequest}, 'BALANCE.TRANSFER')")
