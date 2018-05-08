@@ -117,7 +117,7 @@ public class BalanceService {
     private void updateMaxMetric(Balance balance) {
         Metric max = metricRepository.findByTypeKeyAndBalance(MAX_METRIC_TYPE_KEY, balance).orElse(new Metric()
             .key(randomUUID().toString()).typeKey(MAX_METRIC_TYPE_KEY).value("0").balance(balance));
-        BigDecimal currentBalance = balanceRepository.findBalanceAmount(balance).orElse(new BigDecimal("0"));
+        BigDecimal currentBalance = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentBalance.compareTo(new BigDecimal(max.getValue())) > 0) {
             max.setValue(currentBalance.toString());
             metricRepository.save(max);

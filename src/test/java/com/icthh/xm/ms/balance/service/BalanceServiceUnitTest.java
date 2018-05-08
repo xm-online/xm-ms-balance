@@ -406,5 +406,4 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(pocketRepository);
     }
 
-
 }
