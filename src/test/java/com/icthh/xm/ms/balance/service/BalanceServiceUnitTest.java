@@ -13,8 +13,10 @@ import static org.mockito.Mockito.when;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
+import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
@@ -46,12 +48,17 @@ public class BalanceServiceUnitTest {
     @Mock
     private ApplicationProperties applicationProperties;
 
+    @Mock
+    private MetricRepository metricRepository;
+
     @Test
     public void ifPocketExistsPocketReloaded() {
 
         Balance balance = new Balance();
         balance.setId(1L);
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
+        when(metricRepository.findByTypeKeyAndBalance("MAX", balance)).thenReturn(of(new Metric().balance(balance).typeKey("MAX").value("300")));
+        when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("250")));
         Pocket pocket = new Pocket().key("ASSERTION_KEY").amount(new BigDecimal("30"));
         pocket.setId(5L);
 
@@ -66,6 +73,9 @@ public class BalanceServiceUnitTest {
         Pocket assertionPocket = new Pocket().key("ASSERTION_KEY").amount(new BigDecimal("80"));
         assertionPocket.setId(5L);
         verify(pocketRepository).save(refEq(assertionPocket));
+
+        verify(metricRepository).findByTypeKeyAndBalance("MAX", balance);
+        verifyNoMoreInteractions(metricRepository);
     }
 
     @Test
@@ -73,6 +83,8 @@ public class BalanceServiceUnitTest {
         Balance balance = new Balance();
         balance.setId(1L);
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
+        when(metricRepository.findByTypeKeyAndBalance("MAX", balance)).thenReturn(of(new Metric().balance(balance).typeKey("MAX").value("100")));
+        when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("250")));
 
         when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label", ofEpochSecond(1525428386), null, balance))
             .thenReturn(empty());
@@ -84,6 +96,8 @@ public class BalanceServiceUnitTest {
             .amount(new BigDecimal("50")).balance(balance);
 
         verify(pocketRepository).save(refEq(assertionPocket, "key"));
+        verify(metricRepository).findByTypeKeyAndBalance("MAX", balance);
+        verify(metricRepository).save(refEq(new Metric().typeKey("MAX").value("250"), "key", "balance"));
     }
 
     @Test(expected = EntityNotFoundException.class)
@@ -139,6 +153,7 @@ public class BalanceServiceUnitTest {
 
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("600")));
+
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
 
         when(pocketRepository.findPocketForCheckoutOrderByDates(balance, new PageRequest(0, 3)))
@@ -228,6 +243,10 @@ public class BalanceServiceUnitTest {
 
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(sourceBalance));
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
+
+        when(metricRepository.findByTypeKeyAndBalance("MAX", targetBalance)).thenReturn(empty());
+        when(balanceRepository.findBalanceAmount(targetBalance)).thenReturn(of(new BigDecimal("400")));
+
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
 
@@ -258,6 +277,9 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).findOneByIdForUpdate(10L);
         verify(pocketRepository).save(refEq(pocket("751.22", "label1", 10L)));
 
+        verify(metricRepository).findByTypeKeyAndBalance("MAX", targetBalance);
+        verify(metricRepository).save(refEq(new Metric().typeKey("MAX").value("400"), "key", "balance"));
+
         verifyNoMoreInteractions(pocketRepository);
     }
 
@@ -270,6 +292,10 @@ public class BalanceServiceUnitTest {
 
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(sourceBalance));
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
+
+        when(metricRepository.findByTypeKeyAndBalance("MAX", targetBalance)).thenReturn(empty());
+        when(balanceRepository.findBalanceAmount(targetBalance)).thenReturn(of(new BigDecimal("300")));
+
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
 
@@ -295,6 +321,9 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance);
         verify(pocketRepository).save(refEq(pocket("501.22", "label1"), "key", "balance"));
 
+        verify(metricRepository).findByTypeKeyAndBalance("MAX", targetBalance);
+        verify(metricRepository).save(refEq(new Metric().typeKey("MAX").value("300"), "key", "balance"));
+
         verifyNoMoreInteractions(pocketRepository);
     }
 
@@ -308,6 +337,10 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(sourceBalance));
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
+
+        when(metricRepository.findByTypeKeyAndBalance("MAX", targetBalance)).thenReturn(empty());
+        when(balanceRepository.findBalanceAmount(targetBalance)).thenReturn(of(new BigDecimal("200")));
+
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
         when(pocketRepository.findPocketForCheckoutOrderByDates(sourceBalance, new PageRequest(0, 3)))
             .thenReturn(new PageImpl<>(asList(
@@ -367,8 +400,10 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).save(refEq(pocket("100", "label4"), "key", "balance"));
         verify(pocketRepository).save(refEq(pocket("1", "label5"), "key", "balance"));
 
+        verify(metricRepository).findByTypeKeyAndBalance("MAX", targetBalance);
+        verify(metricRepository).save(refEq(new Metric().typeKey("MAX").value("200"), "key", "balance"));
+
         verifyNoMoreInteractions(pocketRepository);
     }
-
 
 }

@@ -1,14 +1,17 @@
 package com.icthh.xm.ms.balance.service;
 
 import static java.math.BigDecimal.ZERO;
+import static java.util.UUID.randomUUID;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
+import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.PocketCheckout;
@@ -26,7 +29,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 
 /**
@@ -38,11 +44,13 @@ import java.util.*;
 @RequiredArgsConstructor
 public class BalanceService {
 
+    private static final String MAX_METRIC_TYPE_KEY = "MAX";
     private final BalanceRepository balanceRepository;
     private final PermittedRepository permittedRepository;
     private final PocketRepository pocketRepository;
     private final BalanceMapper balanceMapper;
     private final ApplicationProperties applicationProperties;
+    private final MetricRepository metricRepository;
 
     /**
      * Save a balance.
@@ -102,7 +110,20 @@ public class BalanceService {
         log.info("Start reload balance with request {}", reloadRequest);
         Balance balance = getBalanceForUpdate(reloadRequest.getBalanceId());
         reloadPocket(reloadRequest, balance);
+
+        updateMaxMetric(balance);
     }
+
+    private void updateMaxMetric(Balance balance) {
+        Metric max = metricRepository.findByTypeKeyAndBalance(MAX_METRIC_TYPE_KEY, balance).orElse(new Metric()
+            .key(randomUUID().toString()).typeKey(MAX_METRIC_TYPE_KEY).value("0").balance(balance));
+        BigDecimal currentBalance = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
+        if (currentBalance.compareTo(new BigDecimal(max.getValue())) > 0) {
+            max.setValue(currentBalance.toString());
+            metricRepository.save(max);
+        }
+    }
+
 
     private Balance getBalanceForUpdate(Long balanceId) {
         Balance balance = balanceRepository.findOneByIdForUpdate(balanceId)
@@ -118,7 +139,7 @@ public class BalanceService {
             .flatMap(pocketRepository::findOneByIdForUpdate)
             .map(existingPocket -> existingPocket.addAmount(reloadRequest.getAmount()))
             .orElse(new Pocket()
-                .key(UUID.randomUUID().toString())
+                .key(randomUUID().toString())
                 .balance(balance)
                 .amount(reloadRequest.getAmount())
                 .endDateTime(reloadRequest.getEndDateTime())
@@ -166,6 +187,8 @@ public class BalanceService {
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
         pockets.stream().map(pocketCheckout -> toReloadRequest(pocketCheckout, targetBalanceId))
             .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance));
+
+        updateMaxMetric(targetBalance);
     }
 
     private ReloadBalanceRequest toReloadRequest(PocketCheckout pocket, Long targetBalanceId) {
