@@ -238,7 +238,7 @@ public class BalanceService {
     private void assertBalanceAmout(Balance balance, BigDecimal amount) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
-            throw new NoEnoughMoneyException(balance.getId(), balance.getAmount());
+            throw new NoEnoughMoneyException(balance.getId(), currentAmount);
         }
     }
 }
