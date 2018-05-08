@@ -8,10 +8,8 @@ import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
-import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
-import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.PocketCheckout;
@@ -44,13 +42,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class BalanceService {
 
-    private static final String MAX_METRIC_TYPE_KEY = "MAX";
     private final BalanceRepository balanceRepository;
     private final PermittedRepository permittedRepository;
     private final PocketRepository pocketRepository;
     private final BalanceMapper balanceMapper;
     private final ApplicationProperties applicationProperties;
-    private final MetricRepository metricRepository;
+    private final MetricService metricService;
 
     /**
      * Save a balance.
@@ -111,18 +108,10 @@ public class BalanceService {
         Balance balance = getBalanceForUpdate(reloadRequest.getBalanceId());
         reloadPocket(reloadRequest, balance);
 
-        updateMaxMetric(balance);
+        metricService.updateMaxMetric(balance);
     }
 
-    private void updateMaxMetric(Balance balance) {
-        Metric max = metricRepository.findByTypeKeyAndBalance(MAX_METRIC_TYPE_KEY, balance).orElse(new Metric()
-            .key(randomUUID().toString()).typeKey(MAX_METRIC_TYPE_KEY).value("0").balance(balance));
-        BigDecimal currentBalance = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
-        if (currentBalance.compareTo(new BigDecimal(max.getValue())) > 0) {
-            max.setValue(currentBalance.toString());
-            metricRepository.save(max);
-        }
-    }
+
 
 
     private Balance getBalanceForUpdate(Long balanceId) {
@@ -188,7 +177,7 @@ public class BalanceService {
         pockets.stream().map(pocketCheckout -> toReloadRequest(pocketCheckout, targetBalanceId))
             .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance));
 
-        updateMaxMetric(targetBalance);
+        metricService.updateMaxMetric(targetBalance);
     }
 
     private ReloadBalanceRequest toReloadRequest(PocketCheckout pocket, Long targetBalanceId) {
@@ -249,7 +238,7 @@ public class BalanceService {
     private void assertBalanceAmout(Balance balance, BigDecimal amount) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
-            throw new NoEnoughMoneyException(balance.getId(), balance.getAmount());
+            throw new NoEnoughMoneyException(balance.getId(), currentAmount);
         }
     }
 }
