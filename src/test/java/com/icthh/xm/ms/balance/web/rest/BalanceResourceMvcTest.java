@@ -137,7 +137,7 @@ public class BalanceResourceMvcTest {
             .content(TestUtil.convertObjectToJsonBytes(request)))
             .andDo(print())
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.error").value("error.no.enough.many"))
+            .andExpect(jsonPath("$.error").value("error.no.enough.money"))
             .andExpect(jsonPath("$.params.currentAmount").value("3.21"))
             .andExpect(jsonPath("$.params.balanceId").value("1"));
 
