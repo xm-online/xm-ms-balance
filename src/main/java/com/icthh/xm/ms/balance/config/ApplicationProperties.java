@@ -14,11 +14,12 @@ import java.util.List;
  * Properties are configured in the application.yml file.
  * See {@link io.github.jhipster.config.JHipsterProperties} for a good example.
  */
-@Component
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 @Getter
 @Setter
 public class ApplicationProperties {
+
+    private final Retry retry = new Retry();
 
     private List<String> tenantIgnoredPathList = Collections.emptyList();
     private boolean timelinesEnabled;
@@ -26,5 +27,14 @@ public class ApplicationProperties {
     private String kafkaSystemQueue;
     private String kafkaSystemTopic;
     private Integer pocketChargingBatchSize;
+
+    @Getter
+    @Setter
+    private static class Retry {
+
+        private int maxAttempts;
+        private long delay;
+        private int multiplier;
+    }
 
 }

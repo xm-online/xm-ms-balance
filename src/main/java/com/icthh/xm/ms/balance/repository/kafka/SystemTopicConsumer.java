@@ -8,6 +8,7 @@ import com.icthh.xm.commons.config.domain.Configuration;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.messaging.event.system.SystemEvent;
 import com.icthh.xm.commons.messaging.event.system.SystemEventType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,15 +20,12 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
-@Service
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class SystemTopicConsumer {
 
-    private final ConfigurationModel configurationModel;
-
-    public SystemTopicConsumer(Optional<ConfigurationModel> configurationModel) {
-        this.configurationModel = configurationModel.orElse(null);
-    }
+    private final Optional<ConfigurationModel> configurationModel;
 
     /**
      * Consume tenant command event message.
@@ -75,6 +73,6 @@ public class SystemTopicConsumer {
         if (StringUtils.isBlank(commit)) {
             throw new IllegalArgumentException("Event '" + event.getEventType() + "' configuration commit can't be blank");
         }
-        configurationModel.updateConfiguration(new Configuration(path, null, commit));
+        configurationModel.ifPresent(model -> model.updateConfiguration(new Configuration(path, null, commit)));
     }
 }
