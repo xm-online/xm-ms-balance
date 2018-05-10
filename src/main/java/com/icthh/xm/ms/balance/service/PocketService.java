@@ -5,6 +5,7 @@ import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Service Implementation for managing Pocket.
  */
+@Slf4j
 @Service
 @Transactional
 public class PocketService {
@@ -40,6 +42,7 @@ public class PocketService {
      */
     public PocketDTO save(PocketDTO pocketDTO) {
         Pocket pocket = pocketMapper.toEntity(pocketDTO);
+        log.debug("Save pocket {}", pocket);
         pocket = pocketRepository.save(pocket);
         return pocketMapper.toDto(pocket);
     }

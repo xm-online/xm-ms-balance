@@ -136,3 +136,4 @@ application:
     timelines-enabled: true
     kafka-enabled: true
     kafka-system-queue: system_queue
+    pocket-charging-batch-size: 100

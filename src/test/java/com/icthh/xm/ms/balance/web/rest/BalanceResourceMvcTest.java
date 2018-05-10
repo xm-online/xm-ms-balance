@@ -1,17 +1,21 @@
 package com.icthh.xm.ms.balance.web.rest;
 
 import static java.time.Instant.now;
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
+import com.icthh.xm.ms.balance.service.NoEnoughMoneyException;
+import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -119,6 +123,25 @@ public class BalanceResourceMvcTest {
             .content(TestUtil.convertObjectToJsonBytes(reloadBalanceRequest)))
             .andDo(print())
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @SneakyThrows
+    public void bagRequestIfNoMany() {
+        ChargingBalanceRequest request = new ChargingBalanceRequest(1L, new BigDecimal("5"));
+
+        doThrow(new NoEnoughMoneyException(1L, new BigDecimal("3.21"))).when(balanceService).charging(request);
+
+        mockMvc.perform(post("/api/balances/charging")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(request)))
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value("error.no.enough.money"))
+            .andExpect(jsonPath("$.params.currentAmount").value("3.21"))
+            .andExpect(jsonPath("$.params.balanceId").value("1"));
+
+        //{"error":"error.no.enough.many","error_description":"No enough many","params":{"currentAmount":"3.21","balanceId":"1"}
     }
 
 }

@@ -7,7 +7,9 @@ import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
+import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import com.icthh.xm.ms.balance.web.rest.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -140,8 +142,22 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'reloadRequest': #reloadRequest}, 'BALANCE.RELOAD')")
     @PostMapping("/balances/reload")
     @Timed
-    public ResponseEntity<BalanceDTO> createBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
+    public void reloadBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
         balanceService.reload(reloadRequest);
-        return ResponseEntity.ok().build();
     }
+
+    @PreAuthorize("hasPermission({'chargingRequest': #chargingRequest}, 'BALANCE.CHARGING')")
+    @PostMapping("/balances/charging")
+    @Timed
+    public void chargingBalance(@Valid @RequestBody ChargingBalanceRequest chargingRequest) {
+        balanceService.charging(chargingRequest);
+    }
+
+    @PreAuthorize("hasPermission({'transferRequest': #transferRequest}, 'BALANCE.TRANSFER')")
+    @PostMapping("/balances/transfer")
+    @Timed
+    public void transferBalance(@Valid @RequestBody TransferBalanceRequest transferRequest) {
+        balanceService.transfer(transferRequest);
+    }
+
 }
