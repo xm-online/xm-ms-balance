@@ -1,19 +1,23 @@
 package com.icthh.xm.ms.balance.service;
 
+import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.refEq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
+import com.icthh.xm.commons.security.XmAuthenticationContext;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.Pocket;
+import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
+import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
@@ -39,18 +43,26 @@ public class BalanceServiceUnitTest {
 
     @Mock
     private BalanceRepository balanceRepository;
-
     @Mock
     private PocketRepository pocketRepository;
-
     @Mock
     private ApplicationProperties applicationProperties;
-
     @Mock
     private MetricService metricService;
+    @Mock
+    private XmAuthenticationContextHolder authContextHolder;
+    @Mock
+    private BalanceChangeEventRepository balanceChangeEventRepository;
+
+    private void expectedAuth() {
+        XmAuthenticationContext auth = mock(XmAuthenticationContext.class);
+        when(auth.getRequiredUserKey()).thenReturn("requiredUserKey");
+        when(authContextHolder.getContext()).thenReturn(auth);
+    }
 
     @Test
     public void ifPocketExistsPocketReloaded() {
+        expectedAuth();
 
         Balance balance = new Balance();
         balance.setId(1L);
@@ -70,10 +82,20 @@ public class BalanceServiceUnitTest {
         assertionPocket.setId(5L);
         verify(pocketRepository).save(refEq(assertionPocket));
         verify(metricService).updateMaxMetric(balance);
+        verify(balanceChangeEventRepository).save(refEq(BalanceChangeEvent.builder()
+            .amountDelta(new BigDecimal("50"))
+            .balanceId(1L)
+            .executedByUserKey("requiredUserKey")
+            .operationType(RELOAD)
+            .operationDate(ofEpochSecond(1525428386))
+            .pocketChangeEvents(//TODO capture agrument here becouse inner list eq)
+            .build(), "key"));
     }
 
     @Test
     public void ifPocketNotExistsNewPocketCreated() {
+        expectedAuth();
+
         Balance balance = new Balance();
         balance.setId(1L);
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
@@ -113,6 +135,8 @@ public class BalanceServiceUnitTest {
 
     @Test
     public void successCheckoutAllManyFromOnePocket() {
+        expectedAuth();
+
         Balance balance = new Balance();
         balance.setId(1L);
 
@@ -140,6 +164,8 @@ public class BalanceServiceUnitTest {
 
     @Test
     public void successCheckoutAllManyFromManyPocket() {
+        expectedAuth();
+
         Balance balance = new Balance();
         balance.setId(1L);
 
@@ -179,6 +205,8 @@ public class BalanceServiceUnitTest {
 
     @Test(expected = NoEnoughMoneyException.class)
     public void throwNoManyIfPocketsDoesNotHaveEnoughMany() {
+        expectedAuth();
+
         Balance balance = new Balance();
         balance.setId(1L);
 
@@ -228,6 +256,8 @@ public class BalanceServiceUnitTest {
 
     @Test
     public void successTransferFromOnePocketToExistsPocketInTargetBalance() {
+        expectedAuth();
+
         Balance sourceBalance = new Balance();
         sourceBalance.setId(1L);
         Balance targetBalance = new Balance();
@@ -271,6 +301,8 @@ public class BalanceServiceUnitTest {
 
     @Test
     public void successTransferFromOnePocketToNewPocketInTargetBalance() {
+        expectedAuth();
+
         Balance sourceBalance = new Balance();
         sourceBalance.setId(1L);
         Balance targetBalance = new Balance();
@@ -309,6 +341,8 @@ public class BalanceServiceUnitTest {
 
     @Test
     public void successTransferFromManyPocket() {
+        expectedAuth();
+
         Balance sourceBalance = new Balance();
         sourceBalance.setId(1L);
         Balance targetBalance = new Balance();

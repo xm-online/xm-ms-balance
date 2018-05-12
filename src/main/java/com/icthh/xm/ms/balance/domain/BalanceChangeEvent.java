@@ -1,19 +1,12 @@
 package com.icthh.xm.ms.balance.domain;
 
 import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.EnumType.STRING;
 
 import com.icthh.xm.ms.balance.service.OperationType;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,7 +15,10 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "pocketChangeEvents")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class BalanceChangeEvent {
 
     @Id
@@ -37,12 +33,18 @@ public class BalanceChangeEvent {
     @Column(precision=10, scale=2)
     private BigDecimal amountDelta;
 
+    @Enumerated(STRING)
     private OperationType operationType;
     private Instant operationDate;
 
     private String executedByUserKey;
 
     @OneToMany(mappedBy = "transaction", cascade = ALL)
-    private List<PocketChangeEvent> pocketHistory = new ArrayList<>();
+    private List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();
+
+    public void addPocketChangeEvent(PocketChangeEvent event) {
+        event.setTransaction(this);
+        pocketChangeEvents.add(event);
+    }
 
 }
