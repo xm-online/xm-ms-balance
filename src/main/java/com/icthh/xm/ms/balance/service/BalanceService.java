@@ -4,6 +4,8 @@ import static java.math.BigDecimal.ZERO;
 import static java.util.UUID.randomUUID;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
+import com.icthh.xm.commons.lep.LogicExtensionPoint;
+import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
@@ -12,7 +14,7 @@ import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
-import com.icthh.xm.ms.balance.service.dto.PocketCheckout;
+import com.icthh.xm.ms.balance.service.dto.PocketCharging;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
@@ -38,6 +40,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
+@LepService(group = "service")
 @Transactional
 @RequiredArgsConstructor
 public class BalanceService {
@@ -55,6 +58,7 @@ public class BalanceService {
      * @param balanceDTO the entity to save
      * @return the persisted entity
      */
+    @LogicExtensionPoint("Save")
     public BalanceDTO save(BalanceDTO balanceDTO) {
         Balance balance = balanceMapper.toEntity(balanceDTO);
         balance = balanceRepository.save(balance);
@@ -136,6 +140,7 @@ public class BalanceService {
                 .label(reloadRequest.getLabel())
             );
 
+
         Pocket savedPocket = pocketRepository.save(pocket);
         log.info("Pocket affected by reload {}", savedPocket);
     }
@@ -171,16 +176,16 @@ public class BalanceService {
         Balance sourceBalance = getBalanceForUpdate(transferRequest.getSourceBalanceId());
         assertBalanceAmout(sourceBalance, transferRequest.getAmount());
 
-        List<PocketCheckout> pockets = chargingPockets(sourceBalance, transferRequest.getAmount());
+        List<PocketCharging> pockets = chargingPockets(sourceBalance, transferRequest.getAmount());
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
-        pockets.stream().map(pocketCheckout -> toReloadRequest(pocketCheckout, targetBalanceId))
+        pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId))
             .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance));
 
         metricService.updateMaxMetric(targetBalance);
     }
 
-    private ReloadBalanceRequest toReloadRequest(PocketCheckout pocket, Long targetBalanceId) {
+    private ReloadBalanceRequest toReloadRequest(PocketCharging pocket, Long targetBalanceId) {
         return new ReloadBalanceRequest()
             .setAmount(pocket.getAmount())
             .setBalanceId(targetBalanceId)
@@ -191,9 +196,9 @@ public class BalanceService {
     }
 
 
-    private List<PocketCheckout> chargingPockets(Balance balance, BigDecimal amount) {
+    private List<PocketCharging> chargingPockets(Balance balance, BigDecimal amount) {
         BigDecimal amountToCheckout = amount;
-        List<PocketCheckout> affectedPockets = new ArrayList<>();
+        List<PocketCharging> affectedPockets = new ArrayList<>();
         Integer pocketCheckoutBatchSize = applicationProperties.getPocketChargingBatchSize();
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
@@ -209,13 +214,16 @@ public class BalanceService {
         return affectedPockets;
     }
 
-    private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCheckout> affectedPockets, List<Pocket> pockets) {
+    private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCharging> affectedPockets, List<Pocket> pockets) {
+
         for(Pocket pocket: pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
             BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocketAmount);
             pocket.subtractAmount(amountToPocketCheckout);
             amountToBalanceCheckout = amountToBalanceCheckout.subtract(amountToPocketCheckout);
-            affectedPockets.add(new PocketCheckout(pocket, amountToPocketCheckout));
+            affectedPockets.add(new PocketCharging(pocket, amountToPocketCheckout));
+
+
             pocketRepository.save(pocket);
 
             log.info("Checkout pocket id:{} label:{}, from {} -> {} | leftCheckoutAmound: {}",
