@@ -17,6 +17,10 @@
             </column>
 
             <column name="balance_type_key" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+
+            <column name="balance_entity_id" type="bigint">
                 <constraints nullable="false" />
             </column>
 
@@ -33,6 +37,10 @@
             </column>
 
             <column name="executed_by_user_key" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="operation_id" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
 

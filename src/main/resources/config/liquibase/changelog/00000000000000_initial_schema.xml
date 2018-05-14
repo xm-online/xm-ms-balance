@@ -28,7 +28,6 @@
             <column name="event_date" type="timestamp"/>
             <column name="event_type" type="varchar(255)"/>
         </createTable>
-
         <createTable tableName="jhi_persistent_audit_evt_data">
             <column name="event_id" type="bigint">
                 <constraints nullable="false"/>

@@ -35,11 +35,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 
 /**
@@ -47,6 +49,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
+@LepService(group = "service")
 @Transactional
 @RequiredArgsConstructor
 public class BalanceService {
@@ -59,6 +62,7 @@ public class BalanceService {
     private final MetricService metricService;
     private final XmAuthenticationContextHolder authContextHolder;
     private final BalanceChangeEventRepository balanceChangeEventRepository;
+    private Clock clock = Clock.systemDefaultZone();
 
     /**
      * Save a balance.
@@ -66,6 +70,7 @@ public class BalanceService {
      * @param balanceDTO the entity to save
      * @return the persisted entity
      */
+    @LogicExtensionPoint(value = "Save", resolver = BalanceDtoTypeKeyResolver.class)
     public BalanceDTO save(BalanceDTO balanceDTO) {
         Balance balance = balanceMapper.toEntity(balanceDTO);
         balance = balanceRepository.save(balance);
@@ -160,9 +165,14 @@ public class BalanceService {
     public void reload(ReloadBalanceRequest reloadRequest) {
         log.info("Start reload balance with request {}", reloadRequest);
         Balance balance = getBalanceForUpdate(reloadRequest.getBalanceId());
+        reload(balance, reloadRequest);
+    }
 
+    @Transactional
+    @LogicExtensionPoint(value = "Reload", resolver = BalanceTypeKeyResolver.class)
+    public void reload(Balance balance, ReloadBalanceRequest reloadRequest) {
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, RELOAD, reloadRequest.getAmount(),
-            reloadRequest.getStartDateTime());
+            reloadRequest.getStartDateTime(), randomUUID());
         reloadPocket(reloadRequest, balance, changeEvent);
 
         metricService.updateMaxMetric(balance);
@@ -173,13 +183,23 @@ public class BalanceService {
     public void charging(ChargingBalanceRequest chargingRequest) {
         log.info("Start charging balance with request {}", chargingRequest);
         Balance balance = getBalanceForUpdate(chargingRequest.getBalanceId());
+        charging(balance, chargingRequest);
+    }
+
+    @Transactional
+    @LogicExtensionPoint(value = "Charging", resolver = BalanceTypeKeyResolver.class)
+    public void charging(Balance balance, ChargingBalanceRequest chargingRequest) {
         assertBalanceAmout(balance, chargingRequest.getAmount());
-        BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, CHARGING, chargingRequest.getAmount(), now());
+
+        BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, CHARGING, chargingRequest.getAmount(),
+            now(clock), randomUUID());
         chargingPockets(balance, chargingRequest.getAmount(), changeEvent);
+
         balanceChangeEventRepository.save(changeEvent);
     }
 
     @Transactional
+    @LogicExtensionPoint("Transfer")
     public void transfer(TransferBalanceRequest transferRequest) {
         Long targetBalanceId = transferRequest.getTargetBalanceId();
 
@@ -188,11 +208,14 @@ public class BalanceService {
         BigDecimal amount = transferRequest.getAmount();
         assertBalanceAmout(sourceBalance, amount);
 
-        BalanceChangeEvent eventFrom = createBalanceChangeEvent(sourceBalance, TRANSFER_FROM, amount, now());
+        Instant now = now(clock);
+
+        UUID transactionId = randomUUID();
+        BalanceChangeEvent eventFrom = createBalanceChangeEvent(sourceBalance, TRANSFER_FROM, amount, now, transactionId);
         List<PocketCharging> pockets = chargingPockets(sourceBalance, amount, eventFrom);
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
-        BalanceChangeEvent eventTo = createBalanceChangeEvent(sourceBalance, TRANSFER_TO, amount, now());
+        BalanceChangeEvent eventTo = createBalanceChangeEvent(targetBalance, TRANSFER_TO, amount, now, transactionId);
         pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId))
             .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo));
 
@@ -219,7 +242,7 @@ public class BalanceService {
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
             PageRequest pageable = new PageRequest(i, pocketCheckoutBatchSize);
-            Page<Pocket> pocketsPage = pocketRepository.findPocketForCheckoutOrderByDates(balance, pageable);
+            Page<Pocket> pocketsPage = pocketRepository.findPocketForChargingOrderByDates(balance, pageable);
             List<Pocket> pockets = pocketsPage.getContent();
             log.debug("Fetch pockets {} by {}", pockets, pageable);
             assertNotEmpty(balance, amount, amountToCheckout, pockets);
@@ -268,15 +291,17 @@ public class BalanceService {
     }
 
     private BalanceChangeEvent createBalanceChangeEvent(Balance balance, OperationType operationType,
-                                                        BigDecimal amountDelta, Instant operationDate) {
+                                                        BigDecimal amountDelta, Instant operationDate, UUID transactionId) {
         BalanceChangeEvent event = new BalanceChangeEvent();
         event.setBalanceId(balance.getId());
         event.setBalanceKey(balance.getKey());
         event.setBalanceTypeKey(balance.getTypeKey());
+        event.setBalanceEntityId(balance.getEntityId());
         event.setExecutedByUserKey(authContextHolder.getContext().getRequiredUserKey());
         event.setOperationType(operationType);
         event.setAmountDelta(amountDelta);
         event.setOperationDate(operationDate);
+        event.setOperationId(transactionId.toString());
         return event;
     }
 

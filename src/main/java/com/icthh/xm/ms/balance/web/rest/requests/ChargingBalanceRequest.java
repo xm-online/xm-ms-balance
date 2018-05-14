@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
@@ -16,5 +17,6 @@ public class ChargingBalanceRequest {
     @NotNull
     private Long balanceId;
     @NotNull
+    @Min(0)
     private BigDecimal amount;
 }

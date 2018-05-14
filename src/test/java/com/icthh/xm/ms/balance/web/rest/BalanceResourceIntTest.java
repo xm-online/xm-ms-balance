@@ -1,5 +1,8 @@
 package com.icthh.xm.ms.balance.web.rest;
 
+import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
+import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
+import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.ms.balance.BalanceApp;
 
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
@@ -18,6 +21,7 @@ import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,6 +45,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
+import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
+import static com.icthh.xm.commons.lep.XmLepScriptConstants.BINDING_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -112,13 +118,33 @@ public class BalanceResourceIntTest {
     @Autowired
     private PocketRepository pocketRepository;
 
+    @Autowired
+    private LepManager lepManager;
+
+    @Autowired
+    private XmAuthenticationContextHolder xmAuthenticationContextHolder;
+
+    @Autowired
+    private XmLepScriptConfigServerResourceLoader leps;
+
     private MockMvc restBalanceMockMvc;
 
     private Balance balance;
 
     @BeforeTransaction
-    public void beforeTransaction() {
+    public void BeforeTransaction() {
         TenantContextUtils.setTenant(tenantContextHolder, "RESINTTEST");
+        lepManager.beginThreadContext(scopedContext -> {
+            scopedContext.setValue(THREAD_CONTEXT_KEY_TENANT_CONTEXT, tenantContextHolder.getContext());
+            scopedContext.setValue(BINDING_KEY_AUTH_CONTEXT, xmAuthenticationContextHolder.getContext());
+        });
+    }
+
+    @After
+    @Override
+    public void finalize() {
+        tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
+        lepManager.endThreadContext();
     }
 
     @Before
@@ -626,45 +652,6 @@ public class BalanceResourceIntTest {
 
         // Get all the balanceList where createdBy is null
         defaultBalanceShouldNotBeFound("createdBy.specified=false");
-    }
-
-    @Test
-    @Transactional
-    @Ignore("Filter by reference entity is not supported due to dynamic permission (see PermittedRepository.findByCondition)")
-    public void getAllBalancesByPocketsIsEqualToSomething() throws Exception {
-        // Initialize the database
-        Pocket pockets = PocketResourceIntTest.createEntity(em);
-        em.persist(pockets);
-        em.flush();
-        balance.addPockets(pockets);
-        balanceRepository.saveAndFlush(balance);
-        Long pocketsId = pockets.getId();
-
-        // Get all the balanceList where pockets equals to pocketsId
-        defaultBalanceShouldBeFound("pocketsId.equals=" + pocketsId);
-
-        // Get all the balanceList where pockets equals to pocketsId + 1
-        defaultBalanceShouldNotBeFound("pocketsId.equals=" + (pocketsId + 1));
-    }
-
-
-    @Test
-    @Transactional
-    @Ignore("Filter by reference entity is not supported due to dynamic permission (see PermittedRepository.findByCondition)")
-    public void getAllBalancesByMetricsIsEqualToSomething() throws Exception {
-        // Initialize the database
-        Metric metrics = MetricResourceIntTest.createEntity(em);
-        em.persist(metrics);
-        em.flush();
-        balance.addMetrics(metrics);
-        balanceRepository.saveAndFlush(balance);
-        Long metricsId = metrics.getId();
-
-        // Get all the balanceList where metrics equals to metricsId
-        defaultBalanceShouldBeFound("metricsId.equals=" + metricsId);
-
-        // Get all the balanceList where metrics equals to metricsId + 1
-        defaultBalanceShouldNotBeFound("metricsId.equals=" + (metricsId + 1));
     }
 
     /**

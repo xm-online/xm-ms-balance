@@ -47,17 +47,17 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
     public void amountCalculatedFromPockedWithFilterByDateLimit() {
         List<Long> expectedOrder = asList(11L, 18L, 24L, 13L, 22L, 25L, 23L, 14L, 15L, 16L, 19L, 17L, 20L, 21L);
 
-        Page<Pocket> pockets = pocketRepository.findPocketForCheckoutOrderByDates(balanceRepository.findOne(4L),
+        Page<Pocket> pockets = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findOne(4L),
             new PageRequest(0, 5));
         log.info("{}",pockets.getContent());
         assertEquals(expectedOrder.subList(0, 5), pockets.map(Pocket::getId).getContent());
 
-        Page<Pocket> pockets1 = pocketRepository.findPocketForCheckoutOrderByDates(balanceRepository.findOne(4L),
+        Page<Pocket> pockets1 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findOne(4L),
             new PageRequest(1, 5));
         log.info("{}",pockets1.getContent());
         assertEquals(expectedOrder.subList(5, 10), pockets1.map(Pocket::getId).getContent());
 
-        Page<Pocket> pockets2 = pocketRepository.findPocketForCheckoutOrderByDates(balanceRepository.findOne(4L),
+        Page<Pocket> pockets2 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findOne(4L),
             new PageRequest(2, 5));
         log.info("{}",pockets2.getContent());
         assertEquals(expectedOrder.subList(10, 14), pockets2.map(Pocket::getId).getContent());

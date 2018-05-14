@@ -29,6 +29,7 @@ public class BalanceChangeEvent {
     private Long balanceId;
     private String balanceKey;
     private String balanceTypeKey;
+    private Long balanceEntityId;
 
     @Column(precision=10, scale=2)
     private BigDecimal amountDelta;
@@ -38,6 +39,8 @@ public class BalanceChangeEvent {
     private Instant operationDate;
 
     private String executedByUserKey;
+
+    private String operationId;
 
     @OneToMany(mappedBy = "transaction", cascade = ALL)
     private List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();
