@@ -130,13 +130,13 @@ jhipster:
 xm-config:
     enabled: true
     xm-config-url: http://config
+    kafka-config-topic: config_topic
 
 application:
     tenant-ignored-path-list: /v2/api-docs, /api/profile-info, /swagger-resources/configuration/ui, /management/health
     timelines-enabled: true
     kafka-enabled: true
     kafka-system-queue: system_queue
-    kafka-system-topic: system_topic
     retry:
         max-attempts: 3
         delay: 1000 #in milliseconds
