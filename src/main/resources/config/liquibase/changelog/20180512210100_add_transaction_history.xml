@@ -77,6 +77,14 @@
                                  referencedColumnNames="id"
                                  referencedTableName="balance_change_event"/>
 
+        <createIndex tableName="balance_change_event" indexName="balance_change_event_operation_type_index">
+            <column name="operation_type"/>
+        </createIndex>
+
+        <createIndex tableName="balance_change_event" indexName="balance_change_event_operation_date_index">
+            <column name="operation_date"/>
+        </createIndex>
+
     </changeSet>
 
 </databaseChangeLog>
