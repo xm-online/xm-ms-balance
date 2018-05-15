@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,7 @@ public class BalanceHistoryResource {
 
     private final BalanceHistoryService balanceHistoryService;
 
+    @PreAuthorize("hasPermission({'request': #request}, 'BALANCE_HISTORY.SEARCH_BY_DATE')")
     @GetMapping("/balances/history")
     @Timed
     public ResponseEntity<List<BalanceChangeEvent>> searchBalanceHistory(HistoryRequest request,
@@ -41,6 +43,7 @@ public class BalanceHistoryResource {
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasPermission({'templateName': #templateName, 'params': #params}, 'BALANCE_HISTORY.SEARCH_BY_TEMPLATE')")
     @GetMapping("/balances/history/{templateName}")
     @Timed
     public ResponseEntity<List<BalanceChangeEvent>> searchBalanceHistory(@PathVariable("templateName") String templateName,
@@ -51,6 +54,7 @@ public class BalanceHistoryResource {
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasPermission({'request': #request}, 'POCKET_HISTORY.SEARCH_BY_DATE')")
     @GetMapping("/pockets/history")
     @Timed
     public ResponseEntity<List<PocketChangeEvent>> searchPocketHistory(HistoryRequest request,
@@ -60,6 +64,7 @@ public class BalanceHistoryResource {
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasPermission({'templateName': #templateName, 'params': #params}, 'POCKET_HISTORY.SEARCH_BY_TEMPLATE')")
     @GetMapping("/pockets/history/{templateName}")
     @Timed
     public ResponseEntity<List<PocketChangeEvent>> searchPocketHistory(@PathVariable("templateName") String templateName,
