@@ -140,9 +140,9 @@ public class BalanceService {
                 .label(reloadRequest.getLabel())
             );
 
-        PocketChangeEvent event = createPocketChangeEvent(pocket, reloadRequest.getAmount());
-        changeEvent.addPocketChangeEvent(event);
         Pocket savedPocket = pocketRepository.save(pocket);
+        PocketChangeEvent event = createPocketChangeEvent(savedPocket, reloadRequest.getAmount());
+        changeEvent.addPocketChangeEvent(event);
         log.info("Pocket affected by reload {}", savedPocket);
     }
 
@@ -263,8 +263,8 @@ public class BalanceService {
             amountToBalanceCheckout = amountToBalanceCheckout.subtract(amountToPocketCheckout);
             affectedPockets.add(new PocketCharging(pocket, amountToPocketCheckout));
 
-            changeEvent.addPocketChangeEvent(createPocketChangeEvent(pocket, amountToPocketCheckout));
-            pocketRepository.save(pocket);
+            Pocket saved = pocketRepository.save(pocket);
+            changeEvent.addPocketChangeEvent(createPocketChangeEvent(saved, amountToPocketCheckout));
 
             log.info("Checkout pocket id:{} label:{}, from {} -> {} | leftCheckoutAmound: {}",
                 pocket.getId(), pocket.getLabel(), pocketAmount, pocket.getAmount(), amountToBalanceCheckout);
