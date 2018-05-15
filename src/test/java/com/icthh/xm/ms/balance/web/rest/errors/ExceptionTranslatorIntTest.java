@@ -90,40 +90,11 @@ public class ExceptionTranslatorIntTest {
     }
 
     @Test
-    @Ignore("Need migration to Zalando Problem library")
-    public void testMissingServletRequestPartException() throws Exception {
-        mockMvc.perform(get("/test/missing-servlet-request-part"))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaTypes.PROBLEM))
-            .andExpect(jsonPath("$.message").value("error.http.400"));
-    }
-
-    @Test
-    @Ignore("Need migration to Zalando Problem library")
-    public void testMissingServletRequestParameterException() throws Exception {
-        mockMvc.perform(get("/test/missing-servlet-request-parameter"))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaTypes.PROBLEM))
-            .andExpect(jsonPath("$.message").value("error.http.400"));
-    }
-
-    @Test
     public void testAccessDenied() throws Exception {
         mockMvc.perform(get("/test/access-denied"))
             .andExpect(status().isForbidden())
                .andExpect(jsonPath("$.error").value(ErrorConstants.ERR_ACCESS_DENIED))
                .andExpect(jsonPath("$.error_description").value("Access denied"));
-    }
-
-    @Test
-    @Ignore("Need migration to Zalando Problem library")
-    public void testUnauthorized() throws Exception {
-        mockMvc.perform(get("/test/unauthorized"))
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().contentType(MediaTypes.PROBLEM))
-            .andExpect(jsonPath("$.message").value("error.http.401"))
-            .andExpect(jsonPath("$.path").value("/test/unauthorized"))
-            .andExpect(jsonPath("$.detail").value("test authentication failed!"));
     }
 
     @Test

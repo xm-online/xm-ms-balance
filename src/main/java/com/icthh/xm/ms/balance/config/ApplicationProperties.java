@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -25,5 +26,12 @@ public class ApplicationProperties {
     private boolean kafkaEnabled;
     private String kafkaSystemQueue;
     private Integer pocketChargingBatchSize;
+
+    private LepProperties lep;
+
+    @Data
+    public static class LepProperties {
+        private String tenantScriptStorage;
+    }
 
 }

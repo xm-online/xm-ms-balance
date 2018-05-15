@@ -3,6 +3,7 @@ package com.icthh.xm.ms.balance.web.rest.requests;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -13,6 +14,7 @@ public class ReloadBalanceRequest {
     @NotNull
     private Long balanceId;
     @NotNull
+    @Min(0)
     private BigDecimal amount;
     @NotNull
     private String label;

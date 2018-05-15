@@ -3,6 +3,7 @@ package com.icthh.xm.ms.balance.web.rest.requests;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
@@ -14,5 +15,6 @@ public class TransferBalanceRequest {
     @NotNull
     private Long targetBalanceId;
     @NotNull
+    @Min(0)
     private BigDecimal amount;
 }
