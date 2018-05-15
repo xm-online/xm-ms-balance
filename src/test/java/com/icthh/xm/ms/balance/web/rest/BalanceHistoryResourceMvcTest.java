@@ -136,7 +136,7 @@ public class BalanceHistoryResourceMvcTest {
 
     @Test
     @SneakyThrows
-    public void testBalancesHisotry() {
+    public void testBalancesHistory() {
         when(balanceHistoryService.getBalanceChangesByTypeAndDate(createTestRequest(), new PageRequest(1, 50)))
             .thenReturn(new PageImpl<>(singletonList(
                 createTestBalanceEvent()
