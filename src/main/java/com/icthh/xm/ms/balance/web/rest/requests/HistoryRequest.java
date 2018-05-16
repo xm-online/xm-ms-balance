@@ -9,6 +9,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -25,4 +26,12 @@ public class HistoryRequest {
     @NotNull
     @NotEmpty
     private List<Long> entityIds;
+
+    public List<Long> getEntityIds() {
+        if (entityIds == null) {
+            entityIds = new ArrayList<>();
+        }
+        return entityIds;
+    }
+
 }

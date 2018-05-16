@@ -171,8 +171,9 @@ public class BalanceService {
     @Transactional
     @LogicExtensionPoint(value = "Reload", resolver = BalanceTypeKeyResolver.class)
     public void reload(Balance balance, ReloadBalanceRequest reloadRequest) {
+        Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now();
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, RELOAD, reloadRequest.getAmount(),
-            reloadRequest.getStartDateTime(), randomUUID());
+            operationDate, randomUUID());
         reloadPocket(reloadRequest, balance, changeEvent);
 
         metricService.updateMaxMetric(balance);
