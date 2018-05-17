@@ -45,7 +45,7 @@ public interface PocketRepository extends JpaRepository<Pocket, Long>, JpaSpecif
     Optional<Pocket> findByLabelAndStartDateTimeAndEndDateTimeAndBalance(String label, @Nullable Instant startDateTime,
                                                                          @Nullable Instant endDateTime, Balance balance);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM Pocket as p WHERE p.balance = :balance" +
+    @Query("SELECT p FROM Pocket as p WHERE p.balance = :balance AND p.amount > 0 " +
         " AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL))" +
         " AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL))" +
         " ORDER BY p.endDateTime ASC NULLS LAST, p.startDateTime ASC NULLS LAST")
