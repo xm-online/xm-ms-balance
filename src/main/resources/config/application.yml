@@ -142,3 +142,5 @@ application:
         delay: 1000 #in milliseconds
         multiplier: 2
     pocket-charging-batch-size: 100
+    lep:
+        tenant-script-storage: XM_MS_CONFIG

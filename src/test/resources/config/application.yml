@@ -113,3 +113,5 @@ xm-config:
 application:
     kafka-system-queue: system_queue
     kafka-enabled: false
+    lep:
+        tenant-script-storage: XM_MS_CONFIG

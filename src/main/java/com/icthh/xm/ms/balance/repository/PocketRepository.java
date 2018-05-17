@@ -49,7 +49,7 @@ public interface PocketRepository extends JpaRepository<Pocket, Long>, JpaSpecif
         " AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL))" +
         " AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL))" +
         " ORDER BY p.endDateTime ASC NULLS LAST, p.startDateTime ASC NULLS LAST")
-    Page<Pocket> findPocketForCheckoutOrderByDates(@Param("balance") Balance balance, Pageable pageable);
+    Page<Pocket> findPocketForChargingOrderByDates(@Param("balance") Balance balance, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Pocket e WHERE e.id = :id")
