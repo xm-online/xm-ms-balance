@@ -1,5 +1,7 @@
 package com.icthh.xm.ms.balance.web.rest;
 
+import com.icthh.xm.commons.lep.RouterResourceLoader;
+import com.icthh.xm.commons.lep.XmLepResourceService;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.lep.api.LepManager;
@@ -46,6 +48,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
+import static com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader.XM_MS_CONFIG_URL_PREFIX;
 import static com.icthh.xm.commons.lep.XmLepScriptConstants.BINDING_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
 import static java.time.Instant.now;
@@ -124,7 +127,6 @@ public class BalanceResourceIntTest {
     @Autowired
     private XmAuthenticationContextHolder xmAuthenticationContextHolder;
 
-    @Autowired
     private XmLepScriptConfigServerResourceLoader leps;
 
     private MockMvc restBalanceMockMvc;
@@ -156,6 +158,10 @@ public class BalanceResourceIntTest {
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
+        leps = (XmLepScriptConfigServerResourceLoader)((RouterResourceLoader)((XmLepResourceService)lepManager
+            .getResourceService())
+            .getRouterResourceLoader())
+            .getResourceLoader(XM_MS_CONFIG_URL_PREFIX);
     }
 
     /**
