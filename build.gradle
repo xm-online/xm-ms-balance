@@ -105,6 +105,7 @@ if (OperatingSystem.current().isWindows()) {
 }
 
 test {
+    systemProperty "spring.profiles.active", "test"
     include '**/*UnitTest*'
     include '**/*IntTest*'
     include '**/*MvcTest*'
@@ -204,9 +205,6 @@ dependencies {
     compile "com.fasterxml.jackson.core:jackson-databind"
     compile "com.fasterxml.jackson.module:jackson-module-afterburner"
     compile "com.ryantenney.metrics:metrics-spring"
-    compile "com.hazelcast:hazelcast"
-    compile "com.hazelcast:hazelcast-hibernate52"
-    compile "com.hazelcast:hazelcast-spring"
     compile "javax.cache:cache-api"
     compile "org.hibernate:hibernate-core"
     compile "com.zaxxer:HikariCP"
@@ -287,7 +285,6 @@ dependencies {
 
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
 
-    //compile 'org.bitsofinfo:hazelcast-consul-discovery-spi:1.0-RC7'
     compile "com.icthh.xm.commons:xm-commons-timeline:${xm_commons_version}"
     compile "com.icthh.xm.commons:xm-commons-migration-db:${xm_commons_version}"
     compile "com.icthh.xm.commons:xm-commons-tenant-endpoint:${xm_commons_version}"

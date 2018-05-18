@@ -42,13 +42,13 @@ spring:
         show-sql: false
         properties:
             hibernate.id.new_generator_mappings: true
-            hibernate.cache.use_second_level_cache: true
+            hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: false
-            hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
-            hibernate.cache.hazelcast.instance_name: balance
+            #hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
+            #hibernate.cache.hazelcast.instance_name: balance
             hibernate.cache.use_minimal_puts: true
-            hibernate.cache.hazelcast.use_lite_member: true
+            #hibernate.cache.hazelcast.use_lite_member: true
     kafka:
         bootstrap-servers: localhost
     mail:

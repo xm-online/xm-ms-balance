@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration scan="true">
+
     <!--<include resource="org/springframework/boot/logging/logback/base.xml"/>-->
 
 <!-- The FILE and ASYNC appenders are here as examples for a production configuration -->
@@ -29,7 +30,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.icthh.xm.ms.balance" level="#logback.loglevel#"/>
+    <logger name="com.icthh.xm.balance" level="#logback.loglevel#"/>
 
     <logger name="io.github.jhipster" level="#logback.loglevel#"/>
 
@@ -38,9 +39,6 @@
     <logger name="javax.xml.bind" level="WARN"/>
     <logger name="ch.qos.logback" level="WARN"/>
     <logger name="com.codahale.metrics" level="WARN"/>
-    <logger name="com.hazelcast" level="INFO"/>
-    <logger name="com.netflix" level="WARN"/>
-    <logger name="com.netflix.discovery" level="INFO"/>
     <logger name="com.ryantenney" level="WARN"/>
     <logger name="com.sun" level="WARN"/>
     <logger name="com.zaxxer" level="WARN"/>
@@ -62,13 +60,9 @@
     <logger name="sun.rmi" level="WARN"/>
     <logger name="liquibase" level="WARN"/>
     <logger name="LiquibaseSchemaResolver" level="INFO"/>
-    <logger name="sun.net.www" level="INFO"/>
     <logger name="sun.rmi.transport" level="WARN"/>
-    <logger name="com.hazelcast.internal" level="INFO"/>
     <logger name="org.reflections" level="INFO"/>
-
-    <!-- https://logback.qos.ch/manual/configuration.html#shutdownHook and https://jira.qos.ch/browse/LOGBACK-1090 -->
-    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+    <logger name="com.netflix.loadbalancer" level="INFO"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>

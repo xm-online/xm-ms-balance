@@ -6,8 +6,9 @@ import io.github.jhipster.config.JHipsterProperties;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.MetricsServlet;
-import com.hazelcast.core.HazelcastInstance;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,25 +30,15 @@ import javax.servlet.*;
 /**
  * Configuration of web application with Servlet 3.0 APIs.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Configuration
 public class WebConfigurer implements ServletContextInitializer, EmbeddedServletContainerCustomizer {
 
-    private final Logger log = LoggerFactory.getLogger(WebConfigurer.class);
-
     private final Environment env;
-
     private final JHipsterProperties jHipsterProperties;
 
-    private final HazelcastInstance hazelcastInstance;
-
     private MetricRegistry metricRegistry;
-
-    public WebConfigurer(Environment env, JHipsterProperties jHipsterProperties, HazelcastInstance hazelcastInstance) {
-
-        this.env = env;
-        this.jHipsterProperties = jHipsterProperties;
-        this.hazelcastInstance = hazelcastInstance;
-    }
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {

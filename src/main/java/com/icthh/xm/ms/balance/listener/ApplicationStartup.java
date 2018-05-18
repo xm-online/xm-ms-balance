@@ -3,10 +3,8 @@ package com.icthh.xm.ms.balance.listener;
 import com.icthh.xm.commons.logging.util.MdcUtils;
 import com.icthh.xm.commons.permission.inspector.PrivilegeInspector;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
