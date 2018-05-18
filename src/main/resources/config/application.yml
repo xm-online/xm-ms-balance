@@ -88,7 +88,6 @@ info:
 #
 # Full reference is available at: http://www.jhipster.tech/common-application-properties/
 # ===================================================================
-
 jhipster:
     async:
         core-pool-size: 2
