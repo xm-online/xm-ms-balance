@@ -127,6 +127,7 @@ public class BalanceResourceIntTest {
     @Autowired
     private XmAuthenticationContextHolder xmAuthenticationContextHolder;
 
+    @Autowired
     private XmLepScriptConfigServerResourceLoader leps;
 
     private MockMvc restBalanceMockMvc;
@@ -158,10 +159,6 @@ public class BalanceResourceIntTest {
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
-        leps = (XmLepScriptConfigServerResourceLoader)((RouterResourceLoader)((XmLepResourceService)lepManager
-            .getResourceService())
-            .getRouterResourceLoader())
-            .getResourceLoader(XM_MS_CONFIG_URL_PREFIX);
     }
 
     /**
