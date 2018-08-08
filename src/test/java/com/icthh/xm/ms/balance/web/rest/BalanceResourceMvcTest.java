@@ -1,7 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest;
 
 import static java.time.Instant.now;
-import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -11,7 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
-import com.icthh.xm.commons.exceptions.spring.web.ExceptionTranslator;
+import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
+import com.icthh.xm.commons.i18n.spring.service.LocalizationMessageService;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.NoEnoughMoneyException;
@@ -66,6 +66,9 @@ public class BalanceResourceMvcTest {
 
     @MockBean
     private MessageSource messageSource;
+
+    @MockBean
+    private LocalizationMessageService localizationMessageService;
 
     @Test
     @SneakyThrows
