@@ -115,3 +115,5 @@ application:
     kafka-enabled: false
     lep:
         tenant-script-storage: XM_MS_CONFIG
+    specification-name: balancespec.yml
+    specification-path-pattern: /config/tenants/{tenantName}/balancespec/${application.specification-name}

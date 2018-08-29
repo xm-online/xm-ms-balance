@@ -26,6 +26,8 @@ public class ApplicationProperties {
     private boolean kafkaEnabled;
     private String kafkaSystemQueue;
     private Integer pocketChargingBatchSize;
+    private String specificationPathPattern;
+    private String specificationName;
 
     @Getter
     @Setter

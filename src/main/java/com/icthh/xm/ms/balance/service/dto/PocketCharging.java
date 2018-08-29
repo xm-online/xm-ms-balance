@@ -14,6 +14,10 @@ public class PocketCharging {
     @Getter
     private final BigDecimal amount;
 
+    public Long getId() {
+        return pocket.getId();
+    }
+
     public String getLabel() {
         return pocket.getLabel();
     }
