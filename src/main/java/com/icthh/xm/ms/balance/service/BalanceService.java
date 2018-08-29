@@ -14,6 +14,7 @@ import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
+import com.icthh.xm.ms.balance.domain.BalanceSpec;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
@@ -62,6 +63,7 @@ public class BalanceService {
     private final MetricService metricService;
     private final XmAuthenticationContextHolder authContextHolder;
     private final BalanceChangeEventRepository balanceChangeEventRepository;
+    private final BalanceSpecService balanceSpecService;
     private Clock clock = Clock.systemDefaultZone();
 
     /**
@@ -249,6 +251,11 @@ public class BalanceService {
             assertNotEmpty(balance, amount, amountToCheckout, pockets);
 
             amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pockets, changeEvent);
+        }
+
+        BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+        if (balanceTypeSpec.isRemoveZeroPockets()) {
+            pocketRepository.deletePocketWithZeroAmount(balance.getId());
         }
 
         return affectedPockets;

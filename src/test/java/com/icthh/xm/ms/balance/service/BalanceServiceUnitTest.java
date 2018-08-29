@@ -12,6 +12,7 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -26,6 +27,7 @@ import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
+import com.icthh.xm.ms.balance.domain.BalanceSpec;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
@@ -40,6 +42,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
@@ -68,6 +72,8 @@ public class BalanceServiceUnitTest {
     private XmAuthenticationContextHolder authContextHolder;
     @Mock
     private BalanceChangeEventRepository balanceChangeEventRepository;
+    @Mock
+    private BalanceSpecService balanceSpecService;
 
     @Captor
     private ArgumentCaptor<BalanceChangeEvent> captor;
@@ -76,6 +82,16 @@ public class BalanceServiceUnitTest {
         XmAuthenticationContext auth = mock(XmAuthenticationContext.class);
         when(auth.getRequiredUserKey()).thenReturn("requiredUserKey");
         when(authContextHolder.getContext()).thenReturn(auth);
+    }
+
+    private void deleteZeroPockedDisabled() {
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(new BalanceSpec.BalanceTypeSpec());
+    }
+
+    private void deleteZeroPockedEnabled() {
+        BalanceSpec.BalanceTypeSpec spec = new BalanceSpec.BalanceTypeSpec();
+        spec.setRemoveZeroPockets(true);
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(spec);
     }
 
     @Test
@@ -214,6 +230,7 @@ public class BalanceServiceUnitTest {
     @Test
     public void successCheckoutAllManyFromOnePocket() {
         expectedAuth();
+        deleteZeroPockedDisabled();
 
         Balance balance = new Balance();
         balance.setId(1L);
@@ -248,6 +265,7 @@ public class BalanceServiceUnitTest {
     @Test
     public void successChargingAllManyFromManyPocket() {
         expectedAuth();
+        deleteZeroPockedEnabled();
 
         Balance balance = new Balance();
         balance.setId(1L);
@@ -290,6 +308,7 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).save(refEq(pocket("0", "label3")));
         verify(pocketRepository).save(refEq(pocket("0", "label4")));
         verify(pocketRepository).save(refEq(pocket("9", "label5")));
+        verify(pocketRepository).deletePocketWithZeroAmount(eq(1L));
         verifyNoMoreInteractions(pocketRepository);
         verifyNoMoreInteractions(metricService);
 
@@ -364,6 +383,7 @@ public class BalanceServiceUnitTest {
     @Test
     public void successTransferFromOnePocketToExistsPocketInTargetBalance() {
         expectedAuth();
+        deleteZeroPockedEnabled();
 
         Balance sourceBalance = new Balance();
         sourceBalance.setId(1L);
@@ -405,6 +425,7 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance);
         verify(pocketRepository).findOneByIdForUpdate(10L);
         verify(pocketRepository).save(refEq(pocket("751.22", "label1", 10L)));
+        verify(pocketRepository).deletePocketWithZeroAmount(eq(1L));
 
         verifyNoMoreInteractions(pocketRepository);
         verify(metricService).updateMaxMetric(targetBalance);
@@ -419,6 +440,7 @@ public class BalanceServiceUnitTest {
     @Test
     public void successTransferFromOnePocketToNewPocketInTargetBalance() {
         expectedAuth();
+        deleteZeroPockedDisabled();
 
         Balance sourceBalance = new Balance();
         sourceBalance.setId(1L);
@@ -469,6 +491,7 @@ public class BalanceServiceUnitTest {
     @Test
     public void successTransferFromManyPocket() {
         expectedAuth();
+        deleteZeroPockedDisabled();
 
         Balance sourceBalance = new Balance();
         sourceBalance.setId(1L);

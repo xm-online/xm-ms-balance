@@ -43,4 +43,7 @@ public class ApplicationProperties {
         private String tenantScriptStorage;
     }
 
+    private String specificationPathPattern;
+    private String specificationName;
+
 }

@@ -7,6 +7,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.github.database.rider.core.api.dataset.DataSet;
+import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -77,6 +78,14 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
             endDateTime == null ? null : valueOf(endDateTime).toInstant(),
             balanceRepository.findOne(balanceId))
             .isPresent());
+    }
+
+
+    @Test
+    @DataSet(value = "mockBalancesWithZeroPockets-init.xml", disableConstraints = true)
+    @ExpectedDataSet("mockBalancesWithZeroPockets-assert.xml")
+    public void deleteZeroAmountInSpecifyBalance() {
+        pocketRepository.deletePocketWithZeroAmount(1L);
     }
 
 }
