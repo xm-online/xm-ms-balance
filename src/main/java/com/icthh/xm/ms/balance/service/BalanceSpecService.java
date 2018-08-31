@@ -29,7 +29,7 @@ public class BalanceSpecService implements RefreshableConfiguration {
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());;
+    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
     private final ApplicationProperties applicationProperties;
 
@@ -80,7 +80,8 @@ public class BalanceSpecService implements RefreshableConfiguration {
 
     @Override
     public boolean isListeningConfiguration(String updatedKey) {
-        return false;
+        String specificationPathPattern = applicationProperties.getSpecificationPathPattern();
+        return matcher.match(specificationPathPattern, updatedKey);
     }
 
     @Override
