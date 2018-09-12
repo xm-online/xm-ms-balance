@@ -11,6 +11,7 @@ import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.config.Constants;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +39,7 @@ public class TenantService {
      *
      * @param tenant tenant key
      */
+    @SneakyThrows
     public void createTenant(String tenant) {
         StopWatch stopWatch = StopWatch.createStarted();
 
