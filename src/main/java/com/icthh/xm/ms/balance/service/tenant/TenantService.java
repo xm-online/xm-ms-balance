@@ -32,6 +32,7 @@ public class TenantService {
     private final TenantConfigRepository tenantConfigRepository;
     private final ApplicationProperties applicationProperties;
 
+
     /**
      * Create tenant.
      *
