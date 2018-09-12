@@ -1,16 +1,24 @@
 package com.icthh.xm.ms.balance.service.tenant;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.logging.aop.IgnoreLogginAspect;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
+import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.config.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,6 +29,8 @@ public class TenantService {
     private final TenantContextHolder tenantContextHolder;
     private final TenantDatabaseService databaseService;
     private final TenantListRepository tenantListRepository;
+    private final TenantConfigRepository tenantConfigRepository;
+    private final ApplicationProperties applicationProperties;
 
     /**
      * Create tenant.
@@ -38,6 +48,8 @@ public class TenantService {
 
         try {
             tenantListRepository.addTenant(tenantKey);
+            String content = IOUtils.toString(new ClassPathResource("/config/balancespec.yml").getInputStream(), UTF_8);
+            tenantConfigRepository.createConfig(tenantKey, '/' + applicationProperties.getSpecificationName(), content);
             databaseService.create(tenantKey);
             databaseService.migrate(tenantKey);
             log.info("STOP  - SETUP:CreateTenant: tenantKey: {}, result: OK, time = {} ms",

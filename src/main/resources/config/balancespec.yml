@@ -1,0 +1,14 @@
+---
+measures:
+    - key: UNIT
+      name: { en: " " }
+      isInteger: true
+types:
+    - key: BALANCE
+      name: { en: "Balance" }
+      measureKey: UNIT
+      isAlwaysShow: true
+      isWithPockets: true
+      removeZeroPockets: true
+      entityTypeKey:
+        - WALLET
