@@ -5,6 +5,7 @@ import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
+import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
@@ -142,15 +143,17 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'reloadRequest': #reloadRequest}, 'BALANCE.RELOAD')")
     @PostMapping("/balances/reload")
     @Timed
-    public void reloadBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
-        balanceService.reload(reloadRequest);
+    public ResponseEntity<BalanceChangeEventDto> reloadBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
+        BalanceChangeEventDto balanceChangeEventDto = balanceService.reload(reloadRequest);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balanceChangeEventDto));
     }
 
     @PreAuthorize("hasPermission({'chargingRequest': #chargingRequest}, 'BALANCE.CHARGING')")
     @PostMapping("/balances/charging")
     @Timed
-    public void chargingBalance(@Valid @RequestBody ChargingBalanceRequest chargingRequest) {
-        balanceService.charging(chargingRequest);
+    public ResponseEntity<BalanceChangeEventDto> chargingBalance(@Valid @RequestBody ChargingBalanceRequest chargingRequest) {
+        BalanceChangeEventDto balanceChangeEventDto = balanceService.charging(chargingRequest);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balanceChangeEventDto));
     }
 
     @PreAuthorize("hasPermission({'transferRequest': #transferRequest}, 'BALANCE.TRANSFER')")
