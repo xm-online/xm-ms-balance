@@ -33,6 +33,7 @@ import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
+import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
@@ -72,6 +73,8 @@ public class BalanceServiceUnitTest {
     private BalanceChangeEventRepository balanceChangeEventRepository;
     @Mock
     private BalanceSpecService balanceSpecService;
+    @Mock
+    private BalanceChangeEventMapper balanceChangeEventMapper;
 
     @Captor
     private ArgumentCaptor<BalanceChangeEvent> captor;

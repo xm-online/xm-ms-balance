@@ -2,6 +2,7 @@ package com.icthh.xm.ms.balance.web.rest;
 
 import static java.time.Instant.now;
 import static org.mockito.Matchers.refEq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -15,6 +16,8 @@ import com.icthh.xm.commons.i18n.spring.service.LocalizationMessageService;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.NoEnoughMoneyException;
+import com.icthh.xm.ms.balance.service.OperationType;
+import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import lombok.SneakyThrows;
@@ -34,6 +37,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -77,6 +81,8 @@ public class BalanceResourceMvcTest {
         Instant startDateTime = now();
         ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(endDateTime, startDateTime);
 
+        doReturn(createBalanceChangeEventDto()).when(balanceService).reload(reloadBalanceRequest);
+
         mockMvc.perform(post("/api/balances/reload")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
             .content(TestUtil.convertObjectToJsonBytes(reloadBalanceRequest)))
@@ -92,6 +98,15 @@ public class BalanceResourceMvcTest {
             .setEndDateTime(endDateTime)
             .setStartDateTime(startDateTime)
             .setLabel("label");
+    }
+
+    private BalanceChangeEventDto createBalanceChangeEventDto() {
+        return new BalanceChangeEventDto()
+            .setOperationId(UUID.randomUUID().toString())
+            .setOperationType(OperationType.RELOAD)
+            .setAmountDelta(new BigDecimal("50"))
+            .setBalanceId(5L)
+            .setOperationDate(Instant.now());
     }
 
     @Test

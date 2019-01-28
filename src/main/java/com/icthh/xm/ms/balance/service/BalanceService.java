@@ -20,8 +20,10 @@ import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
+import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.PocketCharging;
+import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
@@ -59,6 +61,7 @@ public class BalanceService {
     private final PermittedRepository permittedRepository;
     private final PocketRepository pocketRepository;
     private final BalanceMapper balanceMapper;
+    private final BalanceChangeEventMapper balanceChangeEventMapper;
     private final ApplicationProperties applicationProperties;
     private final MetricService metricService;
     private final XmAuthenticationContextHolder authContextHolder;
@@ -164,41 +167,45 @@ public class BalanceService {
     }
 
     @Transactional
-    public void reload(ReloadBalanceRequest reloadRequest) {
+    public BalanceChangeEventDto reload(ReloadBalanceRequest reloadRequest) {
         log.info("Start reload balance with request {}", reloadRequest);
         Balance balance = getBalanceForUpdate(reloadRequest.getBalanceId());
-        reload(balance, reloadRequest);
+        return reload(balance, reloadRequest);
     }
 
     @Transactional
     @LogicExtensionPoint(value = "Reload", resolver = BalanceTypeKeyResolver.class)
-    public void reload(Balance balance, ReloadBalanceRequest reloadRequest) {
+    public BalanceChangeEventDto reload(Balance balance, ReloadBalanceRequest reloadRequest) {
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now();
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, RELOAD, reloadRequest.getAmount(),
             operationDate, randomUUID());
         reloadPocket(reloadRequest, balance, changeEvent);
 
         metricService.updateMaxMetric(balance);
-        balanceChangeEventRepository.save(changeEvent);
+        changeEvent = balanceChangeEventRepository.save(changeEvent);
+
+        return balanceChangeEventMapper.toDto(changeEvent);
     }
 
     @Transactional
-    public void charging(ChargingBalanceRequest chargingRequest) {
+    public BalanceChangeEventDto charging(ChargingBalanceRequest chargingRequest) {
         log.info("Start charging balance with request {}", chargingRequest);
         Balance balance = getBalanceForUpdate(chargingRequest.getBalanceId());
-        charging(balance, chargingRequest);
+        return charging(balance, chargingRequest);
     }
 
     @Transactional
     @LogicExtensionPoint(value = "Charging", resolver = BalanceTypeKeyResolver.class)
-    public void charging(Balance balance, ChargingBalanceRequest chargingRequest) {
+    public BalanceChangeEventDto charging(Balance balance, ChargingBalanceRequest chargingRequest) {
         assertBalanceAmout(balance, chargingRequest.getAmount());
 
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, CHARGING, chargingRequest.getAmount(),
             now(clock), randomUUID());
         chargingPockets(balance, chargingRequest.getAmount(), changeEvent);
 
-        balanceChangeEventRepository.save(changeEvent);
+        changeEvent = balanceChangeEventRepository.save(changeEvent);
+
+        return balanceChangeEventMapper.toDto(changeEvent);
     }
 
     @Transactional
