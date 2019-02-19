@@ -49,6 +49,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -420,7 +421,7 @@ public class BalanceServiceUnitTest {
 
         setClock(balanceService, 1525428386000L);
 
-        doReturn(new BalanceChangeEventMapperImpl()).when(balanceService).getBalanceMapper();
+        Whitebox.setInternalState(balanceService, "balanceChangeEventMapper", new BalanceChangeEventMapperImpl());
 
         BigDecimal amountDelta = new BigDecimal("501.22");
         Long balanceFrom = 1L;

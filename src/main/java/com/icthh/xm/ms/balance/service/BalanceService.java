@@ -188,7 +188,7 @@ public class BalanceService {
         metricService.updateMaxMetric(balance);
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
-        return this.getBalanceMapper().toDto(changeEvent);
+        return balanceChangeEventMapper.toDto(changeEvent);
     }
 
     @Transactional
@@ -209,7 +209,7 @@ public class BalanceService {
 
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
-        return this.getBalanceMapper().toDto(changeEvent);
+        return balanceChangeEventMapper.toDto(changeEvent);
     }
 
     @Transactional
@@ -238,8 +238,8 @@ public class BalanceService {
         balanceChangeEventRepository.save(eventTo);
         return TransferDto
             .builder()
-            .from(this.getBalanceMapper().toDto(eventFrom))
-            .to(this.getBalanceMapper().toDto(eventTo))
+            .from(balanceChangeEventMapper.toDto(eventFrom))
+            .to(balanceChangeEventMapper.toDto(eventTo))
             .build();
     }
 
@@ -336,9 +336,5 @@ public class BalanceService {
         event.setPocketLabel(pocket.getLabel());
         event.setAmountDelta(amountDelta);
         return event;
-    }
-
-    public BalanceChangeEventMapper getBalanceMapper() {
-        return this.balanceChangeEventMapper;
     }
 }
