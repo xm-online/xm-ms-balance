@@ -1,6 +1,9 @@
 package com.icthh.xm.ms.balance.service;
 
-import static com.icthh.xm.ms.balance.service.OperationType.*;
+import static com.icthh.xm.ms.balance.service.OperationType.CHARGING;
+import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
+import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
+import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
@@ -23,7 +26,7 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.PocketCharging;
-import com.icthh.xm.ms.balance.service.dto.TransferDTO;
+import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
@@ -185,7 +188,7 @@ public class BalanceService {
         metricService.updateMaxMetric(balance);
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
-        return balanceChangeEventMapper.toDto(changeEvent);
+        return this.getBalanceMapper().toDto(changeEvent);
     }
 
     @Transactional
@@ -206,12 +209,12 @@ public class BalanceService {
 
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
-        return balanceChangeEventMapper.toDto(changeEvent);
+        return this.getBalanceMapper().toDto(changeEvent);
     }
 
     @Transactional
     @LogicExtensionPoint("Transfer")
-    public TransferDTO transfer(TransferBalanceRequest transferRequest) {
+    public TransferDto transfer(TransferBalanceRequest transferRequest) {
         Long targetBalanceId = transferRequest.getTargetBalanceId();
 
         log.info("Start transfer balance with request {}", transferRequest);
@@ -233,10 +236,10 @@ public class BalanceService {
         metricService.updateMaxMetric(targetBalance);
         balanceChangeEventRepository.save(eventFrom);
         balanceChangeEventRepository.save(eventTo);
-        return TransferDTO
+        return TransferDto
             .builder()
-            .from(balanceChangeEventMapper.toDto(eventFrom))
-            .to(balanceChangeEventMapper.toDto(eventTo))
+            .from(this.getBalanceMapper().toDto(eventFrom))
+            .to(this.getBalanceMapper().toDto(eventTo))
             .build();
     }
 
@@ -333,5 +336,9 @@ public class BalanceService {
         event.setPocketLabel(pocket.getLabel());
         event.setAmountDelta(amountDelta);
         return event;
+    }
+
+    public BalanceChangeEventMapper getBalanceMapper() {
+        return this.balanceChangeEventMapper;
     }
 }

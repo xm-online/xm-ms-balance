@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TransferDTO {
+public class TransferDto {
     private BalanceChangeEventDto from;
     private BalanceChangeEventDto to;
 }

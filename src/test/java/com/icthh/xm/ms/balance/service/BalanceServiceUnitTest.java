@@ -15,6 +15,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,16 +34,20 @@ import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
+import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
+import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapperImpl;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
@@ -57,6 +62,7 @@ import java.util.Optional;
 public class BalanceServiceUnitTest {
 
     @InjectMocks
+    @Spy
     private BalanceService balanceService;
 
     @Mock
@@ -414,12 +420,24 @@ public class BalanceServiceUnitTest {
 
         setClock(balanceService, 1525428386000L);
 
-        balanceService.transfer(
+        doReturn(new BalanceChangeEventMapperImpl()).when(balanceService).getBalanceMapper();
+
+        BigDecimal amountDelta = new BigDecimal("501.22");
+        Long balanceFrom = 1L;
+        Long balanceTo = 2L;
+        TransferDto transfer = balanceService.transfer(
             new TransferBalanceRequest()
-                .setAmount(new BigDecimal("501.22"))
-                .setSourceBalanceId(1L)
-                .setTargetBalanceId(2L)
+                .setAmount(amountDelta)
+                .setSourceBalanceId(balanceFrom)
+                .setTargetBalanceId(balanceTo)
         );
+
+        Assert.assertEquals(amountDelta, transfer.getFrom().getAmountDelta());
+        Assert.assertEquals(amountDelta, transfer.getTo().getAmountDelta());
+        Assert.assertEquals(balanceTo, transfer.getTo().getBalanceId());
+        Assert.assertEquals(balanceFrom, transfer.getFrom().getBalanceId());
+        Assert.assertEquals(TRANSFER_FROM, transfer.getFrom().getOperationType());
+        Assert.assertEquals(TRANSFER_TO, transfer.getTo().getOperationType());
 
         verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 100));
         verify(pocketRepository).save(refEq(pocket("98.78", "label1")));

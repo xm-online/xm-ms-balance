@@ -8,7 +8,7 @@ import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
-import com.icthh.xm.ms.balance.service.dto.TransferDTO;
+import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
@@ -160,8 +160,8 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'transferRequest': #transferRequest}, 'BALANCE.TRANSFER')")
     @PostMapping("/balances/transfer")
     @Timed
-    public ResponseEntity<TransferDTO> transferBalance(@Valid @RequestBody TransferBalanceRequest transferRequest) {
-        TransferDTO response = balanceService.transfer(transferRequest);
+    public ResponseEntity<TransferDto> transferBalance(@Valid @RequestBody TransferBalanceRequest transferRequest) {
+        TransferDto response = balanceService.transfer(transferRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(response));
     }
 
