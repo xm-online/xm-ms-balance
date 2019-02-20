@@ -1,6 +1,9 @@
 package com.icthh.xm.ms.balance.service;
 
-import static com.icthh.xm.ms.balance.service.OperationType.*;
+import static com.icthh.xm.ms.balance.service.OperationType.CHARGING;
+import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
+import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
+import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
@@ -23,6 +26,7 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.PocketCharging;
+import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
@@ -210,7 +214,7 @@ public class BalanceService {
 
     @Transactional
     @LogicExtensionPoint("Transfer")
-    public void transfer(TransferBalanceRequest transferRequest) {
+    public TransferDto transfer(TransferBalanceRequest transferRequest) {
         Long targetBalanceId = transferRequest.getTargetBalanceId();
 
         log.info("Start transfer balance with request {}", transferRequest);
@@ -232,6 +236,11 @@ public class BalanceService {
         metricService.updateMaxMetric(targetBalance);
         balanceChangeEventRepository.save(eventFrom);
         balanceChangeEventRepository.save(eventTo);
+        return TransferDto
+            .builder()
+            .from(balanceChangeEventMapper.toDto(eventFrom))
+            .to(balanceChangeEventMapper.toDto(eventTo))
+            .build();
     }
 
     private ReloadBalanceRequest toReloadRequest(PocketCharging pocket, Long targetBalanceId) {
