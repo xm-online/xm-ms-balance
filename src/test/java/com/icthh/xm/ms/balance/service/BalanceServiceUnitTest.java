@@ -15,7 +15,6 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,7 +48,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -80,8 +78,8 @@ public class BalanceServiceUnitTest {
     private BalanceChangeEventRepository balanceChangeEventRepository;
     @Mock
     private BalanceSpecService balanceSpecService;
-    @Mock
-    private BalanceChangeEventMapper balanceChangeEventMapper;
+    @Spy
+    private BalanceChangeEventMapper balanceChangeEventMapper = new BalanceChangeEventMapperImpl();
 
     @Captor
     private ArgumentCaptor<BalanceChangeEvent> captor;
@@ -420,8 +418,6 @@ public class BalanceServiceUnitTest {
         when(pocketRepository.findOneByIdForUpdate(10L)).thenReturn(of(pocket("250", "label1", 10L)));
 
         setClock(balanceService, 1525428386000L);
-
-        Whitebox.setInternalState(balanceService, "balanceChangeEventMapper", new BalanceChangeEventMapperImpl());
 
         BigDecimal amountDelta = new BigDecimal("501.22");
         Long balanceFrom = 1L;
