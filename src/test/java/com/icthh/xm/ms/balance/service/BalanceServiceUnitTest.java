@@ -39,7 +39,6 @@ import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapperImpl;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -61,7 +60,6 @@ import java.util.Optional;
 public class BalanceServiceUnitTest {
 
     @InjectMocks
-    @Spy
     private BalanceService balanceService;
 
     @Mock
@@ -429,12 +427,12 @@ public class BalanceServiceUnitTest {
                 .setTargetBalanceId(balanceTo)
         );
 
-        Assert.assertEquals(amountDelta, transfer.getFrom().getAmountDelta());
-        Assert.assertEquals(amountDelta, transfer.getTo().getAmountDelta());
-        Assert.assertEquals(balanceTo, transfer.getTo().getBalanceId());
-        Assert.assertEquals(balanceFrom, transfer.getFrom().getBalanceId());
-        Assert.assertEquals(TRANSFER_FROM, transfer.getFrom().getOperationType());
-        Assert.assertEquals(TRANSFER_TO, transfer.getTo().getOperationType());
+        assertEquals(amountDelta, transfer.getFrom().getAmountDelta());
+        assertEquals(amountDelta, transfer.getTo().getAmountDelta());
+        assertEquals(balanceTo, transfer.getTo().getBalanceId());
+        assertEquals(balanceFrom, transfer.getFrom().getBalanceId());
+        assertEquals(TRANSFER_FROM, transfer.getFrom().getOperationType());
+        assertEquals(TRANSFER_TO, transfer.getTo().getOperationType());
 
         verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 100));
         verify(pocketRepository).save(refEq(pocket("98.78", "label1")));
