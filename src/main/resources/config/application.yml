@@ -57,6 +57,10 @@ spring:
     application:
         name: balance
     cloud:
+        inetutils:
+            preferredNetworks:
+                - 192.168.
+                - 10.
         consul:
             discovery:
                 healthCheckPath: /management/health
@@ -64,6 +68,8 @@ spring:
             config:
                 watch:
                     enabled: false
+    jackson:
+        serialization.write_dates_as_timestamps: false
     jpa:
         open-in-view: false
         properties:
@@ -80,6 +86,8 @@ spring:
             enabled: false
     thymeleaf:
         mode: HTML
+    liquibase:
+        default-schema: XM
 security:
     oauth2:
         resource:
@@ -128,12 +136,8 @@ jhipster:
         contact-email:
         license:
         license-url:
-
-base-package: com.icthh.xm.ms.balance
-xm-config:
-    enabled: true
-    xm-config-url: http://config
-    kafka-config-topic: config_topic
+    ribbon:
+        display-on-active-profiles: dev
 
 # ===================================================================
 # Application specific properties
@@ -143,6 +147,11 @@ xm-config:
 # More documentation is available at:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
+
+xm-config:
+    enabled: true
+    xm-config-url: http://config
+    kafka-config-topic: config_topic
 
 application:
     tenant-ignored-path-list: /v2/api-docs, /api/profile-info, /swagger-resources/configuration/ui, /management/health

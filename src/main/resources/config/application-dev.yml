@@ -61,8 +61,12 @@ spring:
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: true
-    liquibase:
-        contexts: dev
+            #hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
+            #hibernate.cache.hazelcast.instance_name: balance
+            hibernate.cache.use_minimal_puts: true
+            #hibernate.cache.hazelcast.use_lite_member: true
+    kafka:
+        bootstrap-servers: localhost:9093
     mail:
         host: localhost
         port: 25
@@ -81,6 +85,8 @@ spring:
         locator:
             discovery:
                 enabled: true
+    liquibase:
+        contexts: dev
 
 server:
     port: 8085
@@ -128,11 +134,11 @@ jhipster:
             queue-size: 512
 oauth2:
     signature-verification:
-         public-key-endpoint-uri: http://config/api/token_key
-         #ttl for public keys to verify JWT tokens (in ms)
-         ttl: 3600000
-         #max. rate at which public keys will be fetched (in ms)
-         public-key-refresh-rate-limit: 10000
+        public-key-endpoint-uri: http://config/api/token_key
+        #ttl for public keys to verify JWT tokens (in ms)
+        ttl: 3600000
+        #max. rate at which public keys will be fetched (in ms)
+        public-key-refresh-rate-limit: 10000
     web-client-configuration:
         #keep in sync with UAA configuration
         client-id: web_app
@@ -147,4 +153,4 @@ oauth2:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
