@@ -1,24 +1,13 @@
 package com.icthh.xm.ms.balance.config.oauth2;
 
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_AE_API_TOKEN_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_CHARGE_API_TOKEN_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_TENANT_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_USER_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_XM_COOKIE_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_XM_LOCALE_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_XM_TOKEN_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_XM_USER_ID_KEY;
-import static com.icthh.xm.ms.balance.config.Constants.AUTH_XM_USER_LOGIN_KEY;
-
 import com.icthh.xm.ms.balance.security.oauth2.OAuth2SignatureVerifierClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.jwt.crypto.sign.SignatureVerifier;
 import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -66,25 +55,6 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
         }
     }
 
-
-    @Override
-    public OAuth2Authentication extractAuthentication(Map<String, ?> map) {
-        final OAuth2Authentication authentication = super.extractAuthentication(map);
-        final Map<String, String> details = new HashMap<>();
-        details.put(AUTH_TENANT_KEY, (String) map.get(AUTH_TENANT_KEY));
-        details.put(AUTH_USER_KEY, (String) map.get(AUTH_USER_KEY));
-        details.put(AUTH_XM_TOKEN_KEY, (String) map.get(AUTH_XM_TOKEN_KEY));
-        details.put(AUTH_XM_COOKIE_KEY, (String) map.get(AUTH_XM_COOKIE_KEY));
-        details.put(AUTH_XM_USER_ID_KEY, (String) map.get(AUTH_XM_USER_ID_KEY));
-        details.put(AUTH_XM_USER_LOGIN_KEY, (String) map.get(AUTH_XM_USER_LOGIN_KEY));
-        details.put(AUTH_XM_LOCALE_KEY, (String) map.get(AUTH_XM_LOCALE_KEY));
-        details.put(AUTH_AE_API_TOKEN_KEY, (String) map.get(AUTH_AE_API_TOKEN_KEY));
-        details.put(AUTH_CHARGE_API_TOKEN_KEY, (String) map.get(AUTH_CHARGE_API_TOKEN_KEY));
-        authentication.setDetails(details);
-
-        return authentication;
-    }
-
     /**
      * Fetch a new public key from the AuthorizationServer.
      *
@@ -97,7 +67,7 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
         }
         try {
             SignatureVerifier verifier = signatureVerifierClient.getSignatureVerifier();
-            if(verifier!=null) {
+            if (verifier != null) {
                 setVerifier(verifier);
                 lastKeyFetchTimestamp = t;
                 log.debug("Public key retrieved from OAuth2 server to create SignatureVerifier");
@@ -107,5 +77,33 @@ public class OAuth2JwtAccessTokenConverter extends JwtAccessTokenConverter {
             log.error("could not get public key from OAuth2 server to create SignatureVerifier", ex);
         }
         return false;
+    }
+    /**
+     * Extract JWT claims and set it to OAuth2Authentication decoded details.
+     * Here is how to get details:
+     *
+     * <pre>
+     * <code>
+     *  SecurityContext securityContext = SecurityContextHolder.getContext();
+     *  Authentication authentication = securityContext.getAuthentication();
+     *  if (authentication != null) {
+     *      Object details = authentication.getDetails();
+     *      if (details instanceof OAuth2AuthenticationDetails) {
+     *          Object decodedDetails = ((OAuth2AuthenticationDetails) details).getDecodedDetails();
+     *          if (decodedDetails != null &amp;&amp; decodedDetails instanceof Map) {
+     *             String detailFoo = ((Map) decodedDetails).get("foo");
+     *          }
+     *      }
+     *  }
+     * </code>
+     *  </pre>
+     * @param claims OAuth2JWTToken claims
+     * @return OAuth2Authentication
+     */
+    @Override
+    public OAuth2Authentication extractAuthentication(Map<String, ?> claims) {
+        OAuth2Authentication authentication = super.extractAuthentication(claims);
+        authentication.setDetails(claims);
+        return authentication;
     }
 }

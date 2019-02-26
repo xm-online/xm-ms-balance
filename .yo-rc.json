@@ -1,18 +1,17 @@
 {
   "generator-jhipster": {
     "promptValues": {
-      "packageName": "com.icthh.xm.ms.balance",
-      "nativeLanguage": "en"
+      "packageName": "com.icthh.xm.ms.balance"
     },
-    "jhipsterVersion": "4.14.0",
+    "jhipsterVersion": "5.7.2",
+    "applicationType": "microservice",
     "baseName": "balance",
     "packageName": "com.icthh.xm.ms.balance",
     "packageFolder": "com/icthh/xm/ms/balance",
     "serverPort": "8085",
     "authenticationType": "uaa",
     "uaaBaseName": "uaa",
-    "hibernateCache": "hazelcast",
-    "clusteredHttpSession": false,
+    "cacheProvider": "no",
     "websocket": false,
     "databaseType": "sql",
     "devDatabaseType": "h2Memory",
@@ -21,25 +20,17 @@
     "messageBroker": false,
     "serviceDiscoveryType": "consul",
     "buildTool": "gradle",
-    "enableSocialSignIn": false,
     "enableSwaggerCodegen": false,
-    "jwtSecretKey": "797e9015a0ada7d21bf761ca50ee9edfd06a69b3",
-    "enableTranslation": true,
-    "applicationType": "microservice",
+    "jwtSecretKey": "N2U1MDdlZjM0NTUwZjhkNGEyYjg1MGY3ODJmZWM1MTk2OWNlOGQ0MjhjNTczZjMwNjQ2Yjc5ZTVlZDAwY2M2OTI3ZTI4ZTAwMzc0MWU5MGY5N2U1ZmJiMDFkOGQ0NGM0YzYzYTI1MzRiMDA5ZjhmN2Q2OTAyNDQxMjdjMGNhMDc=",
     "testFrameworks": [
       "gatling",
       "cucumber"
     ],
     "jhiPrefix": "jhi",
+    "otherModules": [],
+    "enableTranslation": false,
+    "clientPackageManager": "npm",
     "skipClient": true,
-    "skipUserManagement": true,
-    "nativeLanguage": "en",
-    "languages": [
-      "en",
-      "ru"
-    ],
-    "clientPackageManager": "yarn",
-    "cacheProvider": "hazelcast",
-    "enableHibernateCache": true
+    "skipUserManagement": true
   }
 }

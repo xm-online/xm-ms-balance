@@ -2,8 +2,8 @@ package com.icthh.xm.ms.balance.client;
 
 import java.lang.annotation.*;
 
-import org.springframework.cloud.netflix.feign.FeignClient;
-import org.springframework.cloud.netflix.feign.FeignClientsConfiguration;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.core.annotation.AliasFor;
 
 @Retention(RetentionPolicy.RUNTIME)

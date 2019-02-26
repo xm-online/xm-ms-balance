@@ -5,16 +5,6 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
     <include file="config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20170922082732_added_entity_Balance.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20170922082847_added_entity_Pocket.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20170922082930_added_entity_Metric.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
-    <include file="config/liquibase/changelog/20170922082847_added_entity_constraints_Pocket.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20170922082930_added_entity_constraints_Metric.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
-    <include file="config/liquibase/changelog/20171108145000_added_column_entityId_Balance.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20180215145000_added_column_createdBy_Balance.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20180501113500_rename_column_type_key_in_pocket_to_label_Balance.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/20180512210100_add_transaction_history.xml" relativeToChangelogFile="false"/>
-
 </databaseChangeLog>

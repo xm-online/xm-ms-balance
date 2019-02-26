@@ -1,13 +1,10 @@
 package com.icthh.xm.ms.balance.web.rest.errors;
 
-import com.icthh.xm.commons.exceptions.BusinessException;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -28,25 +25,23 @@ public class ExceptionTranslatorTestController {
 
     @GetMapping("/test/parameterized-error")
     public void parameterizedError() {
-        throw new BusinessException("test parameterized error").withParams("param0_value", "param1_value");
+        throw new CustomParameterizedException("test parameterized error", "param0_value", "param1_value");
     }
 
     @GetMapping("/test/parameterized-error2")
     public void parameterizedError2() {
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("foo", "foo_value");
         params.put("bar", "bar_value");
-        throw new BusinessException("test parameterized error", params);
+        throw new CustomParameterizedException("test parameterized error", params);
     }
 
     @GetMapping("/test/missing-servlet-request-part")
-    public void missingServletRequestPartException() throws Exception {
-        throw new MissingServletRequestPartException("missing Servlet request part");
+    public void missingServletRequestPartException(@RequestPart String part) {
     }
 
     @GetMapping("/test/missing-servlet-request-parameter")
-    public void missingServletRequestParameterException() throws Exception {
-        throw new MissingServletRequestParameterException("missing Servlet request parameter", "parameter type");
+    public void missingServletRequestParameterException(@RequestParam String param) {
     }
 
     @GetMapping("/test/access-denied")
