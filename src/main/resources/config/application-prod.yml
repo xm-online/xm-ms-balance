@@ -129,13 +129,13 @@ jhipster:
             queue-size: 512
 oauth2:
     signature-verification:
-        public-key-endpoint-uri: http://uaa/oauth/token_key
-        #ttl for public keys to verify JWT tokens (in ms)
-        ttl: 3600000
-        #max. rate at which public keys will be fetched (in ms)
-        public-key-refresh-rate-limit: 10000
+         public-key-endpoint-uri: http://config/api/token_key
+         #ttl for public keys to verify JWT tokens (in ms)
+         ttl: 3600000
+         #max. rate at which public keys will be fetched (in ms)
+         public-key-refresh-rate-limit: 10000
     web-client-configuration:
-        #change client secret in production, keep in sync with UAA configuration
+        #keep in sync with UAA configuration
         client-id: web_app
         secret: changeit
 
