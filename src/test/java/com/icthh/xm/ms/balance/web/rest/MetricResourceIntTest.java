@@ -109,7 +109,7 @@ public class MetricResourceIntTest {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -429,7 +429,8 @@ public class MetricResourceIntTest {
         int databaseSizeBeforeUpdate = metricRepository.findAll().size();
 
         // Update the metric
-        Metric updatedMetric = metricRepository.findOne(metric.getId());
+        Metric updatedMetric = metricRepository.findById(metric.getId())
+            .orElseThrow(() -> new IllegalStateException("Metric not found for id " + metric.getId()));
         // Disconnect from session so that the updates on updatedMetric are not directly saved in db
         em.detach(updatedMetric);
         updatedMetric

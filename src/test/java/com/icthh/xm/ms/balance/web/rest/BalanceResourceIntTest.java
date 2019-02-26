@@ -158,7 +158,7 @@ public class BalanceResourceIntTest {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -696,7 +696,8 @@ public class BalanceResourceIntTest {
         int databaseSizeBeforeUpdate = balanceRepository.findAll().size();
 
         // Update the balance
-        Balance updatedBalance = balanceRepository.findOne(balance.getId());
+        Balance updatedBalance = balanceRepository.findById(balance.getId())
+            .orElseThrow(() -> new IllegalStateException("Balance not found for id " + balance.getId()));
         // Disconnect from session so that the updates on updatedBalance are not directly saved in db
         em.detach(updatedBalance);
         updatedBalance

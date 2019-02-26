@@ -27,7 +27,7 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -47,7 +47,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.mock;
@@ -108,8 +108,9 @@ public class BalanceServiceUnitTest {
         Pocket pocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("30"));
         pocket.setId(5L);
 
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label", ofEpochSecond(1525428386), null, balance))
-        .thenReturn(of(pocket));
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label",
+            ofEpochSecond(1525428386), null, balance))
+            .thenReturn(of(pocket));
         when(pocketRepository.findOneByIdForUpdate(5L)).thenReturn(of(pocket));
 
         Pocket assertionPocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("80"));
@@ -123,7 +124,8 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).save(refEq(assertionPocket));
         verify(metricService).updateMaxMetric(balance);
 
-        expectBalanceChangeEvents(createBalanceEvent("50", 1L, RELOAD, createPocketEvent("50", 5l, "ASSERTION_KEY", "label")));
+        expectBalanceChangeEvents(createBalanceEvent("50", 1L, RELOAD,
+            createPocketEvent("50", 5l, "ASSERTION_KEY", "label")));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
@@ -144,7 +146,8 @@ public class BalanceServiceUnitTest {
         for (int i = 0; i < allValues.size(); i++) {
             BalanceChangeEvent actual = allValues.get(i);
             BalanceChangeEvent expected = balanceChangeEvents[i];
-            assertThat(actual, new ReflectionEquals(expected, "pocketChangeEvents", "operationId"));
+            assertTrue(new ReflectionEquals(expected,
+                "pocketChangeEvents", "operationId").matches(actual));
             expectedPocketChangeEvents(actual, expected);
 
             if (operationId != null) {
@@ -160,9 +163,11 @@ public class BalanceServiceUnitTest {
         expectPocketChangeEvents(expectedPockets.size(), actualPockets.size());
         for (int i = 0; i < expectedPockets.size(); i++) {
             if (expectedPockets.get(i).getPocketKey() == null) {
-                assertThat(actualPockets.get(i), new ReflectionEquals(expectedPockets.get(i), "transaction", "pocketKey"));
+                assertTrue(new ReflectionEquals(expectedPockets.get(i), "transaction", "pocketKey")
+                    .matches(actualPockets.get(i)));
             } else {
-                assertThat(actualPockets.get(i), new ReflectionEquals(expectedPockets.get(i), "transaction"));
+                assertTrue(new ReflectionEquals(expectedPockets.get(i), "transaction")
+                    .matches(actualPockets.get(i)));
             }
         }
     }
@@ -171,15 +176,18 @@ public class BalanceServiceUnitTest {
         assertEquals(size, size2);
     }
 
-    private BalanceChangeEvent createBalanceEvent(String amountDelta, long balanceId, OperationType operationType, PocketChangeEvent... pocketChangeEvents) {
+    private BalanceChangeEvent createBalanceEvent(String amountDelta,
+                                                  long balanceId,
+                                                  OperationType operationType,
+                                                  PocketChangeEvent... pocketChangeEvents) {
         return BalanceChangeEvent.builder()
-                .amountDelta(new BigDecimal(amountDelta))
-                .balanceId(balanceId)
-                .executedByUserKey("requiredUserKey")
-                .operationType(operationType)
-                .operationDate(ofEpochSecond(1525428386))
-                .pocketChangeEvents(asList(pocketChangeEvents))
-                .build();
+            .amountDelta(new BigDecimal(amountDelta))
+            .balanceId(balanceId)
+            .executedByUserKey("requiredUserKey")
+            .operationType(operationType)
+            .operationDate(ofEpochSecond(1525428386))
+            .pocketChangeEvents(asList(pocketChangeEvents))
+            .build();
     }
 
     @Test
@@ -189,8 +197,8 @@ public class BalanceServiceUnitTest {
         Balance balance = new Balance();
         balance.setId(1L);
         when(balanceRepository.findOneByIdForUpdate(1L)).thenReturn(of(balance));
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label", ofEpochSecond(1525428386), null, balance))
-            .thenReturn(empty());
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label",
+            ofEpochSecond(1525428386), null, balance)).thenReturn(empty());
 
         Pocket assertionPocket = new Pocket().label("label").startDateTime(ofEpochSecond(1525428386))
             .amount(new BigDecimal("50")).balance(balance);
@@ -205,7 +213,8 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).save(refEq(assertionPocket, "key"));
         verify(metricService).updateMaxMetric(balance);
 
-        expectBalanceChangeEvents(createBalanceEvent("50", 1L, RELOAD, createPocketEvent("50", 492L, null, "label")));
+        expectBalanceChangeEvents(createBalanceEvent("50", 1L, RELOAD,
+            createPocketEvent("50", 492L, null, "label")));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
@@ -246,10 +255,11 @@ public class BalanceServiceUnitTest {
             pocket("600", "label1"),
             pocket("300", "label2")
         ));
-        when(pocketRepository.findPocketForChargingOrderByDates(balance, new PageRequest(0, 100)))
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(0, 100)))
             .thenReturn(pockets);
         setClock(balanceService, 1525428386000L);
-        when(pocketRepository.save(refEq(pocket("98.78", "label1")))).thenReturn(pocket("98.78", "label1", 441L));
+        when(pocketRepository.save(refEq(pocket("98.78", "label1"))))
+            .thenReturn(pocket("98.78", "label1", 441L));
 
         balanceService.charging(
             new ChargingBalanceRequest()
@@ -257,12 +267,13 @@ public class BalanceServiceUnitTest {
                 .setBalanceId(1L)
         );
 
-        verify(pocketRepository).findPocketForChargingOrderByDates(balance, new PageRequest(0, 100));
+        verify(pocketRepository).findPocketForChargingOrderByDates(balance, PageRequest.of(0, 100));
         verify(pocketRepository).save(refEq(pocket("98.78", "label1")));
         verifyNoMoreInteractions(pocketRepository);
         verifyNoMoreInteractions(metricService);
 
-        expectBalanceChangeEvents(createBalanceEvent("501.22", 1L, CHARGING, createPocketEvent("501.22", 441L, null, "label1")));
+        expectBalanceChangeEvents(createBalanceEvent("501.22", 1L, CHARGING,
+            createPocketEvent("501.22", 441L, null, "label1")));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
@@ -278,19 +289,24 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("600")));
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
 
-        when(pocketRepository.save(refEq(pocket("0", "label1")))).thenReturn(pocket("0", "label1", 11L));
-        when(pocketRepository.save(refEq(pocket("0", "label2")))).thenReturn(pocket("0", "label2", 12L));
-        when(pocketRepository.save(refEq(pocket("0", "label3")))).thenReturn(pocket("0", "label3", 13L));
-        when(pocketRepository.save(refEq(pocket("0", "label4")))).thenReturn(pocket("0", "label4", 14L));
-        when(pocketRepository.save(refEq(pocket("9", "label5")))).thenReturn(pocket("9", "label5", 15L));
+        when(pocketRepository.save(refEq(pocket("0", "label1"))))
+            .thenReturn(pocket("0", "label1", 11L));
+        when(pocketRepository.save(refEq(pocket("0", "label2"))))
+            .thenReturn(pocket("0", "label2", 12L));
+        when(pocketRepository.save(refEq(pocket("0", "label3"))))
+            .thenReturn(pocket("0", "label3", 13L));
+        when(pocketRepository.save(refEq(pocket("0", "label4"))))
+            .thenReturn(pocket("0", "label4", 14L));
+        when(pocketRepository.save(refEq(pocket("9", "label5"))))
+            .thenReturn(pocket("9", "label5", 15L));
 
-        when(pocketRepository.findPocketForChargingOrderByDates(balance, new PageRequest(0, 3)))
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(0, 3)))
             .thenReturn(new PageImpl<>(asList(
                 pocket("50", "label1"),
                 pocket("30", "label2"),
                 pocket("20", "label3")
             )));
-        when(pocketRepository.findPocketForChargingOrderByDates(balance, new PageRequest(1, 3)))
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(1, 3)))
             .thenReturn(new PageImpl<>(asList(
                 pocket("100", "label4"),
                 pocket("10", "label5"),
@@ -305,8 +321,8 @@ public class BalanceServiceUnitTest {
                 .setBalanceId(1L)
         );
 
-        verify(pocketRepository).findPocketForChargingOrderByDates(balance, new PageRequest(0, 3));
-        verify(pocketRepository).findPocketForChargingOrderByDates(balance, new PageRequest(1, 3));
+        verify(pocketRepository).findPocketForChargingOrderByDates(balance, PageRequest.of(0, 3));
+        verify(pocketRepository).findPocketForChargingOrderByDates(balance, PageRequest.of(1, 3));
         verify(pocketRepository).save(refEq(pocket("0", "label1")));
         verify(pocketRepository).save(refEq(pocket("0", "label2")));
         verify(pocketRepository).save(refEq(pocket("0", "label3")));
@@ -337,13 +353,13 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("600")));
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
 
-        when(pocketRepository.findPocketForChargingOrderByDates(balance, new PageRequest(0, 3)))
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(0, 3)))
             .thenReturn(new PageImpl<>(asList(
                 pocket("50", "label1"),
                 pocket("30", "label2"),
                 pocket("20", "label3")
             )));
-        when(pocketRepository.findPocketForChargingOrderByDates(balance, new PageRequest(1, 3)))
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(1, 3)))
             .thenReturn(new PageImpl<>(emptyList()));
 
         Pocket any = Matchers.any();
@@ -398,19 +414,22 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
-        when(pocketRepository.save(refEq(pocket("98.78", "label1")))).thenReturn(pocket("98.78", "label1", 9875L));
-        when(pocketRepository.save(refEq(pocket("751.22", "label1", 10L)))).thenReturn(pocket("751.22", "label1", 10L));
+        when(pocketRepository.save(refEq(pocket("98.78", "label1"))))
+            .thenReturn(pocket("98.78", "label1", 9875L));
+        when(pocketRepository.save(refEq(pocket("751.22", "label1", 10L))))
+            .thenReturn(pocket("751.22", "label1", 10L));
 
         Page<Pocket> pockets = new PageImpl<>(asList(
             pocket("600", "label1"),
             pocket("300", "label2")
         ));
-        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 100)))
+        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(0, 100)))
             .thenReturn(pockets);
 
         Pocket pocket = new Pocket();
         pocket.setId(10L);
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance))
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(
+            "label1", null, null, targetBalance))
             .thenReturn(of(pocket));
 
         when(pocketRepository.findOneByIdForUpdate(10L)).thenReturn(of(pocket("250", "label1", 10L)));
@@ -434,7 +453,7 @@ public class BalanceServiceUnitTest {
         assertEquals(TRANSFER_FROM, transfer.getFrom().getOperationType());
         assertEquals(TRANSFER_TO, transfer.getTo().getOperationType());
 
-        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 100));
+        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(0, 100));
         verify(pocketRepository).save(refEq(pocket("98.78", "label1")));
         verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance);
         verify(pocketRepository).findOneByIdForUpdate(10L);
@@ -445,8 +464,10 @@ public class BalanceServiceUnitTest {
         verify(metricService).updateMaxMetric(targetBalance);
 
         expectBalanceChangeEvents(
-            createBalanceEvent("501.22", 1L, TRANSFER_FROM, createPocketEvent("501.22", 9875L, null, "label1")),
-            createBalanceEvent("501.22", 2L, TRANSFER_TO, createPocketEvent("501.22", 10L, null, "label1"))
+            createBalanceEvent("501.22", 1L, TRANSFER_FROM,
+                createPocketEvent("501.22", 9875L, null, "label1")),
+            createBalanceEvent("501.22", 2L, TRANSFER_TO,
+                createPocketEvent("501.22", 10L, null, "label1"))
         );
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
@@ -465,17 +486,20 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
-        when(pocketRepository.save(refEq(pocket("98.78", "label1"), "key", "balance"))).thenReturn(pocket("98.78", "label1", 17L));
-        when(pocketRepository.save(refEq(pocket("501.22", "label1"), "key", "balance"))).thenReturn(pocket("501.22", "label1", 18L));
+        when(pocketRepository.save(refEq(pocket("98.78", "label1"), "key", "balance")))
+            .thenReturn(pocket("98.78", "label1", 17L));
+        when(pocketRepository.save(refEq(pocket("501.22", "label1"), "key", "balance")))
+            .thenReturn(pocket("501.22", "label1", 18L));
 
         Page<Pocket> pockets = new PageImpl<>(asList(
             pocket("600", "label1"),
             pocket("300", "label2")
         ));
-        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 100)))
+        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(0, 100)))
             .thenReturn(pockets);
 
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance))
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1",
+            null, null, targetBalance))
             .thenReturn(empty());
 
         setClock(balanceService, 1525428386000L);
@@ -487,7 +511,7 @@ public class BalanceServiceUnitTest {
                 .setTargetBalanceId(2L)
         );
 
-        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 100));
+        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(0, 100));
         verify(pocketRepository).save(refEq(pocket("98.78", "label1"), "key", "balance"));
         verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance);
         verify(pocketRepository).save(refEq(pocket("501.22", "label1"), "key", "balance"));
@@ -496,8 +520,10 @@ public class BalanceServiceUnitTest {
         verify(metricService).updateMaxMetric(targetBalance);
 
         expectBalanceChangeEvents(
-            createBalanceEvent("501.22", 1L, TRANSFER_FROM, createPocketEvent("501.22", 17L, null, "label1")),
-            createBalanceEvent("501.22", 2L, TRANSFER_TO, createPocketEvent("501.22", 18L, null, "label1"))
+            createBalanceEvent("501.22", 1L, TRANSFER_FROM,
+                createPocketEvent("501.22", 17L, null, "label1")),
+            createBalanceEvent("501.22", 2L, TRANSFER_TO,
+                createPocketEvent("501.22", 18L, null, "label1"))
         );
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
@@ -516,50 +542,63 @@ public class BalanceServiceUnitTest {
         when(balanceRepository.findOneByIdForUpdate(2L)).thenReturn(of(targetBalance));
         when(balanceRepository.findBalanceAmount(sourceBalance)).thenReturn(of(new BigDecimal("600")));
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
-        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 3)))
+        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(0, 3)))
             .thenReturn(new PageImpl<>(asList(
                 pocket("50", "label1"),
                 pocket("30", "label2"),
                 pocket("20", "label3")
             )));
-        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, new PageRequest(1, 3)))
+        when(pocketRepository.findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(1, 3)))
             .thenReturn(new PageImpl<>(asList(
                 pocket("100", "label4"),
                 pocket("10", "label5"),
                 pocket("15", "label6")
             )));
 
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance))
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null,
+            null, targetBalance))
             .thenReturn(empty());
         Pocket pocket = pocket("10", "label2", 10L);
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label2", null, null, targetBalance))
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label2", null,
+            null, targetBalance))
             .thenReturn(of(pocket));
         when(pocketRepository.findOneByIdForUpdate(10L)).thenReturn(of(pocket));
         Pocket pocket2 = pocket("15", "label3", 12L);
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label3", null, null, targetBalance))
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label3", null,
+            null, targetBalance))
             .thenReturn(of(pocket2));
         when(pocketRepository.findOneByIdForUpdate(12L)).thenReturn(of(pocket2));
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label4", null, null, targetBalance))
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label4", null,
+            null, targetBalance))
             .thenReturn(empty());
-        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label5", null, null, targetBalance))
+        when(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label5", null,
+            null, targetBalance))
             .thenReturn(empty());
         setClock(balanceService, 1525428386000L);
 
 
+        when(pocketRepository.save(refEq(pocket("0", "label1"))))
+            .thenReturn(pocket("0", "label1", 78L));
+        when(pocketRepository.save(refEq(pocket("0", "label2"))))
+            .thenReturn(pocket("0", "label2", 79L));
+        when(pocketRepository.save(refEq(pocket("0", "label3"))))
+            .thenReturn(pocket("0", "label3", 80L));
+        when(pocketRepository.save(refEq(pocket("0", "label4"))))
+            .thenReturn(pocket("0", "label4", 81L));
+        when(pocketRepository.save(refEq(pocket("9", "label5"))))
+            .thenReturn(pocket("9", "label5", 82L));
 
-        when(pocketRepository.save(refEq(pocket("0", "label1")))).thenReturn(pocket("0", "label1", 78L));
-        when(pocketRepository.save(refEq(pocket("0", "label2")))).thenReturn(pocket("0", "label2", 79L));
-        when(pocketRepository.save(refEq(pocket("0", "label3")))).thenReturn(pocket("0", "label3", 80L));
-        when(pocketRepository.save(refEq(pocket("0", "label4")))).thenReturn(pocket("0", "label4", 81L));
-        when(pocketRepository.save(refEq(pocket("9", "label5")))).thenReturn(pocket("9", "label5", 82L));
 
-
-        when(pocketRepository.save(refEq(pocket("50", "label1"), "key", "balance"))).thenReturn(pocket("50", "label1", 83L));
-        when(pocketRepository.save(refEq(pocket("40", "label2", 10L), "key", "balance"))).thenReturn(pocket("40", "label2", 10L));
-        when(pocketRepository.save(refEq(pocket("35", "label3", 12L), "key", "balance"))).thenReturn(pocket("35", "label3", 12L));
-        when(pocketRepository.save(refEq(pocket("100", "label4"), "key", "balance"))).thenReturn(pocket("100", "label4", 84L));
-        when(pocketRepository.save(refEq(pocket("1", "label5"), "key", "balance"))).thenReturn(pocket("1", "label5", 85L));
-
+        when(pocketRepository.save(refEq(pocket("50", "label1"), "key", "balance")))
+            .thenReturn(pocket("50", "label1", 83L));
+        when(pocketRepository.save(refEq(pocket("40", "label2", 10L), "key", "balance")))
+            .thenReturn(pocket("40", "label2", 10L));
+        when(pocketRepository.save(refEq(pocket("35", "label3", 12L), "key", "balance")))
+            .thenReturn(pocket("35", "label3", 12L));
+        when(pocketRepository.save(refEq(pocket("100", "label4"), "key", "balance")))
+            .thenReturn(pocket("100", "label4", 84L));
+        when(pocketRepository.save(refEq(pocket("1", "label5"), "key", "balance")))
+            .thenReturn(pocket("1", "label5", 85L));
 
 
         balanceService.transfer(
@@ -569,8 +608,8 @@ public class BalanceServiceUnitTest {
                 .setTargetBalanceId(2L)
         );
 
-        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, new PageRequest(0, 3));
-        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, new PageRequest(1, 3));
+        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(0, 3));
+        verify(pocketRepository).findPocketForChargingOrderByDates(sourceBalance, PageRequest.of(1, 3));
         verify(pocketRepository).save(refEq(pocket("0", "label1")));
         verify(pocketRepository).save(refEq(pocket("0", "label2")));
         verify(pocketRepository).save(refEq(pocket("0", "label3")));
@@ -578,13 +617,18 @@ public class BalanceServiceUnitTest {
         verify(pocketRepository).save(refEq(pocket("9", "label5")));
 
 
-        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1", null, null, targetBalance);
-        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label2", null, null, targetBalance);
+        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label1",
+            null, null, targetBalance);
+        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label2",
+            null, null, targetBalance);
         verify(pocketRepository).findOneByIdForUpdate(10L);
-        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label3", null, null, targetBalance);
+        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label3",
+            null, null, targetBalance);
         verify(pocketRepository).findOneByIdForUpdate(12L);
-        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label4", null, null, targetBalance);
-        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label5", null, null, targetBalance);
+        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label4",
+            null, null, targetBalance);
+        verify(pocketRepository).findByLabelAndStartDateTimeAndEndDateTimeAndBalance("label5",
+            null, null, targetBalance);
 
         verify(pocketRepository).save(refEq(pocket("50", "label1"), "key", "balance"));
         verify(pocketRepository).save(refEq(pocket("40", "label2", 10L), "key", "balance"));

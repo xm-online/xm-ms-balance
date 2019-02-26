@@ -123,7 +123,7 @@ public class PocketResourceIntTest {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -584,7 +584,8 @@ public class PocketResourceIntTest {
         int databaseSizeBeforeUpdate = pocketRepository.findAll().size();
 
         // Update the pocket
-        Pocket updatedPocket = pocketRepository.findOne(pocket.getId());
+        Pocket updatedPocket = pocketRepository.findById(pocket.getId())
+            .orElseThrow(() -> new IllegalStateException("Pocket not found for id " + pocket.getId()));
         // Disconnect from session so that the updates on updatedPocket are not directly saved in db
         em.detach(updatedPocket);
         updatedPocket

@@ -280,6 +280,7 @@ dependencies {
     compile "org.postgresql:postgresql"
     liquibaseRuntime "org.postgresql:postgresql"
     compile "org.mapstruct:mapstruct-jdk8:${mapstruct_version}"
+    annotationProcessor "org.projectlombok:lombok:${lombok_version}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstruct_version}"
     annotationProcessor "org.hibernate:hibernate-jpamodelgen"
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor") {

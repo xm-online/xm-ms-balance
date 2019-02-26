@@ -26,7 +26,8 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
     @Test
     @DataSet(value = "mockBalances-init.xml", disableConstraints = true)
     public void amountCalculatedFromPockedWithFilterByDate() {
-        Optional<BigDecimal> balanceAmount = balanceRepository.findBalanceAmount(balanceRepository.findOne(1L));
+        Optional<BigDecimal> balanceAmount = balanceRepository.findBalanceAmount(
+            balanceRepository.findById(1L).get());
         assertEquals(new BigDecimal("123.00"), balanceAmount.get());
         log.info("{}", balanceAmount);
     }
@@ -34,7 +35,8 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
     @Test
     @DataSet(value = "mockBalances-init.xml", disableConstraints = true)
     public void returnAmountsByBalancesWithFilterByDate() {
-        List<Balance> balances = asList(balanceRepository.findOne(1L), balanceRepository.findOne(2L));
+        List<Balance> balances = asList(balanceRepository.findById(1L).get(),
+            balanceRepository.findById(2L).get());
         log.info("{}", balances);
         Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmountMap(balances);
         log.info("{}", balancesAmount);
