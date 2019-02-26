@@ -27,8 +27,8 @@ plugins {
 }
 
 apply plugin: 'java'
-sourceCompatibility=1.8
-targetCompatibility=1.8
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 // Until JHipster supports JDK 9
 assert System.properties['java.specification.version'] == '1.8'
 
@@ -42,10 +42,10 @@ apply plugin: 'checkstyle'
 apply plugin: 'pmd'
 
 dependencyManagement {
-  imports {
-    mavenBom 'io.github.jhipster:jhipster-dependencies:' + jhipster_dependencies_version
-    //jhipster-needle-gradle-dependency-management - JHipster will add additional dependencies management here
-  }
+    imports {
+        mavenBom 'io.github.jhipster:jhipster-dependencies:' + jhipster_dependencies_version
+        //jhipster-needle-gradle-dependency-management - JHipster will add additional dependencies management here
+    }
 }
 
 defaultTasks 'bootRun'
@@ -56,7 +56,7 @@ version = '0.0.1-SNAPSHOT'
 description = ''
 
 bootWar {
-   mainClassName = 'com.icthh.xm.ms.balance.BalanceApp'
+    mainClassName = 'com.icthh.xm.ms.balance.BalanceApp'
 }
 
 war {
@@ -111,7 +111,11 @@ if (OperatingSystem.current().isWindows()) {
 }
 
 test {
-    exclude '**/CucumberTest*'
+    systemProperty "spring.profiles.active", "test"
+    include '**/*UnitTest*'
+    include '**/*IntTest*'
+    include '**/*MvcTest*'
+    include '**/*Test'
 
     // uncomment if the tests reports are not generated
     // see https://github.com/jhipster/generator-jhipster/pull/2771 and https://github.com/jhipster/generator-jhipster/pull/4484
@@ -249,7 +253,7 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-aop"
     compile "org.springframework.boot:spring-boot-starter-data-jpa"
     compile "org.springframework.boot:spring-boot-starter-security"
-    compile ("org.springframework.boot:spring-boot-starter-web") {
+    compile("org.springframework.boot:spring-boot-starter-web") {
         exclude module: 'spring-boot-starter-tomcat'
     }
     compile "org.springframework.boot:spring-boot-starter-undertow"
@@ -269,7 +273,7 @@ dependencies {
     compile "org.springframework.security:spring-security-web"
     compile "org.springframework.security.oauth:spring-security-oauth2"
     compile "org.springframework.security:spring-security-jwt"
-    compile ("io.springfox:springfox-swagger2") {
+    compile("io.springfox:springfox-swagger2") {
         exclude module: 'mapstruct'
     }
     compile "io.springfox:springfox-bean-validators"
@@ -278,13 +282,13 @@ dependencies {
     compile "org.mapstruct:mapstruct-jdk8:${mapstruct_version}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstruct_version}"
     annotationProcessor "org.hibernate:hibernate-jpamodelgen"
-    annotationProcessor ("org.springframework.boot:spring-boot-configuration-processor") {
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor") {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     testCompile "com.jayway.jsonpath:json-path"
     testCompile "io.cucumber:cucumber-junit"
     testCompile "io.cucumber:cucumber-spring"
-    testCompile ("org.springframework.boot:spring-boot-starter-test") {
+    testCompile("org.springframework.boot:spring-boot-starter-test") {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     testCompile "org.springframework.security:spring-security-test"
@@ -295,12 +299,15 @@ dependencies {
     testCompile "com.mattbertolini:liquibase-slf4j"
     testCompile "org.hamcrest:hamcrest-library"
     testCompile "com.h2database:h2"
+    testCompile("com.github.database-rider:rider-spring:1.2.7") {
+        exclude module: 'slf4j-api'
+        exclude module: 'slf4j-simple'
+    }
     liquibaseRuntime "com.h2database:h2"
+    testCompileOnly "org.projectlombok:lombok:${lombok_version}"
 
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
     compileOnly "org.projectlombok:lombok:${lombok_version}"
-    testCompileOnly "org.projectlombok:lombok:${lombok_version}"
-
     compile "com.icthh.xm.commons:xm-commons-timeline:${xm_commons_version}"
     compile "com.icthh.xm.commons:xm-commons-security:${xm_commons_version}"
     compile "com.icthh.xm.commons:xm-commons-migration-db:${xm_commons_version}"
@@ -325,6 +332,10 @@ task stage(dependsOn: 'bootWar') {
 }
 
 bootWar.dependsOn war
-compileJava.dependsOn processResources
-processResources.dependsOn cleanResources,bootBuildInfo
+compileJava {
+    dependsOn processResources
+    // add method parameters names to .class (used by LEP scripts)
+    options.compilerArgs << '-parameters'
+}
+processResources.dependsOn cleanResources, bootBuildInfo
 bootBuildInfo.mustRunAfter cleanResources

@@ -5,13 +5,14 @@ import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service Implementation for managing Pocket.
@@ -67,7 +68,7 @@ public class PocketService {
      */
     @Transactional(readOnly = true)
     public PocketDTO findOne(Long id) {
-        Pocket pocket = pocketRepository.findOne(id);
+        Pocket pocket = pocketRepository.findById(id).orElse(null);
         return pocketMapper.toDto(pocket);
     }
 
@@ -77,6 +78,6 @@ public class PocketService {
      * @param id the id of the entity
      */
     public void delete(Long id) {
-        pocketRepository.delete(id);
+        pocketRepository.deleteById(id);
     }
 }

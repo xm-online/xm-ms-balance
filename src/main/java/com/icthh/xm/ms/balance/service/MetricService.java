@@ -1,5 +1,8 @@
 package com.icthh.xm.ms.balance.service;
 
+import static java.math.BigDecimal.ZERO;
+import static java.util.UUID.randomUUID;
+
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Metric;
@@ -7,17 +10,15 @@ import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.service.dto.MetricDTO;
 import com.icthh.xm.ms.balance.service.mapper.MetricMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.math.BigDecimal.ZERO;
-import static java.util.UUID.randomUUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service Implementation for managing Metric.
@@ -34,7 +35,6 @@ public class MetricService {
     private final BalanceRepository balanceRepository;
 
     private final MetricMapper metricMapper;
-
 
     @Transactional
     public void updateMaxMetric(Balance balance) {
@@ -79,7 +79,7 @@ public class MetricService {
      */
     @Transactional(readOnly = true)
     public MetricDTO findOne(Long id) {
-        Metric metric = metricRepository.findOne(id);
+        Metric metric = metricRepository.findById(id).orElse(null);
         return metricMapper.toDto(metric);
     }
 
@@ -89,7 +89,7 @@ public class MetricService {
      * @param id the id of the entity
      */
     public void delete(Long id) {
-        metricRepository.delete(id);
+        metricRepository.deleteById(id);
     }
 
 

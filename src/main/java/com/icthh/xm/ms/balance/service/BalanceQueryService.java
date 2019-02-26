@@ -1,29 +1,31 @@
 package com.icthh.xm.ms.balance.service;
 
-
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.Balance_;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
-import com.icthh.xm.ms.balance.repository.CriteriaPermittedRepository;
+
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import io.github.jhipster.service.QueryService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specifications;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Service for executing complex queries for Balance entities in the database.
- * The main input is a {@link BalanceCriteria} which get's converted to {@link Specifications},
+ * The main input is a {@link BalanceCriteria} which get's converted to {@link Specification},
  * in a way that all the filters must apply.
  * It returns a {@link List} of {@link BalanceDTO} or a {@link Page} of {@link BalanceDTO} which fulfills the criteria.
  */
@@ -40,6 +42,7 @@ public class BalanceQueryService extends QueryService<Balance> {
 
     /**
      * Return a {@link List} of {@link BalanceDTO} which matches the criteria from the database
+     *
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
@@ -47,12 +50,13 @@ public class BalanceQueryService extends QueryService<Balance> {
     @Transactional(readOnly = true)
     public List<BalanceDTO> findByCriteria(BalanceCriteria criteria, String privilegeKey) {
         List<Balance> result = permittedRepository.findWithPermission(Balance.class, criteria, null, privilegeKey)
-                                                  .getContent();
+            .getContent();
         return balanceMapper.toDto(result);
     }
 
     /**
      * Return a {@link Page} of {@link BalanceDTO} which matches the criteria from the database
+     *
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param pageable The page, which should be returned.
      * @return the matching entities.
@@ -68,10 +72,10 @@ public class BalanceQueryService extends QueryService<Balance> {
     }
 
     /**
-     * Function to convert BalanceCriteria to a {@link Specifications}
+     * Function to convert BalanceCriteria to a {@link Specification}
      */
-    private Specifications<Balance> createSpecification(BalanceCriteria criteria) {
-        Specifications<Balance> specification = Specifications.where(null);
+    private Specification<Balance> createSpecification(BalanceCriteria criteria) {
+        Specification<Balance> specification = Specification.where(null);
         if (criteria != null) {
             if (criteria.getId() != null) {
                 specification = specification.and(buildSpecification(criteria.getId(), Balance_.id));
@@ -83,7 +87,8 @@ public class BalanceQueryService extends QueryService<Balance> {
                 specification = specification.and(buildStringSpecification(criteria.getTypeKey(), Balance_.typeKey));
             }
             if (criteria.getMeasureKey() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getMeasureKey(), Balance_.measureKey));
+                specification = specification.and(
+                    buildStringSpecification(criteria.getMeasureKey(), Balance_.measureKey));
             }
             if (criteria.getAmount() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getAmount(), Balance_.amount));
@@ -95,7 +100,8 @@ public class BalanceQueryService extends QueryService<Balance> {
                 specification = specification.and(buildRangeSpecification(criteria.getEntityId(), Balance_.entityId));
             }
             if (criteria.getCreatedBy() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getCreatedBy(), Balance_.createdBy));
+                specification = specification.and(
+                    buildStringSpecification(criteria.getCreatedBy(), Balance_.createdBy));
             }
         }
         return specification;
