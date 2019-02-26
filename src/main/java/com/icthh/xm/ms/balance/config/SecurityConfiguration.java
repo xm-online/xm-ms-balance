@@ -1,10 +1,10 @@
 package com.icthh.xm.ms.balance.config;
 
+import com.icthh.xm.commons.permission.constants.RoleConstant;
 import com.icthh.xm.commons.security.oauth2.ConfigSignatureVerifierClient;
 import com.icthh.xm.commons.security.oauth2.OAuth2JwtAccessTokenConverter;
 import com.icthh.xm.commons.security.oauth2.OAuth2Properties;
 import com.icthh.xm.commons.security.oauth2.OAuth2SignatureVerifierClient;
-import com.icthh.xm.ms.balance.security.AuthoritiesConstants;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.loadbalancer.RestTemplateCustomizer;
@@ -24,10 +24,11 @@ import org.springframework.web.client.RestTemplate;
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfiguration extends ResourceServerConfigurerAdapter {
-    private final OAuth2Properties oAuth2Properties;
 
-    public SecurityConfiguration(OAuth2Properties oAuth2Properties) {
-        this.oAuth2Properties = oAuth2Properties;
+    private final OAuth2Properties oauth2Properties;
+
+    public SecurityConfiguration(OAuth2Properties oauth2Properties) {
+        this.oauth2Properties = oauth2Properties;
     }
 
     @Override
@@ -38,15 +39,16 @@ public class SecurityConfiguration extends ResourceServerConfigurerAdapter {
             .headers()
             .frameOptions()
             .disable()
-            .and()
+        .and()
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
+        .and()
             .authorizeRequests()
+            .antMatchers("/api/profile-info").permitAll()
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health").permitAll()
-            .antMatchers("/management/info").permitAll()
-            .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN);
+            .antMatchers("/management/**").hasAuthority(RoleConstant.SUPER_ADMIN)
+            .antMatchers("/swagger-resources/configuration/ui").permitAll();
     }
 
     @Bean
@@ -56,7 +58,7 @@ public class SecurityConfiguration extends ResourceServerConfigurerAdapter {
 
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter(OAuth2SignatureVerifierClient signatureVerifierClient) {
-        return new OAuth2JwtAccessTokenConverter(oAuth2Properties, signatureVerifierClient);
+        return new OAuth2JwtAccessTokenConverter(oauth2Properties, signatureVerifierClient);
     }
 
     @Bean
@@ -76,6 +78,6 @@ public class SecurityConfiguration extends ResourceServerConfigurerAdapter {
     @Bean
     public ConfigSignatureVerifierClient configSignatureVerifierClient(
         @Qualifier("loadBalancedRestTemplate") RestTemplate restTemplate) {
-        return new ConfigSignatureVerifierClient(oAuth2Properties, restTemplate);
+        return new ConfigSignatureVerifierClient(oauth2Properties, restTemplate);
     }
 }
