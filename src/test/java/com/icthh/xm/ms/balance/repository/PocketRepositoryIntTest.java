@@ -70,7 +70,7 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
         assertTrue(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(label,
             startDateTime == null ? null : valueOf(startDateTime).toInstant(),
             endDateTime == null ? null : valueOf(endDateTime).toInstant(),
-            balanceRepository.findById(balanceId).get())
+            balanceRepository.getOne(balanceId))
             .isPresent());
     }
 
@@ -78,7 +78,7 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
         assertFalse(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(label,
             startDateTime == null ? null : valueOf(startDateTime).toInstant(),
             endDateTime == null ? null : valueOf(endDateTime).toInstant(),
-            balanceRepository.findById(balanceId).get())
+            balanceRepository.getOne(balanceId))
             .isPresent());
     }
 
