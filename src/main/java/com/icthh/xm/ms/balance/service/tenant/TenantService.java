@@ -1,5 +1,7 @@
 package com.icthh.xm.ms.balance.service.tenant;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.icthh.xm.commons.config.client.repository.TenantConfigRepository;
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.exceptions.BusinessException;
@@ -16,8 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -50,17 +50,18 @@ public class TenantService {
         try {
             tenantListRepository.addTenant(tenantKey);
             String content = IOUtils.toString(new ClassPathResource("/config/balancespec.yml").getInputStream(), UTF_8);
-            tenantConfigRepository.createConfig(tenantKey, '/' + applicationProperties.getSpecificationName(), content);
+            tenantConfigRepository.createConfig(tenantKey, '/'
+                + applicationProperties.getSpecificationName(), content);
             databaseService.create(tenantKey);
             databaseService.migrate(tenantKey);
             log.info("STOP  - SETUP:CreateTenant: tenantKey: {}, result: OK, time = {} ms",
-                     tenantKey,
-                     stopWatch.getTime());
+                tenantKey,
+                stopWatch.getTime());
         } catch (Exception e) {
             log.error("STOP  - SETUP:CreateTenant: tenantKey: {}, result: FAIL, error: {}, time = {} ms",
-                      tenantKey,
-                      e.getMessage(),
-                      stopWatch.getTime());
+                tenantKey,
+                e.getMessage(),
+                stopWatch.getTime());
             throw e;
         }
     }
@@ -82,13 +83,13 @@ public class TenantService {
             tenantListRepository.deleteTenant(tenantKey);
 
             log.info("STOP  - SETUP:DeleteTenant: tenantKey: {}, result: OK, time = {} ms",
-                     tenantKey,
-                     stopWatch.getTime());
+                tenantKey,
+                stopWatch.getTime());
         } catch (Exception e) {
             log.error("STOP  - SETUP:DeleteTenant: tenantKey: {}, result: FAIL, error: {}, time = {} ms",
-                      tenantKey,
-                      e.getMessage(),
-                      stopWatch.getTime());
+                tenantKey,
+                e.getMessage(),
+                stopWatch.getTime());
             throw e;
         }
     }
@@ -104,15 +105,15 @@ public class TenantService {
             tenantListRepository.updateTenant(tenantKey, state.toUpperCase());
 
             log.info("STOP  - SETUP:ManageTenant: tenantKey: {}, state: {}, result: OK, time = {} ms",
-                     tenantKey,
-                     state,
-                     stopWatch.getTime());
+                tenantKey,
+                state,
+                stopWatch.getTime());
         } catch (Exception e) {
             log.error("STOP  - SETUP:ManageTenant: tenantKey: {}, state: {}, result: FAIL, error: {}, time = {} ms",
-                      tenantKey,
-                      state,
-                      e.getMessage(),
-                      stopWatch.getTime());
+                tenantKey,
+                state,
+                e.getMessage(),
+                stopWatch.getTime());
             throw e;
         }
     }

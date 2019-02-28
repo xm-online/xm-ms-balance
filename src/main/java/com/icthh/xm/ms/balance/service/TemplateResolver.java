@@ -7,11 +7,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TemplateResolver extends AppendLepKeyResolver {
+
     @Override
-    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey, LepMethod method, LepManagerService managerService) {
+    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey,
+                                         LepMethod method,
+                                         LepManagerService managerService) {
         String templateName = getRequiredStrParam(method, "templateName");
         String translatedBalanceTypeKey = translateToLepConvention(templateName);
-        return new String[] {
+        return new String[]{
             translatedBalanceTypeKey
         };
     }

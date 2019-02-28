@@ -15,6 +15,13 @@ import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import com.icthh.xm.ms.balance.web.rest.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Optional;
+import javax.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -30,12 +37,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * REST controller for managing Balance.
@@ -68,7 +69,7 @@ public class BalanceResource {
     public ResponseEntity<BalanceDTO> createBalance(@Valid @RequestBody BalanceDTO balanceDTO) throws URISyntaxException {
         if (balanceDTO.getId() != null) {
             throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
-                                        "A new balance cannot already have an ID");
+                "A new balance cannot already have an ID");
         }
         BalanceDTO result = balanceService.save(balanceDTO);
         return ResponseEntity.created(new URI("/api/balances/" + result.getId()))

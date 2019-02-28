@@ -8,11 +8,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class BalanceTypeKeyResolver extends AppendLepKeyResolver {
+
     @Override
-    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey, LepMethod method, LepManagerService managerService) {
+    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey,
+                                         LepMethod method,
+                                         LepManagerService managerService) {
         Balance balance = getParamValue(method, "balance", Balance.class);
         String translatedBalanceTypeKey = translateToLepConvention(balance.getTypeKey());
-        return new String[] {
+        return new String[]{
             translatedBalanceTypeKey
         };
     }

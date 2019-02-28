@@ -2,9 +2,7 @@ package com.icthh.xm.ms.balance.service;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
-import com.icthh.xm.ms.balance.domain.Balance_;
 import com.icthh.xm.ms.balance.domain.Metric;
-import com.icthh.xm.ms.balance.domain.Metric_;
 
 import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
 import com.icthh.xm.ms.balance.service.dto.MetricDTO;
@@ -65,31 +63,4 @@ public class MetricQueryService extends QueryService<Metric> {
         Page<Metric> result = permittedRepository.findWithPermission(Metric.class, criteria, page, privilegeKey);
         return result.map(metricMapper::toDto);
     }
-
-    /**
-     * Function to convert MetricCriteria to a {@link Specification}
-     */
-    private Specification<Metric> createSpecification(MetricCriteria criteria) {
-        Specification<Metric> specification = Specification.where(null);
-        if (criteria != null) {
-            if (criteria.getId() != null) {
-                specification = specification.and(buildSpecification(criteria.getId(), Metric_.id));
-            }
-            if (criteria.getKey() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getKey(), Metric_.key));
-            }
-            if (criteria.getTypeKey() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getTypeKey(), Metric_.typeKey));
-            }
-            if (criteria.getValue() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getValue(), Metric_.value));
-            }
-            if (criteria.getBalanceId() != null) {
-                specification = specification.and(
-                    buildReferringEntitySpecification(criteria.getBalanceId(), Metric_.balance, Balance_.id));
-            }
-        }
-        return specification;
-    }
-
 }

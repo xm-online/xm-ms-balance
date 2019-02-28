@@ -2,9 +2,7 @@ package com.icthh.xm.ms.balance.service;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
-import com.icthh.xm.ms.balance.domain.Balance_;
 import com.icthh.xm.ms.balance.domain.Pocket;
-import com.icthh.xm.ms.balance.domain.Pocket_;
 
 import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
@@ -68,42 +66,4 @@ public class PocketQueryService extends QueryService<Pocket> {
         Page<Pocket> result = permittedRepository.findWithPermission(Pocket.class, criteria, page, privilegeKey);
         return result.map(pocketMapper::toDto);
     }
-
-    /**
-     * Function to convert PocketCriteria to a {@link Specification}
-     */
-    private Specification<Pocket> createSpecification(PocketCriteria criteria) {
-        Specification<Pocket> specification = Specification.where(null);
-        if (criteria != null) {
-            if (criteria.getId() != null) {
-                specification = specification.and(buildSpecification(criteria.getId(), Pocket_.id));
-            }
-            if (criteria.getKey() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getKey(), Pocket_.key));
-            }
-            if (criteria.getLabel() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getLabel(), Pocket_.label));
-            }
-            if (criteria.getStartDateTime() != null) {
-                specification = specification.and(
-                    buildRangeSpecification(criteria.getStartDateTime(), Pocket_.startDateTime));
-            }
-            if (criteria.getEndDateTime() != null) {
-                specification = specification.and(
-                    buildRangeSpecification(criteria.getEndDateTime(), Pocket_.endDateTime));
-            }
-            if (criteria.getAmount() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getAmount(), Pocket_.amount));
-            }
-            if (criteria.getReserved() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getReserved(), Pocket_.reserved));
-            }
-            if (criteria.getBalanceId() != null) {
-                specification = specification.and(
-                    buildReferringEntitySpecification(criteria.getBalanceId(), Pocket_.balance, Balance_.id));
-            }
-        }
-        return specification;
-    }
-
 }

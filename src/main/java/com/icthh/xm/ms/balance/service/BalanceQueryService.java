@@ -3,7 +3,6 @@ package com.icthh.xm.ms.balance.service;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
-import com.icthh.xm.ms.balance.domain.Balance_;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
@@ -69,42 +68,6 @@ public class BalanceQueryService extends QueryService<Balance> {
         Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmountMap(page.getContent());
         dtos.forEach(it -> it.setAmount(balancesAmount.getOrDefault(it.getId(), BigDecimal.ZERO)));
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
-    }
-
-    /**
-     * Function to convert BalanceCriteria to a {@link Specification}
-     */
-    private Specification<Balance> createSpecification(BalanceCriteria criteria) {
-        Specification<Balance> specification = Specification.where(null);
-        if (criteria != null) {
-            if (criteria.getId() != null) {
-                specification = specification.and(buildSpecification(criteria.getId(), Balance_.id));
-            }
-            if (criteria.getKey() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getKey(), Balance_.key));
-            }
-            if (criteria.getTypeKey() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getTypeKey(), Balance_.typeKey));
-            }
-            if (criteria.getMeasureKey() != null) {
-                specification = specification.and(
-                    buildStringSpecification(criteria.getMeasureKey(), Balance_.measureKey));
-            }
-            if (criteria.getAmount() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getAmount(), Balance_.amount));
-            }
-            if (criteria.getReserved() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getReserved(), Balance_.reserved));
-            }
-            if (criteria.getEntityId() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getEntityId(), Balance_.entityId));
-            }
-            if (criteria.getCreatedBy() != null) {
-                specification = specification.and(
-                    buildStringSpecification(criteria.getCreatedBy(), Balance_.createdBy));
-            }
-        }
-        return specification;
     }
 
 }
