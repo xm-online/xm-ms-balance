@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/xm-online/xm-ms-balance.svg?branch=master)](https://travis-ci.org/xm-online/xm-ms-balance) [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?&metric=sqale_index&branch=master&project=xm-online:xm-ms-balance)](https://sonarcloud.io/dashboard/index/xm-online:xm-ms-balance) [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?&metric=ncloc&branch=master&project=xm-online:xm-ms-balance)](https://sonarcloud.io/dashboard/index/xm-online:xm-ms-balance) [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?&metric=coverage&branch=master&project=xm-online:xm-ms-balance)](https://sonarcloud.io/dashboard/index/xm-online:xm-ms-balance)
+
 # balance
 
 This application was generated using JHipster 5.7.2, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v5.7.2](https://www.jhipster.tech/documentation-archive/v5.7.2).
@@ -12,7 +14,10 @@ To start your application in the dev profile, simply run:
 
     ./gradlew
 
+
 For further instructions on how to develop with JHipster, have a look at [Using JHipster in development][].
+
+
 
 ## Building for production
 
@@ -24,6 +29,7 @@ To ensure everything worked, run:
 
     java -jar build/libs/*.war
 
+
 Refer to [Using JHipster in production][] for more details.
 
 ## Testing
@@ -31,6 +37,11 @@ Refer to [Using JHipster in production][] for more details.
 To launch your application's tests, run:
 
     ./gradlew test
+### Other tests
+
+Performance tests are run by [Gatling][] and written in Scala. They're located in [src/test/gatling](src/test/gatling) and can be run with:
+
+    ./gradlew gatlingRun
 
 For more information, refer to the [Running tests page][].
 
