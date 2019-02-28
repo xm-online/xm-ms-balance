@@ -1,0 +1,58 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipType": "many-to-one",
+            "relationshipValidateRules": "required",
+            "relationshipName": "balance",
+            "otherEntityName": "balance",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "key",
+            "javadoc": "This field is used to identify the pocket.",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "typeKey",
+            "javadoc": "String with the pocket type identifer.",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "startDateTime",
+            "javadoc": "Date/DateTime when the pocket becomes valid (date included).",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "endDateTime",
+            "javadoc": "Date/DateTime when the pocket becomes invalid (date excluded).",
+            "fieldType": "Instant"
+        },
+        {
+            "fieldName": "amount",
+            "javadoc": "The value of the pocket denoted by this object.\nThe amount includes the reserved amount (see field reserved).",
+            "fieldType": "BigDecimal"
+        },
+        {
+            "fieldName": "reserved",
+            "javadoc": "The reserved amount from pocket for uncommitted reservation transactions.",
+            "fieldType": "BigDecimal"
+        }
+    ],
+    "changelogDate": "20180215145906",
+    "javadoc": "This structure describes the sub-balances called pockets. A pocket defines a\nspecial lifetime for partial amount of the balance.",
+    "entityTableName": "pocket",
+    "dto": "mapstruct",
+    "pagination": "no",
+    "service": "serviceClass",
+    "jpaMetamodelFiltering": true,
+    "microserviceName": "balance"
+}

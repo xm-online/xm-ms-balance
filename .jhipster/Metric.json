@@ -1,0 +1,43 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipType": "many-to-one",
+            "relationshipValidateRules": "required",
+            "relationshipName": "balance",
+            "otherEntityName": "balance",
+            "otherEntityField": "id"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "key",
+            "javadoc": "This field is used to identify the metric.",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "typeKey",
+            "javadoc": "String with the metric type identifer.",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "value",
+            "javadoc": "String with the metric value.",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20180215145907",
+    "javadoc": "The balance metric structure to store value like maximum amount of the balance\ndenoted by this object due to all time of use.",
+    "entityTableName": "metric",
+    "dto": "mapstruct",
+    "pagination": "no",
+    "service": "serviceClass",
+    "jpaMetamodelFiltering": true,
+    "microserviceName": "balance"
+}

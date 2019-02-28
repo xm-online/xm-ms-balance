@@ -1,0 +1,73 @@
+{
+    "fluentMethods": true,
+    "relationships": [
+        {
+            "relationshipType": "one-to-many",
+            "javadoc": "List of pockets owned by the balance. A null value indicates balances that cannot\nhave pockets because they are not configured in the specification. An empty list\nindicates that are no pockets defined.",
+            "relationshipName": "pockets",
+            "otherEntityName": "pocket",
+            "otherEntityRelationshipName": "balance"
+        },
+        {
+            "relationshipType": "one-to-many",
+            "javadoc": "List of metrics owned by the balance.",
+            "relationshipName": "metrics",
+            "otherEntityName": "metric",
+            "otherEntityRelationshipName": "balance"
+        }
+    ],
+    "fields": [
+        {
+            "fieldName": "key",
+            "javadoc": "This field is used to identify the balance.",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "typeKey",
+            "javadoc": "This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "measureKey",
+            "javadoc": "The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)",
+            "fieldType": "String"
+        },
+        {
+            "fieldName": "amount",
+            "javadoc": "The value of the balance denoted by this object.\nThe amount includes the reserved amount (see field reserved).",
+            "fieldType": "BigDecimal"
+        },
+        {
+            "fieldName": "reserved",
+            "javadoc": "The reserved amount from the balance for uncommitted reservation transactions.",
+            "fieldType": "BigDecimal"
+        },
+        {
+            "fieldName": "entityId",
+            "javadoc": "The Entity ID related to this balance.",
+            "fieldType": "Long",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "createdBy",
+            "javadoc": "Created by user key.",
+            "fieldType": "String"
+        }
+    ],
+    "changelogDate": "20180215145905",
+    "javadoc": "This structure describes the balance definition that came out of the billing systems.",
+    "entityTableName": "balance",
+    "dto": "mapstruct",
+    "pagination": "pagination",
+    "service": "serviceClass",
+    "jpaMetamodelFiltering": true,
+    "microserviceName": "balance"
+}
