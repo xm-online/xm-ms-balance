@@ -12,6 +12,7 @@ buildscript {
         classpath "io.spring.gradle:propdeps-plugin:0.0.10.RELEASE"
         classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:1.5.2"
         //jhipster-needle-gradle-buildscript-dependency - JHipster will add additional gradle build script plugins here
+        classpath "org.ajoberstar:grgit:${grgit_version}"
     }
 }
 
@@ -22,8 +23,12 @@ plugins {
     id "net.ltgt.apt" version "0.19"
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
     id 'org.liquibase.gradle' version '2.0.1'
+    id "com.github.lkishalmi.gatling" version "0.7.1"
     //jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
+    id 'net.saliman.properties' version '1.4.6'
 }
+
+apply from: 'gradle/git.gradle'
 
 apply plugin: 'java'
 sourceCompatibility = 1.8
@@ -40,7 +45,6 @@ apply plugin: 'idea'
 apply plugin: 'checkstyle'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
-
 dependencyManagement {
     imports {
         mavenBom 'io.github.jhipster:jhipster-dependencies:' + jhipster_dependencies_version
@@ -65,10 +69,15 @@ war {
 
 springBoot {
     mainClassName = 'com.icthh.xm.ms.balance.BalanceApp'
-    buildInfo()
+    buildInfo() {
+        properties {
+            additional = [
+                currentBranch: gitInfo.currentBranch,
+                hashCommit   : gitInfo.hashCommit
+            ]
+        }
+    }
 }
-
-
 
 if (OperatingSystem.current().isWindows()) {
     // https://stackoverflow.com/questions/40037487/the-filename-or-extension-is-too-long-error-using-gradle
@@ -283,7 +292,7 @@ dependencies {
     testCompile "com.mattbertolini:liquibase-slf4j"
     testCompile "org.hamcrest:hamcrest-library"
     testCompile "com.h2database:h2"
-    testCompile (group: 'org.testcontainers', name: 'testcontainers', version: '1.6.0') {
+    testCompile(group: 'org.testcontainers', name: 'testcontainers', version: '1.6.0') {
         exclude group: 'commons-io', module: 'commons-io'
     }
     testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.6.0'
