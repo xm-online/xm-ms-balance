@@ -4,11 +4,11 @@ import io.github.jhipster.service.filter.BigDecimalFilter;
 import io.github.jhipster.service.filter.Filter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Criteria class for the Balance entity. This class is used in BalanceResource to
@@ -21,8 +21,8 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class BalanceCriteria implements Serializable {
-    private static final long serialVersionUID = 1L;
 
+    private static final long serialVersionUID = 1L;
 
     private LongFilter id;
 
@@ -45,15 +45,15 @@ public class BalanceCriteria implements Serializable {
 
     @Override
     public String toString() {
-        return "BalanceCriteria{" +
-                (id != null ? "id=" + id + ", " : "") +
-                (key != null ? "key=" + key + ", " : "") +
-                (typeKey != null ? "typeKey=" + typeKey + ", " : "") +
-                (measureKey != null ? "measureKey=" + measureKey + ", " : "") +
-                (reserved != null ? "reserved=" + reserved + ", " : "") +
-                (entityId != null ? "entityId=" + entityId + ", " : "") +
-                (createdBy != null ? "createdBy=" + createdBy + ", " : "") +
-            "}";
+        return "BalanceCriteria{"
+            + (id != null ? "id=" + id + ", " : "")
+            + (key != null ? "key=" + key + ", " : "")
+            + (typeKey != null ? "typeKey=" + typeKey + ", " : "")
+            + (measureKey != null ? "measureKey=" + measureKey + ", " : "")
+            + (reserved != null ? "reserved=" + reserved + ", " : "")
+            + (entityId != null ? "entityId=" + entityId + ", " : "")
+            + (createdBy != null ? "createdBy=" + createdBy + ", " : "")
+            + "}";
     }
 
 }

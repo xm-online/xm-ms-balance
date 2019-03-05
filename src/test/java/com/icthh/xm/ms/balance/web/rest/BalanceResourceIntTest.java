@@ -1,23 +1,21 @@
 package com.icthh.xm.ms.balance.web.rest;
 
+import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
-import com.icthh.xm.lep.api.LepManager;
-import com.icthh.xm.ms.balance.BalanceApp;
-
-import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
-import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
+import com.icthh.xm.lep.api.LepManager;
+import com.icthh.xm.ms.balance.BalanceApp;
+import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
+import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
-import com.icthh.xm.ms.balance.service.BalanceQueryService;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -46,9 +44,14 @@ import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversi
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test class for the BalanceResource REST controller.
@@ -155,7 +158,7 @@ public class BalanceResourceIntTest {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -693,7 +696,8 @@ public class BalanceResourceIntTest {
         int databaseSizeBeforeUpdate = balanceRepository.findAll().size();
 
         // Update the balance
-        Balance updatedBalance = balanceRepository.findOne(balance.getId());
+        Balance updatedBalance = balanceRepository.findById(balance.getId())
+            .orElseThrow(() -> new IllegalStateException("Balance not found for id " + balance.getId()));
         // Disconnect from session so that the updates on updatedBalance are not directly saved in db
         em.detach(updatedBalance);
         updatedBalance

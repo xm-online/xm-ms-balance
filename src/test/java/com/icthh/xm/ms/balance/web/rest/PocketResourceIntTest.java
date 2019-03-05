@@ -4,17 +4,14 @@ import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.BalanceApp;
-
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
-
-import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
+import com.icthh.xm.ms.balance.service.PocketQueryService;
 import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
-import com.icthh.xm.ms.balance.service.PocketQueryService;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,8 +38,13 @@ import java.util.List;
 import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test class for the PocketResource REST controller.
@@ -121,7 +123,7 @@ public class PocketResourceIntTest {
 
     /**
      * Create an entity for this test.
-     *
+     * <p>
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
      */
@@ -582,7 +584,8 @@ public class PocketResourceIntTest {
         int databaseSizeBeforeUpdate = pocketRepository.findAll().size();
 
         // Update the pocket
-        Pocket updatedPocket = pocketRepository.findOne(pocket.getId());
+        Pocket updatedPocket = pocketRepository.findById(pocket.getId())
+            .orElseThrow(() -> new IllegalStateException("Pocket not found for id " + pocket.getId()));
         // Disconnect from session so that the updates on updatedPocket are not directly saved in db
         em.detach(updatedPocket);
         updatedPocket

@@ -2,7 +2,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'com.gorylenko.gradle-git-properties'
 
 dependencies {
-
+    testCompile "com.h2database:h2"
 }
 
 def profiles = 'prod'
@@ -39,6 +39,6 @@ generateGitProperties {
 }
 
 gitProperties {
-    keys = ['git.branch', 'git.commit.id.abbrev']
+    keys = ['git.branch', 'git.commit.id.abbrev', 'git.commit.id.describe']
 }
 

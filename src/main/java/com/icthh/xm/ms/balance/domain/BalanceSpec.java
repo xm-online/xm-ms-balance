@@ -1,9 +1,9 @@
 package com.icthh.xm.ms.balance.domain;
 
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+
+import lombok.Data;
 
 @Data
 public class BalanceSpec {
@@ -13,7 +13,7 @@ public class BalanceSpec {
     @Data
     public static class BalanceTypeSpec {
         private String key;
-        private Map<String , String> name;
+        private Map<String, String> name;
         private boolean isWithPockets;
         private boolean removeZeroPockets = false;
     }

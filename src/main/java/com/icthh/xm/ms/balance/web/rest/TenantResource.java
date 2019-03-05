@@ -2,17 +2,16 @@ package com.icthh.xm.ms.balance.web.rest;
 
 import com.icthh.xm.commons.gen.api.TenantsApiDelegate;
 import com.icthh.xm.commons.gen.model.Tenant;
-
 import com.icthh.xm.ms.balance.service.tenant.TenantService;
+
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Slf4j
 @Component

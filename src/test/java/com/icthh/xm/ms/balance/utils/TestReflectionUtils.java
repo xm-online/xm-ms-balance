@@ -1,12 +1,12 @@
 package com.icthh.xm.ms.balance.utils;
 
-import static java.time.Clock.systemDefaultZone;
-
 import lombok.experimental.UtilityClass;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
 import java.time.Instant;
+
+import static java.time.Clock.systemDefaultZone;
 
 @UtilityClass
 public final class TestReflectionUtils {

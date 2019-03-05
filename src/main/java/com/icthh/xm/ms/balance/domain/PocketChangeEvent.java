@@ -1,7 +1,6 @@
 package com.icthh.xm.ms.balance.domain;
 
-
-import lombok.*;
+import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,7 +9,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
-import java.math.BigDecimal;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
@@ -30,7 +35,7 @@ public class PocketChangeEvent {
     private String pocketKey;
     private String pocketLabel;
 
-    @Column(precision=10, scale=2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal amountDelta;
 
     @ManyToOne(optional = false)

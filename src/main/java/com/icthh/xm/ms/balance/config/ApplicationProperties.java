@@ -1,17 +1,18 @@
 package com.icthh.xm.ms.balance.config;
 
+import java.util.Collections;
+import java.util.List;
+
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Properties specific to Balance.
  * <p>
  * Properties are configured in the application.yml file.
+ * </p>
  * See {@link io.github.jhipster.config.JHipsterProperties} for a good example.
  */
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)

@@ -32,14 +32,6 @@ import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -50,6 +42,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service Implementation for managing Balance.
@@ -110,7 +110,7 @@ public class BalanceService {
      */
     @Transactional(readOnly = true)
     public BalanceDTO findOne(Long id) {
-        Balance balance = balanceRepository.findOne(id);
+        Balance balance = balanceRepository.findById(id).orElse(null);
         BalanceDTO balanceDTO = balanceMapper.toDto(balance);
         if (balanceDTO != null) {
             balanceDTO.setAmount(balanceRepository.findBalanceAmount(balance).orElse(ZERO));
@@ -124,7 +124,7 @@ public class BalanceService {
      * @param id the id of the entity
      */
     public void delete(Long id) {
-        balanceRepository.delete(id);
+        balanceRepository.deleteById(id);
     }
 
     private Balance getBalanceForUpdate(Long balanceId) {
@@ -280,7 +280,7 @@ public class BalanceService {
     private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCharging> affectedPockets,
                                        List<Pocket> pockets, BalanceChangeEvent changeEvent) {
 
-        for(Pocket pocket: pockets) {
+        for (Pocket pocket : pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
             BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocketAmount);
             pocket.subtractAmount(amountToPocketCheckout);

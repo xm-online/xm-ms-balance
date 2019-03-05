@@ -8,6 +8,9 @@ import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.PocketChangeEventRepository;
 import com.icthh.xm.ms.balance.web.rest.requests.HistoryRequest;
+
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -37,12 +38,15 @@ public class BalanceHistoryService {
             historyRequest.getEndDate(), pageable);
     }
 
-    public Page<BalanceChangeEvent> findBalanceChanges(String templateName, Map<String, Object> params, Pageable pageable) {
+    public Page<BalanceChangeEvent> findBalanceChanges(String templateName,
+                                                       Map<String, Object> params,
+                                                       Pageable pageable) {
         return balanceChangeEventRepository.findAll(self.balanceChangesSearchTemplate(templateName, params), pageable);
     }
 
     @LogicExtensionPoint(value = "BalanceChangesSearchTemplate", resolver = TemplateResolver.class)
-    public Specification<BalanceChangeEvent> balanceChangesSearchTemplate(String templateName, Map<String, Object> params) {
+    public Specification<BalanceChangeEvent> balanceChangesSearchTemplate(String templateName,
+                                                                          Map<String, Object> params) {
         throw new EntityNotFoundException("Balance changes search template " + templateName + " not found");
     }
 
@@ -53,12 +57,15 @@ public class BalanceHistoryService {
             historyRequest.getEndDate(), pageable);
     }
 
-    public Page<PocketChangeEvent> findPocketChanges(String templateName, Map<String, Object> params, Pageable pageable) {
+    public Page<PocketChangeEvent> findPocketChanges(String templateName,
+                                                     Map<String, Object> params,
+                                                     Pageable pageable) {
         return pocketChangeEventRepository.findAll(self.pocketChangesSearchTemplate(templateName, params), pageable);
     }
 
     @LogicExtensionPoint(value = "PocketChangesSearchTemplate", resolver = TemplateResolver.class)
-    public Specification<PocketChangeEvent> pocketChangesSearchTemplate(String templateName, Map<String, Object> params) {
+    public Specification<PocketChangeEvent> pocketChangesSearchTemplate(String templateName,
+                                                                        Map<String, Object> params) {
         throw new EntityNotFoundException("Pocket changes search template " + templateName + " not found");
     }
 

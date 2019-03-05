@@ -2,18 +2,26 @@ package com.icthh.xm.ms.balance.domain;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Objects;
 
 /**
  * This structure describes the sub-balances called pockets. A pocket defines a
@@ -24,7 +32,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "pocket")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-@Getter @Setter
+@Getter
+@Setter
 public class Pocket implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -69,14 +78,14 @@ public class Pocket implements Serializable {
      * The amount includes the reserved amount (see field reserved).
      */
     @ApiModelProperty(value = "The value of the pocket denoted by this object. The amount includes the reserved amount (see field reserved).")
-    @Column(name = "amount", precision=10, scale=2)
+    @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
 
     /**
      * The reserved amount from pocket for uncommitted reservation transactions.
      */
     @ApiModelProperty(value = "The reserved amount from pocket for uncommitted reservation transactions.")
-    @Column(name = "reserved", precision=10, scale=2)
+    @Column(name = "reserved", precision = 10, scale = 2)
     private BigDecimal reserved;
 
     @ManyToOne(optional = false)
@@ -140,15 +149,16 @@ public class Pocket implements Serializable {
 
     @Override
     public String toString() {
-        return "Pocket{" +
-            "id=" + getId() +
-            ", key='" + getKey() + "'" +
-            ", label='" + getLabel() + "'" +
-            ", startDateTime='" + getStartDateTime() + "'" +
-            ", endDateTime='" + getEndDateTime() + "'" +
-            ", amount=" + getAmount() +
-            ", reserved=" + getReserved() +
-            "}";
+        return "Pocket{"
+            + "id=" + getId()
+            + ", key='" + getKey() + "'"
+            + ", label='" + getLabel() + "'"
+            + ", startDateTime='" + getStartDateTime() + "'"
+            + ", endDateTime='" + getEndDateTime() + "'"
+            + ", amount=" + getAmount()
+            + ", reserved=" + getReserved()
+
+            + "}";
     }
 
     public Pocket addAmount(BigDecimal amount) {

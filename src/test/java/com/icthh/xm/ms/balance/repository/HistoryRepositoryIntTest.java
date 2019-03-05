@@ -1,27 +1,23 @@
 package com.icthh.xm.ms.balance.repository;
 
+import com.github.database.rider.core.api.dataset.DataSet;
+import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
+import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.List;
+import java.util.Set;
+
 import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import com.github.database.rider.core.api.dataset.DataSet;
-import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
-import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
-import com.icthh.xm.ms.balance.service.OperationType;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
 
 @Slf4j
 public class HistoryRepositoryIntTest extends BaseDaoTest {

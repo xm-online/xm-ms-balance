@@ -1,9 +1,9 @@
 package com.icthh.xm.ms.balance.service.mapper;
 
-import com.icthh.xm.ms.balance.domain.*;
+import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
-
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * Mapper for the entity Pocket and its DTO PocketDTO.

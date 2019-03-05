@@ -1,9 +1,9 @@
 package com.icthh.xm.ms.balance.service.mapper;
 
-import com.icthh.xm.ms.balance.domain.*;
+import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.service.dto.MetricDTO;
-
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * Mapper for the entity Metric and its DTO MetricDTO.

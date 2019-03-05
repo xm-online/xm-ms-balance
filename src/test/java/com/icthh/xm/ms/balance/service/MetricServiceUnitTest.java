@@ -1,8 +1,17 @@
 package com.icthh.xm.ms.balance.service;
 
-import static java.time.Instant.ofEpochSecond;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
+import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.Metric;
+import com.icthh.xm.ms.balance.repository.BalanceRepository;
+import com.icthh.xm.ms.balance.repository.MetricRepository;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.math.BigDecimal;
+
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.eq;
@@ -10,29 +19,6 @@ import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
-import com.icthh.xm.commons.exceptions.EntityNotFoundException;
-import com.icthh.xm.ms.balance.config.ApplicationProperties;
-import com.icthh.xm.ms.balance.domain.Balance;
-import com.icthh.xm.ms.balance.domain.Metric;
-import com.icthh.xm.ms.balance.domain.Pocket;
-import com.icthh.xm.ms.balance.repository.BalanceRepository;
-import com.icthh.xm.ms.balance.repository.MetricRepository;
-import com.icthh.xm.ms.balance.repository.PocketRepository;
-import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
-import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
-import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-
-import java.math.BigDecimal;
-import java.util.Optional;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetricServiceUnitTest {

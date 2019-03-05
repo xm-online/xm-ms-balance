@@ -1,9 +1,9 @@
 package com.icthh.xm.ms.balance.service.mapper;
 
-import com.icthh.xm.ms.balance.domain.*;
+import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
-
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * Mapper for the entity Balance and its DTO BalanceDTO.

@@ -1,28 +1,18 @@
 package com.icthh.xm.ms.balance.repository;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-
 import com.github.database.rider.core.api.dataset.DataSet;
-import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.icthh.xm.ms.balance.domain.Balance;
-import com.icthh.xm.ms.balance.domain.Pocket;
-import com.icthh.xm.ms.balance.domain.Pocket_;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 
 @Slf4j
 public class BalanceRepositoryIntTest extends BaseDaoTest {
@@ -36,7 +26,8 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
     @Test
     @DataSet(value = "mockBalances-init.xml", disableConstraints = true)
     public void amountCalculatedFromPockedWithFilterByDate() {
-        Optional<BigDecimal> balanceAmount = balanceRepository.findBalanceAmount(balanceRepository.findOne(1L));
+        Optional<BigDecimal> balanceAmount = balanceRepository.findBalanceAmount(
+            balanceRepository.findById(1L).get());
         assertEquals(new BigDecimal("123.00"), balanceAmount.get());
         log.info("{}", balanceAmount);
     }
@@ -44,7 +35,8 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
     @Test
     @DataSet(value = "mockBalances-init.xml", disableConstraints = true)
     public void returnAmountsByBalancesWithFilterByDate() {
-        List<Balance> balances = asList(balanceRepository.findOne(1L), balanceRepository.findOne(2L));
+        List<Balance> balances = asList(balanceRepository.findById(1L).get(),
+            balanceRepository.findById(2L).get());
         log.info("{}", balances);
         Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmountMap(balances);
         log.info("{}", balancesAmount);

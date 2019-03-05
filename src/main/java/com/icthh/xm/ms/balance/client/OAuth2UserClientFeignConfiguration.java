@@ -3,11 +3,9 @@ package com.icthh.xm.ms.balance.client;
 import java.io.IOException;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import feign.RequestInterceptor;
 
-@Configuration
 public class OAuth2UserClientFeignConfiguration {
 
     @Bean(name = "userFeignClientInterceptor")

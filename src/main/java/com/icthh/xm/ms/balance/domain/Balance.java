@@ -3,19 +3,26 @@ package com.icthh.xm.ms.balance.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import javax.persistence.*;
-import javax.validation.constraints.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * This structure describes the balance definition that came out of the billing systems.
@@ -63,14 +70,14 @@ public class Balance implements Serializable {
      * The amount includes the reserved amount (see field reserved).
      */
     @ApiModelProperty(value = "The value of the balance denoted by this object. The amount includes the reserved amount (see field reserved).")
-    @Column(name = "amount", precision=10, scale=2)
+    @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
 
     /**
      * The reserved amount from the balance for uncommitted reservation transactions.
      */
     @ApiModelProperty(value = "The reserved amount from the balance for uncommitted reservation transactions.")
-    @Column(name = "reserved", precision=10, scale=2)
+    @Column(name = "reserved", precision = 10, scale = 2)
     private BigDecimal reserved;
 
     /**
@@ -186,10 +193,7 @@ public class Balance implements Serializable {
             return false;
         }
         Balance balance = (Balance) o;
-        if (balance.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), balance.getId());
+        return balance.getId() != null && getId() != null && Objects.equals(getId(), balance.getId());
     }
 
     @Override
@@ -199,16 +203,16 @@ public class Balance implements Serializable {
 
     @Override
     public String toString() {
-        return "Balance{" +
-            "id=" + getId() +
-            ", key='" + getKey() + "'" +
-            ", typeKey='" + getTypeKey() + "'" +
-            ", measureKey='" + getMeasureKey() + "'" +
-            ", amount=" + getAmount() +
-            ", reserved=" + getReserved() +
-            ", entityId=" + getEntityId() +
-            ", createdBy='" + getCreatedBy() + "'" +
-            "}";
+        return "Balance{"
+            + "id=" + getId()
+            + ", key='" + getKey() + "'"
+            + ", typeKey='" + getTypeKey() + "'"
+            + ", measureKey='" + getMeasureKey() + "'"
+            + ", amount=" + getAmount()
+            + ", reserved=" + getReserved()
+            + ", entityId=" + getEntityId()
+            + ", createdBy='" + getCreatedBy() + "'"
+            + "}";
     }
 
 }

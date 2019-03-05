@@ -9,26 +9,33 @@ import static org.hibernate.cfg.AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLV
 import com.icthh.xm.commons.config.client.repository.TenantListRepository;
 import com.icthh.xm.commons.migration.db.XmMultiTenantSpringLiquibase;
 import com.icthh.xm.commons.migration.db.XmSpringLiquibase;
-import com.icthh.xm.ms.balance.util.DatabaseUtil;
-
+import com.icthh.xm.commons.migration.db.util.DatabaseUtil;
 import io.github.jhipster.config.JHipsterConstants;
-import io.github.jhipster.config.liquibase.AsyncSpringLiquibase;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.sql.DataSource;
 
 import liquibase.integration.spring.MultiTenantSpringLiquibase;
 import liquibase.integration.spring.SpringLiquibase;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.MultiTenancyStrategy;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateSettings;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
+
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -38,16 +45,6 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
 
 @Configuration
 @EnableJpaRepositories("com.icthh.xm.ms.balance.repository")
@@ -85,9 +82,9 @@ public class DatabaseConfiguration {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             Class<?> serverClass = Class.forName("org.h2.tools.Server", true, loader);
             Method createServer = serverClass.getMethod("createTcpServer", String[].class);
-            return createServer.invoke(null, new Object[] { new String[] { "-tcp", "-tcpAllowOthers" } });
+            return createServer.invoke(null, new Object[]{new String[]{"-tcp", "-tcpAllowOthers"}});
 
-        } catch (ClassNotFoundException | LinkageError  e) {
+        } catch (ClassNotFoundException | LinkageError e) {
             throw new RuntimeException("Failed to load and initialize org.h2.tools.Server", e);
 
         } catch (SecurityException | NoSuchMethodException e) {
@@ -107,7 +104,7 @@ public class DatabaseConfiguration {
 
     @Bean
     public SpringLiquibase liquibase(@Qualifier("taskExecutor") TaskExecutor taskExecutor,
-            DataSource dataSource, LiquibaseProperties liquibaseProperties) {
+                                     DataSource dataSource, LiquibaseProperties liquibaseProperties) {
 
         createSchemas(dataSource);
 
@@ -177,7 +174,7 @@ public class DatabaseConfiguration {
         LocalValidatorFactoryBean localValidatorFactoryBean) {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.putAll(jpaProperties.getHibernateProperties(dataSource));
+        properties.putAll(jpaProperties.getHibernateProperties(new HibernateSettings()));
         properties.put(MULTI_TENANT, MultiTenancyStrategy.SCHEMA);
         properties.put(MULTI_TENANT_CONNECTION_PROVIDER, multiTenantConnectionProviderImpl);
         properties.put(MULTI_TENANT_IDENTIFIER_RESOLVER, currentTenantIdentifierResolverImpl);

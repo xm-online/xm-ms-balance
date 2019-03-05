@@ -2,14 +2,21 @@ package com.icthh.xm.ms.balance.domain;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-import javax.persistence.*;
-import javax.validation.constraints.*;
 
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * The balance metric structure to store value like maximum amount of the balance
@@ -139,11 +146,11 @@ public class Metric implements Serializable {
 
     @Override
     public String toString() {
-        return "Metric{" +
-            "id=" + getId() +
-            ", key='" + getKey() + "'" +
-            ", typeKey='" + getTypeKey() + "'" +
-            ", value='" + getValue() + "'" +
-            "}";
+        return "Metric{"
+            + "id=" + getId()
+            + ", key='" + getKey() + "'"
+            + ", typeKey='" + getTypeKey() + "'"
+            + ", value='" + getValue() + "'"
+            + "}";
     }
 }

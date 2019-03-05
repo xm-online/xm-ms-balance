@@ -4,11 +4,11 @@ import com.icthh.xm.commons.lep.spring.web.LepInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @RequiredArgsConstructor
 @Configuration
-public class LepInterceptorConfiguration extends WebMvcConfigurerAdapter {
+public class LepInterceptorConfiguration implements WebMvcConfigurer {
 
     private final LepInterceptor lepInterceptor;
 
@@ -16,5 +16,4 @@ public class LepInterceptorConfiguration extends WebMvcConfigurerAdapter {
     public void addInterceptors(final InterceptorRegistry registry) {
         registry.addInterceptor(lepInterceptor).addPathPatterns("/**");
     }
-
 }

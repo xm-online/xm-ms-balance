@@ -7,25 +7,30 @@ import static com.icthh.xm.ms.balance.domain.BalanceChangeEvent_.operationType;
 import com.icthh.xm.commons.permission.access.repository.ResourceRepository;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.service.OperationType;
+
+import java.time.Instant;
+import java.util.List;
+import javax.persistence.criteria.Predicate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import javax.persistence.criteria.Predicate;
-import java.time.Instant;
-import java.util.List;
-
-public interface BalanceChangeEventRepository extends JpaRepository<BalanceChangeEvent, Long>, JpaSpecificationExecutor<BalanceChangeEvent>, ResourceRepository {
+public interface BalanceChangeEventRepository
+    extends JpaRepository<BalanceChangeEvent, Long>, JpaSpecificationExecutor<BalanceChangeEvent>, ResourceRepository {
 
     default Page<BalanceChangeEvent> findByEntityIdInAndOperationTypeAndOperationDateBetween(List<Long> entityIds,
-        OperationType type, Instant startDate, Instant endDate, Pageable pageable) {
+                                                                                             OperationType type,
+                                                                                             Instant startDate,
+                                                                                             Instant endDate,
+                                                                                             Pageable pageable) {
 
-        return findAll(Specifications.where((root, cq, cb) -> {
+        return findAll(Specification.where((root, cq, cb) -> {
 
             Predicate entityIdPredicate = cb.disjunction();
-            for (Long entityId: entityIds) {
+            for (Long entityId : entityIds) {
                 entityIdPredicate = cb.or(entityIdPredicate, cb.equal(root.get(balanceEntityId), entityId));
             }
 

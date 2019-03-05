@@ -1,13 +1,12 @@
 package com.icthh.xm.ms.balance.service.dto;
 
-
-import lombok.Getter;
-import lombok.Setter;
-
-import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * A DTO for the Balance entity.
@@ -50,7 +49,7 @@ public class BalanceDTO implements Serializable {
         }
 
         BalanceDTO balanceDTO = (BalanceDTO) o;
-        if(balanceDTO.getId() == null || getId() == null) {
+        if (balanceDTO.getId() == null || getId() == null) {
             return false;
         }
         return Objects.equals(getId(), balanceDTO.getId());

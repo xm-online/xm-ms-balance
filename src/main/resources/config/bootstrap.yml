@@ -1,6 +1,6 @@
 # ===================================================================
 # Spring Cloud Consul Config bootstrap configuration for the "dev" profile
-# In prod profile, properties will be overwriten by the ones defined in bootstrap-prod.yml
+# In prod profile, properties will be overwritten by the ones defined in bootstrap-prod.yml
 # ===================================================================
 
 spring:
@@ -18,6 +18,11 @@ spring:
                 format: yaml
                 profile-separator: "-"
             discovery:
-                tags: profile=${spring.profiles.active}, version=${info.project.version}
+                tags:
+                    - profile=${spring.profiles.active}
+                    - version=${info.project.version:}
+                    - git-version=${git.commit.id.describe:}
+                    - git-commit=${git.commit.id.abbrev:}
+                    - git-branch=${git.branch:}
             host: localhost
             port: 8500

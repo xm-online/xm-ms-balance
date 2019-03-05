@@ -5,12 +5,13 @@ import com.icthh.xm.commons.permission.access.repository.ResourceRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.MetricRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
@@ -34,7 +35,7 @@ public class BalanceResourceFactory implements ResourceFactory {
         Object result = null;
         ResourceRepository resourceRepository = repositories.get(objectType);
         if (resourceRepository != null) {
-            result = resourceRepository.findById(resourceId);
+            result = resourceRepository.findResourceById(resourceId);
         }
         return result;
     }

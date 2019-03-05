@@ -1,10 +1,8 @@
 package com.icthh.xm.ms.balance.service.dto;
 
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
 
 /**

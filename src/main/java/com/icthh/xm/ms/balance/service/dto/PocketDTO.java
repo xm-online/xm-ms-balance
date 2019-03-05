@@ -1,10 +1,10 @@
 package com.icthh.xm.ms.balance.service.dto;
 
 
-import java.time.Instant;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Objects;
 
 /**

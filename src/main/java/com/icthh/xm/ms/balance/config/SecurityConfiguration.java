@@ -1,10 +1,10 @@
 package com.icthh.xm.ms.balance.config;
 
 import com.icthh.xm.commons.permission.constants.RoleConstant;
-import com.icthh.xm.ms.balance.config.oauth2.OAuth2JwtAccessTokenConverter;
-import com.icthh.xm.ms.balance.config.oauth2.OAuth2Properties;
-import com.icthh.xm.ms.balance.security.oauth2.OAuth2SignatureVerifierClient;
-import com.icthh.xm.ms.balance.security.AuthoritiesConstants;
+import com.icthh.xm.commons.security.oauth2.ConfigSignatureVerifierClient;
+import com.icthh.xm.commons.security.oauth2.OAuth2JwtAccessTokenConverter;
+import com.icthh.xm.commons.security.oauth2.OAuth2Properties;
+import com.icthh.xm.commons.security.oauth2.OAuth2SignatureVerifierClient;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.loadbalancer.RestTemplateCustomizer;
@@ -18,17 +18,17 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableResourceServer
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
-public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerAdapter {
-    private final OAuth2Properties oAuth2Properties;
+public class SecurityConfiguration extends ResourceServerConfigurerAdapter {
 
-    public MicroserviceSecurityConfiguration(OAuth2Properties oAuth2Properties) {
-        this.oAuth2Properties = oAuth2Properties;
+    private final OAuth2Properties oauth2Properties;
+
+    public SecurityConfiguration(OAuth2Properties oauth2Properties) {
+        this.oauth2Properties = oauth2Properties;
     }
 
     @Override
@@ -58,11 +58,11 @@ public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerA
 
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter(OAuth2SignatureVerifierClient signatureVerifierClient) {
-        return new OAuth2JwtAccessTokenConverter(oAuth2Properties, signatureVerifierClient);
+        return new OAuth2JwtAccessTokenConverter(oauth2Properties, signatureVerifierClient);
     }
 
     @Bean
-	@Qualifier("loadBalancedRestTemplate")
+    @Qualifier("loadBalancedRestTemplate")
     public RestTemplate loadBalancedRestTemplate(RestTemplateCustomizer customizer) {
         RestTemplate restTemplate = new RestTemplate();
         customizer.customize(restTemplate);
@@ -73,5 +73,11 @@ public class MicroserviceSecurityConfiguration extends ResourceServerConfigurerA
     @Qualifier("vanillaRestTemplate")
     public RestTemplate vanillaRestTemplate() {
         return new RestTemplate();
+    }
+
+    @Bean
+    public ConfigSignatureVerifierClient configSignatureVerifierClient(
+        @Qualifier("loadBalancedRestTemplate") RestTemplate restTemplate) {
+        return new ConfigSignatureVerifierClient(oauth2Properties, restTemplate);
     }
 }

@@ -3,23 +3,30 @@ package com.icthh.xm.ms.balance.web.rest;
 import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
-import com.icthh.xm.ms.balance.service.MetricService;
-import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
-import com.icthh.xm.ms.balance.service.dto.MetricDTO;
-import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
 import com.icthh.xm.ms.balance.service.MetricQueryService;
+import com.icthh.xm.ms.balance.service.MetricService;
+import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
+import com.icthh.xm.ms.balance.service.dto.MetricDTO;
+import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import io.github.jhipster.web.util.ResponseUtil;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Optional;
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST controller for managing Metric.
@@ -52,7 +59,7 @@ public class MetricResource {
     public ResponseEntity<MetricDTO> createMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
         if (metricDTO.getId() != null) {
             throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
-                                        "A new metric cannot already have an ID");
+                "A new metric cannot already have an ID");
         }
         MetricDTO result = metricService.save(metricDTO);
         return ResponseEntity.created(new URI("/api/metrics/" + result.getId()))
