@@ -6,13 +6,20 @@ import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -92,6 +99,9 @@ public class Pocket implements Serializable {
     @NotNull
     private Balance balance;
 
+    @Embedded
+    private Metadata metadata = new Metadata();
+
     public Pocket key(String key) {
         this.key = key;
         return this;
@@ -127,6 +137,11 @@ public class Pocket implements Serializable {
         return this;
     }
 
+    public Pocket metadata(Metadata metadata) {
+        this.metadata = metadata;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -157,7 +172,7 @@ public class Pocket implements Serializable {
             + ", endDateTime='" + getEndDateTime() + "'"
             + ", amount=" + getAmount()
             + ", reserved=" + getReserved()
-
+            + ", metadata=" + getMetadata()
             + "}";
     }
 

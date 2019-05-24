@@ -1,12 +1,12 @@
 package com.icthh.xm.ms.balance.web.rest.requests;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Map;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
@@ -20,4 +20,6 @@ public class ReloadBalanceRequest {
     private String label;
     private Instant startDateTime;
     private Instant endDateTime;
+    private Map<String, String> metadata;
+
 }

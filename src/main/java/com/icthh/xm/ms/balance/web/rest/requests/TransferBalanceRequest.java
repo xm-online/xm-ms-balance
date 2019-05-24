@@ -1,5 +1,7 @@
 package com.icthh.xm.ms.balance.web.rest.requests;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,4 +19,6 @@ public class TransferBalanceRequest {
     @NotNull
     @Min(0)
     private BigDecimal amount;
+    private Map<String, String> metadata;
+
 }

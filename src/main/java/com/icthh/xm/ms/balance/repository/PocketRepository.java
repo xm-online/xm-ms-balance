@@ -2,13 +2,13 @@ package com.icthh.xm.ms.balance.repository;
 
 import com.icthh.xm.commons.permission.access.repository.ResourceRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.Metadata;
 import com.icthh.xm.ms.balance.domain.Pocket;
-
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.persistence.LockModeType;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,10 +27,20 @@ import org.springframework.stereotype.Repository;
 public interface PocketRepository
     extends JpaRepository<Pocket, Long>, JpaSpecificationExecutor<Pocket>, ResourceRepository {
 
-    Optional<Pocket> findByLabelAndStartDateTimeAndEndDateTimeAndBalance(String label,
-                                                                         @Nullable Instant startDateTime,
-                                                                         @Nullable Instant endDateTime,
-                                                                         Balance balance);
+    default Optional<Pocket> findPocketForReload(String label,
+                                         @Nullable Instant startDateTime,
+                                         @Nullable Instant endDateTime,
+                                         Balance balance,
+                                         String metadataValue) {
+        return findByLabelAndStartDateTimeAndEndDateTimeAndBalanceAndMetadataValue(label, startDateTime, endDateTime,
+                                                                                   balance, metadataValue);
+    }
+
+    Optional<Pocket> findByLabelAndStartDateTimeAndEndDateTimeAndBalanceAndMetadataValue(String label,
+                                                                                         @Nullable Instant startDateTime,
+                                                                                         @Nullable Instant endDateTime,
+                                                                                         Balance balance,
+                                                                                         String metadataValue);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Pocket as p WHERE p.balance = :balance AND p.amount > 0 "

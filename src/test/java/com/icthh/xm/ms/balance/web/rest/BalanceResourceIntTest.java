@@ -803,11 +803,11 @@ public class BalanceResourceIntTest {
 
     private void expectBalanceHasPockets(Balance balance) {
         Pocket pocket = new Pocket().amount(new BigDecimal("5")).balance(balance).startDateTime(now().minusSeconds(500))
-            .endDateTime(now().plusSeconds(500)).label("TYPEKEY").key("KEY");
+            .endDateTime(now().plusSeconds(500)).label("LABEL1").key("KEY");
         Pocket pocket1 = new Pocket().amount(new BigDecimal("50")).balance(balance).startDateTime(now().minusSeconds(500))
-            .endDateTime(now().plusSeconds(500)).label("TYPEKEY").key("KEY");
+            .endDateTime(now().plusSeconds(500)).label("LABEL2").key("KEY");
         Pocket expired = new Pocket().amount(new BigDecimal("50")).balance(balance).startDateTime(now().minusSeconds(500))
-            .endDateTime(now().minusSeconds(500)).label("TYPEKEY").key("KEY");
+            .endDateTime(now().minusSeconds(500)).label("LABEL4").key("KEY");
         pocketRepository.saveAndFlush(pocket);
         pocketRepository.saveAndFlush(pocket1);
         pocketRepository.saveAndFlush(expired);

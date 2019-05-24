@@ -1,11 +1,11 @@
 package com.icthh.xm.ms.balance.web.rest.requests;
 
 import com.icthh.xm.ms.balance.service.OperationType;
+import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
 import java.time.Instant;

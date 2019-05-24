@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
+import static com.icthh.xm.ms.balance.service.BalanceServiceUnitTest.EMPTY_METADATA_VALUE;
 import static java.sql.Timestamp.valueOf;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -42,6 +43,8 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
             "3019-05-01 00:00:00", 1L);
         shouldNotExistsPocket("LABEL", null, "2116-05-01 00:00:00", 1L);
         shouldNotExistsPocket("LABEL", "2118-05-01 00:00:01", null, 1L);
+
+        shouldExistsPocket("LABEL_28", null, null, 5L, "{\"params\":true}");
     }
 
 
@@ -67,18 +70,29 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
     }
 
     private void shouldExistsPocket(String label, String startDateTime, String endDateTime, Long balanceId) {
-        assertTrue(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(label,
+        assertTrue(pocketRepository.findPocketForReload(label,
             startDateTime == null ? null : valueOf(startDateTime).toInstant(),
             endDateTime == null ? null : valueOf(endDateTime).toInstant(),
-            balanceRepository.getOne(balanceId))
+            balanceRepository.getOne(balanceId),
+            EMPTY_METADATA_VALUE)
             .isPresent());
     }
 
+    private void shouldExistsPocket(String label, String startDateTime, String endDateTime, Long balanceId, String metadata) {
+        assertTrue(pocketRepository.findPocketForReload(label,
+                                                        startDateTime == null ? null : valueOf(startDateTime).toInstant(),
+                                                        endDateTime == null ? null : valueOf(endDateTime).toInstant(),
+                                                        balanceRepository.getOne(balanceId),
+                                                        metadata)
+                                   .isPresent());
+    }
+
     private void shouldNotExistsPocket(String label, String startDateTime, String endDateTime, Long balanceId) {
-        assertFalse(pocketRepository.findByLabelAndStartDateTimeAndEndDateTimeAndBalance(label,
+        assertFalse(pocketRepository.findPocketForReload(label,
             startDateTime == null ? null : valueOf(startDateTime).toInstant(),
             endDateTime == null ? null : valueOf(endDateTime).toInstant(),
-            balanceRepository.getOne(balanceId))
+            balanceRepository.getOne(balanceId),
+            EMPTY_METADATA_VALUE)
             .isPresent());
     }
 
