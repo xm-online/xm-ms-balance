@@ -153,7 +153,7 @@ public class BalanceService {
                 .endDateTime(reloadRequest.getEndDateTime())
                 .startDateTime(reloadRequest.getStartDateTime())
                 .label(reloadRequest.getLabel())
-                .metadata(changeEvent.getMetadata())
+                .metadata(Metadata.of(reloadRequest.getMetadata()))
             );
 
         Pocket savedPocket = pocketRepository.save(pocket);
@@ -188,7 +188,7 @@ public class BalanceService {
     @Transactional
     @LogicExtensionPoint(value = "Reload", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto reload(Balance balance, ReloadBalanceRequest reloadRequest) {
-        Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now();
+        Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, RELOAD, reloadRequest.getAmount(),
             operationDate, randomUUID(), Metadata.of(reloadRequest.getMetadata()));
         reloadPocket(reloadRequest, balance, changeEvent);
@@ -259,10 +259,14 @@ public class BalanceService {
             .setAmount(pocket.getAmount())
             .setEndDateTime(pocket.getEndDateTime())
             .setStartDateTime(pocket.getStartDateTime())
-            .setMetadata(metadata.getMetadata())
+            .setMetadata(self.mergeMetadata(pocket.getMetadata(), metadata))
             .setLabel(pocket.getLabel());
     }
 
+    @LogicExtensionPoint("MergeMetadata")
+    public Map<String, String> mergeMetadata(Metadata metadata, Metadata additionalMetadata) {
+        return metadata.merge(additionalMetadata.getMetadata());
+    }
 
     private List<PocketCharging> chargingPockets(Balance balance, BigDecimal amount, BalanceChangeEvent changeEvent) {
         BigDecimal amountToCheckout = amount;

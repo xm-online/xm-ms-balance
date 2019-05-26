@@ -17,7 +17,6 @@ import lombok.SneakyThrows;
 @Data
 @Embeddable
 @EqualsAndHashCode
-@NoArgsConstructor
 public class Metadata implements Serializable {
 
     private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -29,6 +28,8 @@ public class Metadata implements Serializable {
 
     @Column(name="metadata_value")
     private String value = "{}";
+
+    public Metadata() {}
 
     @SneakyThrows
     public Metadata(Map<String, String> metadata) {
@@ -52,5 +53,17 @@ public class Metadata implements Serializable {
     @Override
     public String toString() {
         return value;
+    }
+
+    public Map<String, String> merge(Map<String, String> additionalMetadata) {
+        Map<String, String> metadata = new HashMap<>(this.metadata);
+        metadata.putAll(additionalMetadata);
+        return metadata;
+    }
+
+    public Metadata merge(Metadata additionalMetadata) {
+        Map<String, String> metadata = new HashMap<>(this.metadata);
+        metadata.putAll(additionalMetadata.metadata);
+        return new Metadata(metadata);
     }
 }

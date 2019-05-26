@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.service.dto;
 
+import com.icthh.xm.ms.balance.domain.Metadata;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,5 +29,9 @@ public class PocketCharging {
 
     public Instant getEndDateTime() {
         return pocket.getEndDateTime();
+    }
+
+    public Metadata getMetadata() {
+        return pocket.getMetadata();
     }
 }

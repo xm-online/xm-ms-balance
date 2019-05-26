@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.icthh.xm.ms.balance.service.BalanceServiceUnitTest.EMPTY_METADATA_VALUE;
 import static java.sql.Timestamp.valueOf;
@@ -44,7 +45,8 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
         shouldNotExistsPocket("LABEL", null, "2116-05-01 00:00:00", 1L);
         shouldNotExistsPocket("LABEL", "2118-05-01 00:00:01", null, 1L);
 
-        shouldExistsPocket("LABEL_28", null, null, 5L, "{\"params\":true}");
+        shouldExistsPocket("LABEL_28", null, null, 5L, "{\"value\":true}");
+        shouldNotExistsPocket("LABEL_28", null, null, 5L, EMPTY_METADATA_VALUE);
     }
 
 
@@ -96,6 +98,14 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
             .isPresent());
     }
 
+    private void shouldNotExistsPocket(String label, String startDateTime, String endDateTime, Long balanceId, String metadata) {
+        assertFalse(pocketRepository.findPocketForReload(label,
+                                                         startDateTime == null ? null : valueOf(startDateTime).toInstant(),
+                                                         endDateTime == null ? null : valueOf(endDateTime).toInstant(),
+                                                         balanceRepository.getOne(balanceId),
+                                                         metadata)
+                        .isPresent());
+    }
 
     @Test
     @DataSet(value = "mockBalancesWithZeroPockets-init.xml", disableConstraints = true)
