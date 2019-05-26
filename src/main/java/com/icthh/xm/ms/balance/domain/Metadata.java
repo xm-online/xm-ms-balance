@@ -1,5 +1,8 @@
 package com.icthh.xm.ms.balance.domain;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableMap;
+
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -11,7 +14,6 @@ import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 @Data
@@ -33,7 +35,7 @@ public class Metadata implements Serializable {
 
     @SneakyThrows
     public Metadata(Map<String, String> metadata) {
-        this.metadata = metadata == null ? new HashMap<>() : metadata;
+        this.metadata = metadata == null ? emptyMap() : unmodifiableMap(metadata);
         this.value = objectMapper.writeValueAsString(this.metadata);
     }
 

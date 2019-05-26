@@ -228,6 +228,7 @@ public class BalanceServiceUnitTest {
             .operationType(operationType)
             .operationDate(ofEpochSecond(1525428386))
             .pocketChangeEvents(asList(pocketChangeEvents))
+            .metadata(new Metadata())
             .build();
     }
 
@@ -702,7 +703,6 @@ public class BalanceServiceUnitTest {
     public void reloadWithMetadata() {
         expectedAuth();
         deleteZeroPocketDisabled();
-        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
 
         Balance targetBalance = createBalance(1L);
 
@@ -732,7 +732,6 @@ public class BalanceServiceUnitTest {
     public void reloadWithMetadataCreateNewPocket() {
         expectedAuth();
         deleteZeroPocketDisabled();
-        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
 
         Balance targetBalance = createBalance(1L);
 
