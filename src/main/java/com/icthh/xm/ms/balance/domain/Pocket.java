@@ -142,6 +142,13 @@ public class Pocket implements Serializable {
         return this;
     }
 
+    public Metadata getMetadata() {
+        if (metadata == null) {
+            metadata = new Metadata();
+        }
+        return metadata;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -29,21 +29,22 @@ public class Metadata implements Serializable {
     private Map<String, String> metadata = null;
 
     @Column(name="metadata_value")
-    private String value = "{}";
+    private String value = null;
 
     public Metadata() {}
 
     @SneakyThrows
     public Metadata(Map<String, String> metadata) {
-        this.metadata = metadata == null ? emptyMap() : unmodifiableMap(metadata);
-        this.value = objectMapper.writeValueAsString(this.metadata);
+        if (metadata != null) {
+            this.value = objectMapper.writeValueAsString(metadata);
+            this.metadata = unmodifiableMap(metadata);
+        }
     }
 
     @SneakyThrows
     public Map<String, String> getMetadata() {
-        if (metadata == null) {
-            value = value == null ? "{}" : value;
-            metadata = objectMapper.readValue(value, Map.class);
+        if (metadata == null && value != null) {
+            metadata = unmodifiableMap(objectMapper.readValue(value, Map.class));
         }
         return metadata;
     }
@@ -57,15 +58,17 @@ public class Metadata implements Serializable {
         return value;
     }
 
-    public Map<String, String> merge(Map<String, String> additionalMetadata) {
-        Map<String, String> metadata = new HashMap<>(this.metadata);
-        metadata.putAll(additionalMetadata);
-        return metadata;
+    public Metadata merge(Metadata additionalMetadata) {
+        if (this.metadata == null && additionalMetadata.metadata == null) {
+            return new Metadata();
+        }
+
+        Map<String, String> metadata = new HashMap<>(nullSafe(this.metadata));
+        metadata.putAll(nullSafe(additionalMetadata.metadata));
+        return new Metadata(metadata);
     }
 
-    public Metadata merge(Metadata additionalMetadata) {
-        Map<String, String> metadata = new HashMap<>(this.metadata);
-        metadata.putAll(additionalMetadata.metadata);
-        return new Metadata(metadata);
+    public Map<String, String> nullSafe(Map<String, String> map) {
+        return map == null ? new HashMap<>() : map;
     }
 }

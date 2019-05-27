@@ -259,13 +259,13 @@ public class BalanceService {
             .setAmount(pocket.getAmount())
             .setEndDateTime(pocket.getEndDateTime())
             .setStartDateTime(pocket.getStartDateTime())
-            .setMetadata(self.mergeMetadata(pocket.getMetadata(), metadata))
+            .setMetadata(self.mergeMetadata(pocket.getMetadata(), metadata).getMetadata())
             .setLabel(pocket.getLabel());
     }
 
     @LogicExtensionPoint("MergeMetadata")
-    public Map<String, String> mergeMetadata(Metadata metadata, Metadata additionalMetadata) {
-        return metadata.merge(additionalMetadata.getMetadata());
+    public Metadata mergeMetadata(Metadata metadata, Metadata additionalMetadata) {
+        return metadata.merge(additionalMetadata);
     }
 
     private List<PocketCharging> chargingPockets(Balance balance, BigDecimal amount, BalanceChangeEvent changeEvent) {

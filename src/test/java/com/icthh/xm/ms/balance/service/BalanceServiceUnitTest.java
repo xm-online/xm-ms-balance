@@ -63,7 +63,7 @@ import org.springframework.data.domain.PageRequest;
 @RunWith(MockitoJUnitRunner.class)
 public class BalanceServiceUnitTest {
 
-    public static final String EMPTY_METADATA_VALUE = new Metadata(emptyMap()).getValue();
+    public static final String EMPTY_METADATA_VALUE = null;
 
     @InjectMocks
     private BalanceService balanceService;
@@ -148,7 +148,7 @@ public class BalanceServiceUnitTest {
             .pocketId(pocketId)
             .pocketKey(assertionKey)
             .pocketLabel(label)
-            .metadata(Metadata.of(emptyMap()))
+            .metadata(new Metadata())
             .build();
     }
 
@@ -681,14 +681,14 @@ public class BalanceServiceUnitTest {
         verify(metricService).updateMaxMetric(targetBalance);
 
         expectBalanceChangeEvents(
-            createBalanceEvent("201", 1L, TRANSFER_FROM, of(),
+            createBalanceEvent("201", 1L, TRANSFER_FROM,
                 createPocketEvent("50", 78L, null, "label1"),
                 createPocketEvent("30", 79L, null, "label2"),
                 createPocketEvent("20", 80L, null, "label3"),
                 createPocketEvent("100", 81L, null, "label4"),
                 createPocketEvent("1", 82L, null, "label5")
             ),
-            createBalanceEvent("201", 2L, TRANSFER_TO, of(),
+            createBalanceEvent("201", 2L, TRANSFER_TO,
                 createPocketEvent("50", 83L, null, "label1"),
                 createPocketEvent("30", 10L, null, "label2"),
                 createPocketEvent("20", 12L, null, "label3"),
@@ -788,7 +788,7 @@ public class BalanceServiceUnitTest {
                        );
         {
             Pocket pocket = pocket("5", "l1", 185L);
-            expectPocketForReload(targetBalance, pocket, "l1", of(), 185L);
+            expectPocketForReload(targetBalance, pocket, "l1", null, 185L);
             Pocket toSave = pocket("15", "l1", 185L);
             expectSavePocket(toSave, toSave);
 
@@ -817,7 +817,7 @@ public class BalanceServiceUnitTest {
         }
 
         {
-            expectEmptyPocket(targetBalance, of(), "l2");
+            expectEmptyPocket(targetBalance, null, "l2");
             Pocket pocket = pocket("10", "l2");
             Pocket toSave = pocket("10", "l2", 188L);
             expectSavePocket(pocket, toSave);
@@ -841,7 +841,7 @@ public class BalanceServiceUnitTest {
 
         verifyFindPocketForCharging(sourceBalance);
 
-        verifyFindPocketForReload(targetBalance, "l1", of(), 185L);
+        verifyFindPocketForReload(targetBalance, "l1", null, 185L);
         verifySavePocket(pocket("0", "l1", 85L));
         verifySavePocket(pocket("15", "l1", 185L));
 
@@ -854,7 +854,7 @@ public class BalanceServiceUnitTest {
         verifySavePocket(pocket("0", "l1", 87L, of("dataKey", "dataValue2")));
         verifySavePocket(pocket("10", "l1", of("dataKey", "dataValue2")));
 
-        verifyFindPocketForReload(targetBalance, of(), "l2");
+        verifyFindPocketForReload(targetBalance, null, "l2");
         verifySavePocket(pocket("0", "l2", 88L));
         verifySavePocket(pocket("10", "l2"));
 
@@ -867,18 +867,18 @@ public class BalanceServiceUnitTest {
         verify(metricService).updateMaxMetric(targetBalance);
 
         expectBalanceChangeEvents(
-            createBalanceEvent("46", 1L, TRANSFER_FROM, of(),
-                               createPocketEvent("10", 85L, null, "l1", of()),
+            createBalanceEvent("46", 1L, TRANSFER_FROM,
+                               createPocketEvent("10", 85L, null, "l1", null),
                                createPocketEvent("10", 86L, null, "l1", of("dataKey", "dataValue")),
                                createPocketEvent("10", 87L, null, "l1", of("dataKey", "dataValue2")),
-                               createPocketEvent("10", 88L, null, "l2", of()),
+                               createPocketEvent("10", 88L, null, "l2", null),
                                createPocketEvent("6", 89L, null, "l3", of("other", "value"))
                               ),
-            createBalanceEvent("46", 2L, TRANSFER_TO, of(),
-                               createPocketEvent("10", 185L, null, "l1", of()),
+            createBalanceEvent("46", 2L, TRANSFER_TO,
+                               createPocketEvent("10", 185L, null, "l1", null),
                                createPocketEvent("10", 186L, null, "l1", of("dataKey", "dataValue")),
                                createPocketEvent("10", 187L, null, "l1", of("dataKey", "dataValue2")),
-                               createPocketEvent("10", 188L, null, "l2", of()),
+                               createPocketEvent("10", 188L, null, "l2", null),
                                createPocketEvent("6", 189L, null, "l3", of("other", "value"))
                               )
                                  );
@@ -986,10 +986,10 @@ public class BalanceServiceUnitTest {
 
         expectBalanceChangeEvents(
             createBalanceEvent("46", 1L, TRANSFER_FROM, of("transfer", "data"),
-                               createPocketEvent("10", 85L, null, "l1", of()),
+                               createPocketEvent("10", 85L, null, "l1"),
                                createPocketEvent("10", 86L, null, "l1", of("dataKey", "dataValue")),
                                createPocketEvent("10", 87L, null, "l1", of("dataKey", "dataValue2")),
-                               createPocketEvent("10", 88L, null, "l2", of()),
+                               createPocketEvent("10", 88L, null, "l2"),
                                createPocketEvent("6", 89L, null, "l3", of("other", "value"))
                               ),
             createBalanceEvent("46", 2L, TRANSFER_TO, of("transfer", "data"),

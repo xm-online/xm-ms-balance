@@ -8,24 +8,19 @@
 
     <changeSet id="20192405155100" author="ssenko">
         <addColumn tableName="pocket">
-            <column name="metadata_value" type="${textType}" defaultValue="{}">
+            <column name="metadata_value" type="${textType}">
+                <constraints nullable="true"/>
             </column>
         </addColumn>
 
-        <sql>UPDATE pocket SET metadata_value = '{}'</sql>
-        <addNotNullConstraint tableName="pocket"
-                              columnName="metadata_value"
-                              columnDataType="${textType}"
-        />
-
         <addColumn tableName="pocket_change_event">
-            <column name="metadata_value" type="${textType}" defaultValue="{}">
+            <column name="metadata_value" type="${textType}">
                 <constraints nullable="true"/>
             </column>
         </addColumn>
 
         <addColumn tableName="balance_change_event">
-            <column name="metadata_value" type="${textType}" defaultValue="{}">
+            <column name="metadata_value" type="${textType}">
                 <constraints nullable="true"/>
             </column>
         </addColumn>
