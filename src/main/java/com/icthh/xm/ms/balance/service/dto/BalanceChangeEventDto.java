@@ -1,10 +1,9 @@
 package com.icthh.xm.ms.balance.service.dto;
 
 import com.icthh.xm.ms.balance.service.OperationType;
-
 import java.math.BigDecimal;
 import java.time.Instant;
-
+import java.util.Map;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -20,4 +19,5 @@ public class BalanceChangeEventDto {
     private String operationId;
     private Instant operationDate;
     private BigDecimal amountDelta;
+    Map<String, String> metadata;
 }

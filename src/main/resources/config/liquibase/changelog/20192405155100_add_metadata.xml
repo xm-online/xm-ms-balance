@@ -1,0 +1,36 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="textType" value="varchar" dbms="postgresql, h2"/>
+    <property name="textType" value="text" dbms="oracle"/>
+
+    <changeSet id="20192405155100" author="ssenko">
+        <addColumn tableName="pocket">
+            <column name="metadata_value" type="${textType}">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="pocket_change_event">
+            <column name="metadata_value" type="${textType}">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="balance_change_event">
+            <column name="metadata_value" type="${textType}">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addUniqueConstraint
+            columnNames="label, start_date_time, end_date_time, balance_id, metadata_value"
+            constraintName="pocket_unique_bussines_constraint"
+            tableName="pocket"
+        />
+
+    </changeSet>
+
+</databaseChangeLog>
