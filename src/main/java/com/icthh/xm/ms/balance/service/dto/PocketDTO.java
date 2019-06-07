@@ -1,15 +1,18 @@
 package com.icthh.xm.ms.balance.service.dto;
 
 
+import java.util.Map;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Data;
 
 /**
  * A DTO for the Pocket entity.
  */
+@Data
 public class PocketDTO implements Serializable {
 
     private Long id;
@@ -30,69 +33,7 @@ public class PocketDTO implements Serializable {
 
     private Long balanceId;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public Instant getStartDateTime() {
-        return startDateTime;
-    }
-
-    public void setStartDateTime(Instant startDateTime) {
-        this.startDateTime = startDateTime;
-    }
-
-    public Instant getEndDateTime() {
-        return endDateTime;
-    }
-
-    public void setEndDateTime(Instant endDateTime) {
-        this.endDateTime = endDateTime;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public BigDecimal getReserved() {
-        return reserved;
-    }
-
-    public void setReserved(BigDecimal reserved) {
-        this.reserved = reserved;
-    }
-
-    public Long getBalanceId() {
-        return balanceId;
-    }
-
-    public void setBalanceId(Long balanceId) {
-        this.balanceId = balanceId;
-    }
+    private Map<String, String> metadata;
 
     @Override
     public boolean equals(Object o) {

@@ -9,7 +9,6 @@ import static com.icthh.xm.ms.balance.utils.TestReflectionUtils.setClock;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
@@ -42,6 +41,7 @@ import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -766,6 +766,21 @@ public class BalanceServiceUnitTest {
     private void expectEmptyPocket(Balance targetBalance, Map<String, String> metadata, String label) {
         when(pocketRepository.findPocketForReload(label, null, null, targetBalance,
                                                   new Metadata(metadata).getValue())).thenReturn(empty());
+    }
+
+    @Test
+    public void testMergeMetadata() {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("fxRateCurrency", "USD");
+        metadata.put("isResell", "true");
+        metadata.put("pricePerCredit", "1");
+        metadata.put("rate", "1.0");
+        metadata.put("resellerAccountId", "18403");
+        metadata.put("salesOrderNumber", "5");
+        Metadata from = new Metadata();
+        from.setValue(new Metadata(metadata).getValue());
+        Metadata to = new Metadata();
+        assertEquals(new Metadata(metadata).getValue(), this.balanceService.mergeMetadata(from, to).getValue());
     }
 
     @Test

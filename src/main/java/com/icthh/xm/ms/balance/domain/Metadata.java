@@ -59,12 +59,12 @@ public class Metadata implements Serializable {
     }
 
     public Metadata merge(Metadata additionalMetadata) {
-        if (this.metadata == null && additionalMetadata.metadata == null) {
+        if (this.getMetadata() == null && additionalMetadata.getMetadata() == null) {
             return new Metadata();
         }
 
-        Map<String, String> metadata = new HashMap<>(nullSafe(this.metadata));
-        metadata.putAll(nullSafe(additionalMetadata.metadata));
+        Map<String, String> metadata = new HashMap<>(nullSafe(this.getMetadata()));
+        metadata.putAll(nullSafe(additionalMetadata.getMetadata()));
         return new Metadata(metadata);
     }
 
