@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -43,6 +45,28 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
         assertEquals(2, balancesAmount.size());
         assertEquals(new BigDecimal("123.00"), balancesAmount.get(1L));
         assertEquals(new BigDecimal("10000.00"), balancesAmount.get(2L));
+    }
+
+    @Test
+    @DataSet(value = "mockBalancesWithDifferentEntityIds-init.xml")
+    public void testFindByEntityIds() {
+        Page<Balance> balances = balanceRepository.findByEntityIds(asList(1L, 3L, 4L, 5L), PageRequest.of(0, 100));
+        log.info("{}", balances.getContent());
+        assertEquals(asList(balance(1, "1", 1L),
+                            balance(3, "3", 3L),
+                            balance(4, "4", 4L),
+                            balance(5, "5", 5L),
+                            balance(6, "6", 5L),
+                            balance(7, "7", 5L)), balances.getContent());
+    }
+
+    private Balance balance(long id, String key, long entityId) {
+        Balance balance = new Balance();
+        balance.setId(id);
+        balance.setKey(key);
+        balance.setTypeKey("TYPE_KEY");
+        balance.setEntityId(entityId);
+        return balance;
     }
 
 }

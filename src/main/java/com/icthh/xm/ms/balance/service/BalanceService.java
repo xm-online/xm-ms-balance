@@ -7,6 +7,7 @@ import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toList;
 
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
@@ -18,6 +19,7 @@ import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.BalanceSpec;
+import com.icthh.xm.ms.balance.domain.Balance_;
 import com.icthh.xm.ms.balance.domain.Metadata;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
@@ -30,10 +32,10 @@ import com.icthh.xm.ms.balance.service.dto.PocketCharging;
 import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import com.icthh.xm.ms.balance.web.rest.requests.BalanceByEntitiesRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
-
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -42,7 +44,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
+import javax.annotation.Nonnull;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +56,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -359,4 +365,9 @@ public class BalanceService {
         event.setMetadata(pocket.getMetadata());
         return event;
     }
+
+    public Page<BalanceDTO> findEntities(BalanceByEntitiesRequest request, Pageable pageable) {
+        return balanceRepository.findByEntityIds(request.getEntityIds(), pageable).map(balanceMapper::toDto);
+    }
+
 }

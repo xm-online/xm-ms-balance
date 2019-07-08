@@ -17,6 +17,7 @@
     <include file="config/liquibase/changelog/20180501113500_rename_column_type_key_in_pocket_to_label_Balance.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20180512210100_add_transaction_history.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20192405155100_add_metadata.xml" relativeToChangelogFile="false" />
+    <include file="config/liquibase/changelog/20190708153500_add_entity_id_index.xml" relativeToChangelogFile="false" />
 
 </databaseChangeLog>
 

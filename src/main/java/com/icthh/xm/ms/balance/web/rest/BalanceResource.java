@@ -9,6 +9,7 @@ import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.TransferDto;
+import com.icthh.xm.ms.balance.web.rest.requests.BalanceByEntitiesRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
@@ -164,6 +165,15 @@ public class BalanceResource {
     public ResponseEntity<TransferDto> transferBalance(@Valid @RequestBody TransferBalanceRequest transferRequest) {
         TransferDto response = balanceService.transfer(transferRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(response));
+    }
+
+    @PostAuthorize("hasPermission({'request': #request}, 'BALANCE.GET_LIST.BY_ENTITIES')")
+    @GetMapping("/balances-by-entities")
+    @Timed
+    public ResponseEntity<List<BalanceDTO>> getAllBalances(BalanceByEntitiesRequest request, Pageable pageable) {
+        Page<BalanceDTO> page = balanceService.findEntities(request, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/balances-by-entities");
+        return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 
 }
