@@ -20,4 +20,6 @@ public class BalanceChangeEventDto {
     private Instant operationDate;
     private BigDecimal amountDelta;
     Map<String, String> metadata;
+    private BigDecimal amountBefore;
+    private BigDecimal amountAfter;
 }

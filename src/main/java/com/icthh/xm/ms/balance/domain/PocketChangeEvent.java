@@ -2,7 +2,6 @@ package com.icthh.xm.ms.balance.domain;
 
 import java.math.BigDecimal;
 
-import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -12,7 +11,6 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 
-import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,5 +45,10 @@ public class PocketChangeEvent {
     @ManyToOne(optional = false)
     private BalanceChangeEvent transaction;
 
-}
+    @Column(precision = 10, scale = 2)
+    private BigDecimal amountBefore;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal amountAfter;
+
+}
