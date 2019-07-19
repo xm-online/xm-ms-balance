@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -20,7 +19,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 
-import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -60,6 +58,12 @@ public class BalanceChangeEvent {
 
     @Embedded
     private Metadata metadata = new Metadata();
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal amountBefore;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal amountAfter;
 
     @OneToMany(mappedBy = "transaction", cascade = ALL)
     private List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();
