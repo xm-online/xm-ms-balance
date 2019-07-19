@@ -568,7 +568,7 @@ public class BalanceServiceUnitTest {
         deleteZeroPocketDisabled();
 
         Balance sourceBalance = createBalanceWithAmount(1L, "600");
-        Balance targetBalance = createBalanceWithAmount(2L, "0");
+        Balance targetBalance = createBalanceWithAmount(2L, "25");
 
         expectBalance(sourceBalance, "600");
         when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
@@ -667,7 +667,7 @@ public class BalanceServiceUnitTest {
                 createPocketEvent("100", 81L, null, "label4", "0", "100"),
                 createPocketEvent("1", 82L, null, "label5", "9", "10")
             ),
-            createBalanceEvent("201", 2L, TRANSFER_TO, "201", "0",
+            createBalanceEvent("201", 2L, TRANSFER_TO, "226", "25",
                 createPocketEvent("50", 83L, null, "label1", "50", "0"),
                 createPocketEvent("30", 10L, null, "label2", "40", "10"),
                 createPocketEvent("20", 12L, null, "label3", "35", "15"),
@@ -771,7 +771,7 @@ public class BalanceServiceUnitTest {
         setClock(balanceService, 1525428386000L);
 
         Balance sourceBalance = createBalanceWithAmount(1L, "50");
-        Balance targetBalance = createBalanceWithAmount(2L, "0");
+        Balance targetBalance = createBalanceWithAmount(2L, "10");
         expectBalance(sourceBalance, "50");
         pocketForReload(sourceBalance, asList(
             pocket("10", "l1", 85L),
@@ -868,7 +868,7 @@ public class BalanceServiceUnitTest {
                                createPocketEvent("10", 88L, null, "l2", null, "0", "10"),
                                createPocketEvent("6", 89L, null, "l3", of("other", "value"), "4", "10")
                               ),
-            createBalanceEvent("46", 2L, TRANSFER_TO, "46", "0",
+            createBalanceEvent("46", 2L, TRANSFER_TO, "56", "10",
                                createPocketEvent("10", 185L, null, "l1", null, "15", "5"),
                                createPocketEvent("10", 186L, null, "l1", of("dataKey", "dataValue"), "15", "5"),
                                createPocketEvent("10", 187L, null, "l1", of("dataKey", "dataValue2"), "10", "0"),
@@ -889,7 +889,7 @@ public class BalanceServiceUnitTest {
         setClock(balanceService, 1525428386000L);
 
         Balance sourceBalance = createBalanceWithAmount(1L, "50");
-        Balance targetBalance = createBalanceWithAmount(2L, "0");
+        Balance targetBalance = createBalanceWithAmount(2L, "10");
         expectBalance(sourceBalance, "50");
         pocketForReload(sourceBalance, asList(
             pocket("10", "l1", 85L),
@@ -986,7 +986,7 @@ public class BalanceServiceUnitTest {
                                createPocketEvent("10", 88L, null, "l2", "0", "10"),
                                createPocketEvent("6", 89L, null, "l3", of("other", "value"), "4", "10")
                               ),
-            createBalanceEvent("46", 2L, TRANSFER_TO, of("transfer", "data"), "46", "0",
+            createBalanceEvent("46", 2L, TRANSFER_TO, of("transfer", "data"), "56", "10",
                                createPocketEvent("10", 185L, null, "l1", of("transfer", "data"), "15", "5"),
                                createPocketEvent("10", 186L, null, "l1", of("dataKey", "dataValue", "transfer", "data"), "15", "5"),
                                createPocketEvent("10", 187L, null, "l1", of("dataKey", "dataValue2", "transfer", "data"), "10", "0"),
