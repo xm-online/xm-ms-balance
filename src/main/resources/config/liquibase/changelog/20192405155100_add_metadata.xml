@@ -26,8 +26,8 @@
         </addColumn>
 
         <addUniqueConstraint
-            columnNames="label, start_date_time, end_date_time, balance_id, metadata_value"
-            constraintName="pocket_unique_bussines_constraint"
+            columnNames="label, start_date_time, end_date_time, balance_id"
+            constraintName="pocket_unique_business_constraint"
             tableName="pocket"
         />
 
