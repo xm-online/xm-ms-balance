@@ -29,6 +29,7 @@ public class ApplicationProperties {
     private Integer pocketChargingBatchSize;
     private String specificationPathPattern;
     private String specificationName;
+    private String dbSchemaSuffix;
 
     @Getter
     @Setter
