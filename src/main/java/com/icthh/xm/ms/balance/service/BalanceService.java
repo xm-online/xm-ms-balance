@@ -193,7 +193,10 @@ public class BalanceService {
     @LogicExtensionPoint(value = "Reload", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto reload(Balance balance, ReloadBalanceRequest reloadRequest) {
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
-        BigDecimal amountAfter = getAmountAfter(false, balance.getAmount(), reloadRequest.getAmount());
+        BigDecimal amountAfter = getAmountAfter(false,
+                                                balanceRepository.findBalanceAmount(balance).orElse(ZERO),
+                                                reloadRequest.getAmount());
+
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, RELOAD, reloadRequest.getAmount(),
             operationDate, randomUUID(), Metadata.of(reloadRequest.getMetadata()), amountAfter);
         reloadPocket(reloadRequest, balance, changeEvent);
@@ -215,7 +218,9 @@ public class BalanceService {
     @LogicExtensionPoint(value = "Charging", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto charging(Balance balance, ChargingBalanceRequest chargingRequest) {
         assertBalanceAmout(balance, chargingRequest.getAmount());
-        BigDecimal amountAfter = getAmountAfter(true, balance.getAmount(), chargingRequest.getAmount());
+        BigDecimal amountAfter = getAmountAfter(true,
+                                                balanceRepository.findBalanceAmount(balance).orElse(ZERO),
+                                                chargingRequest.getAmount());
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, CHARGING, chargingRequest.getAmount(),
             now(clock), randomUUID(), Metadata.of(chargingRequest.getMetadata()), amountAfter);
         chargingPockets(balance, chargingRequest.getAmount(), changeEvent);
@@ -239,13 +244,17 @@ public class BalanceService {
         Instant now = now(clock);
 
         UUID transactionId = randomUUID();
-        BigDecimal amountAfterTransferFrom = getAmountAfter(true, sourceBalance.getAmount(), amount);
+        BigDecimal amountAfterTransferFrom = getAmountAfter(true,
+                                                            balanceRepository.findBalanceAmount(sourceBalance).orElse(ZERO),
+                                                            amount);
         BalanceChangeEvent eventFrom = createBalanceChangeEvent(sourceBalance, TRANSFER_FROM, amount, now,
                                                                 transactionId, metadata, amountAfterTransferFrom);
         List<PocketCharging> pockets = chargingPockets(sourceBalance, amount, eventFrom);
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
-        BigDecimal amountAfterTransferTo = getAmountAfter(false, targetBalance.getAmount(), amount);
+        BigDecimal amountAfterTransferTo = getAmountAfter(false,
+                                                          balanceRepository.findBalanceAmount(targetBalance).orElse(ZERO),
+                                                          amount);
         BalanceChangeEvent eventTo = createBalanceChangeEvent(targetBalance, TRANSFER_TO, amount, now, transactionId,
                                                               metadata, amountAfterTransferTo);
         pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId, metadata))
