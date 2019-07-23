@@ -1065,6 +1065,7 @@ public class BalanceServiceUnitTest {
     private Balance createBalanceWithAmount(long sourceId, String balanceAmount) {
         Balance balance = new Balance();
         balance.setId(sourceId);
+        balance.setAmount(new BigDecimal(balanceAmount));
         when(balanceRepository.findOneByIdForUpdate(sourceId)).thenReturn(of(balance));
         when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal(balanceAmount)));
         return balance;
