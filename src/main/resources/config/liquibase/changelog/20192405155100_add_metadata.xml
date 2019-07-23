@@ -4,7 +4,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
     <property name="textType" value="varchar" dbms="postgresql, h2"/>
-    <property name="textType" value="text" dbms="oracle"/>
+    <property name="textType" value="varchar(1024)" dbms="oracle"/>
 
     <changeSet id="20192405155100" author="ssenko">
         <addColumn tableName="pocket">
@@ -26,8 +26,8 @@
         </addColumn>
 
         <addUniqueConstraint
-            columnNames="label, start_date_time, end_date_time, balance_id"
-            constraintName="pocket_unique_business_constraint"
+            columnNames="label, start_date_time, end_date_time, balance_id, metadata_value"
+            constraintName="pocket_unique_bussiness_constraint"
             tableName="pocket"
         />
 
