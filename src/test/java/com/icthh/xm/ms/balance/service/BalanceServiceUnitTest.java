@@ -6,6 +6,7 @@ import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
 import static com.icthh.xm.ms.balance.utils.TestReflectionUtils.setClock;
+import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -1066,6 +1067,7 @@ public class BalanceServiceUnitTest {
         Balance balance = new Balance();
         balance.setId(sourceId);
         when(balanceRepository.findOneByIdForUpdate(sourceId)).thenReturn(of(balance));
+        when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal(balanceAmount)));
         return balance;
     }
 
