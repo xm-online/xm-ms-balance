@@ -46,6 +46,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -357,7 +358,8 @@ public class BalanceService {
         event.setBalanceKey(balance.getKey());
         event.setBalanceTypeKey(balance.getTypeKey());
         event.setBalanceEntityId(balance.getEntityId());
-        event.setExecutedByUserKey(authContextHolder.getContext().getRequiredUserKey());
+        event.setExecutedByUserKey(authContextHolder.getContext().getUserKey()
+            .orElseGet(()-> authContextHolder.getContext().getLogin().orElse(StringUtils.EMPTY)));
         event.setOperationType(operationType);
         event.setAmountDelta(amountDelta);
         event.setOperationDate(operationDate);
