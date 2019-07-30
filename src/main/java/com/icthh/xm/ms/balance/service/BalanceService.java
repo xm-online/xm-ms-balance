@@ -362,7 +362,8 @@ public class BalanceService {
         event.setBalanceTypeKey(balance.getTypeKey());
         event.setBalanceEntityId(balance.getEntityId());
         event.setExecutedByUserKey(context.getUserKey()
-            .orElseGet(()-> context.getDetailsValue(CLIENT_ID, StringUtils.EMPTY)));
+            .orElseGet(() -> context.getDetailsValue(CLIENT_ID)
+                .orElseThrow(() -> new IllegalArgumentException("Cannot retrieve user origin from token"))));
         event.setOperationType(operationType);
         event.setAmountDelta(amountDelta);
         event.setOperationDate(operationDate);
