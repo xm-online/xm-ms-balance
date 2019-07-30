@@ -14,6 +14,7 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Maps;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -103,13 +105,13 @@ public class BalanceServiceUnitTest {
     }
 
     private void deleteZeroPocketDisabled() {
-        when(balanceSpecService.getBalanceSpec(Matchers.any())).thenReturn(new BalanceSpec.BalanceTypeSpec());
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(new BalanceSpec.BalanceTypeSpec());
     }
 
     private void deleteZeroPocketEnabled() {
         BalanceSpec.BalanceTypeSpec spec = new BalanceSpec.BalanceTypeSpec();
         spec.setRemoveZeroPockets(true);
-        when(balanceSpecService.getBalanceSpec(Matchers.any())).thenReturn(spec);
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(spec);
     }
 
     @Test
@@ -205,7 +207,8 @@ public class BalanceServiceUnitTest {
         assertEquals(size, size2);
     }
 
-    private BalanceChangeEvent createBalanceEvent(String amountDelta,
+    private BalanceChangeEvent createBalanceEvent(String userOrigin,
+                                                  String amountDelta,
                                                   long balanceId,
                                                   OperationType operationType,
                                                   Map<String, String> metadata,
@@ -215,7 +218,7 @@ public class BalanceServiceUnitTest {
         return BalanceChangeEvent.builder()
             .amountDelta(new BigDecimal(amountDelta))
             .balanceId(balanceId)
-            .executedByUserKey("requiredUserKey")
+            .executedByUserKey(userOrigin)
             .operationType(operationType)
             .operationDate(ofEpochSecond(1525428386))
             .pocketChangeEvents(asList(pocketChangeEvents))
@@ -231,17 +234,9 @@ public class BalanceServiceUnitTest {
                                                   String amountAfter,
                                                   String amountBefore,
                                                   PocketChangeEvent... pocketChangeEvents) {
-        return BalanceChangeEvent.builder()
-            .amountDelta(new BigDecimal(amountDelta))
-            .balanceId(balanceId)
-            .executedByUserKey("requiredUserKey")
-            .operationType(operationType)
-            .operationDate(ofEpochSecond(1525428386))
-            .pocketChangeEvents(asList(pocketChangeEvents))
-            .metadata(new Metadata())
-            .amountAfter(new BigDecimal(amountAfter))
-            .amountBefore(new BigDecimal(amountBefore))
-            .build();
+        return createBalanceEvent("requiredUserKey", amountDelta, balanceId, operationType, null,
+            amountAfter, amountBefore,
+            pocketChangeEvents);
     }
 
     @Test
@@ -269,6 +264,35 @@ public class BalanceServiceUnitTest {
             createPocketEvent("50", 492L, null, "label", "50", "0")));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
+
+    @Test
+    public void balanceChangeEventShouldBeCreatedWithClientId() {
+        XmAuthenticationContext auth = mock(XmAuthenticationContext.class);
+        when(auth.getUserKey()).thenReturn(Optional.empty());
+        when(auth.getDetailsValue(eq("client_id"))).thenReturn(Optional.of("internal"));
+        when(authContextHolder.getContext()).thenReturn(auth);
+
+        when(pocketRepository.save(any(Pocket.class))).thenReturn(new Pocket());
+        createBalanceWithAmount(1L, "0");
+        balanceService.reload(new ReloadBalanceRequest().setBalanceId(1L).setAmount(new BigDecimal("50"))
+            .setStartDateTime(ofEpochSecond(1525428386)).setLabel("label"));
+
+        verify(balanceChangeEventRepository).save(captor.capture());
+        BalanceChangeEvent balanceChangeEvent = captor.getValue();
+        assertEquals(balanceChangeEvent.getExecutedByUserKey(), "internal");
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void balanceChangeEventShouldFailOnCreation() {
+        XmAuthenticationContext auth = mock(XmAuthenticationContext.class);
+        when(authContextHolder.getContext()).thenReturn(auth);
+
+        createBalanceWithAmount(1L, "0");
+        balanceService.reload(new ReloadBalanceRequest().setBalanceId(1L).setAmount(new BigDecimal("50"))
+            .setStartDateTime(ofEpochSecond(1525428386)).setLabel("label"));
+    }
+
 
     @Test(expected = EntityNotFoundException.class)
     public void ifBalanceNotFound() {
@@ -401,7 +425,7 @@ public class BalanceServiceUnitTest {
         when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(1, 3)))
             .thenReturn(new PageImpl<>(emptyList()));
 
-        Pocket any = Matchers.any();
+        Pocket any = any();
         when(pocketRepository.save(any)).then(in -> in.getArguments()[0]);
 
         balanceService.charging(
@@ -702,7 +726,7 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(pocketRepository);
         verify(metricService).updateMaxMetric(targetBalance);
         expectBalanceChangeEvents(
-            createBalanceEvent("5", 1L, RELOAD, metadata, "15", "10",
+            createBalanceEvent("requiredUserKey", "5", 1L, RELOAD, metadata, "15", "10",
                                createPocketEvent("5", 85L, null, "l1", metadata, "15", "10"))
                                  );
         verifyNoMoreInteractions(balanceChangeEventRepository);
@@ -732,7 +756,7 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(pocketRepository);
         verify(metricService).updateMaxMetric(targetBalance);
         expectBalanceChangeEvents(
-            createBalanceEvent("5", 1L, RELOAD, metadata, "5", "0",
+            createBalanceEvent("requiredUserKey", "5", 1L, RELOAD, metadata, "5", "0",
                                createPocketEvent("5", 85L, null, "l1", metadata, "5", "0"))
                                  );
         verifyNoMoreInteractions(balanceChangeEventRepository);
@@ -980,14 +1004,14 @@ public class BalanceServiceUnitTest {
         verify(metricService).updateMaxMetric(targetBalance);
 
         expectBalanceChangeEvents(
-            createBalanceEvent("46", 1L, TRANSFER_FROM, of("transfer", "data"), "4", "50",
+            createBalanceEvent("requiredUserKey", "46", 1L, TRANSFER_FROM, of("transfer", "data"), "4", "50",
                                createPocketEvent("10", 85L, null, "l1", "0", "10"),
                                createPocketEvent("10", 86L, null, "l1", of("dataKey", "dataValue"), "0", "10"),
                                createPocketEvent("10", 87L, null, "l1", of("dataKey", "dataValue2"), "0", "10"),
                                createPocketEvent("10", 88L, null, "l2", "0", "10"),
                                createPocketEvent("6", 89L, null, "l3", of("other", "value"), "4", "10")
                               ),
-            createBalanceEvent("46", 2L, TRANSFER_TO, of("transfer", "data"), "56", "10",
+            createBalanceEvent("requiredUserKey", "46", 2L, TRANSFER_TO, of("transfer", "data"), "56", "10",
                                createPocketEvent("10", 185L, null, "l1", of("transfer", "data"), "15", "5"),
                                createPocketEvent("10", 186L, null, "l1", of("dataKey", "dataValue", "transfer", "data"), "15", "5"),
                                createPocketEvent("10", 187L, null, "l1", of("dataKey", "dataValue2", "transfer", "data"), "10", "0"),
