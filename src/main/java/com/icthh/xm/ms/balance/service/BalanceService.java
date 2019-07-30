@@ -13,6 +13,7 @@ import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
+import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
@@ -353,13 +354,14 @@ public class BalanceService {
                                                         BigDecimal amountDelta, Instant operationDate,
                                                         UUID transactionId, Metadata metadata, BigDecimal amountAfter,
                                                         BigDecimal amountBefore) {
+        XmAuthenticationContext context = authContextHolder.getContext();
         BalanceChangeEvent event = new BalanceChangeEvent();
         event.setBalanceId(balance.getId());
         event.setBalanceKey(balance.getKey());
         event.setBalanceTypeKey(balance.getTypeKey());
         event.setBalanceEntityId(balance.getEntityId());
-        event.setExecutedByUserKey(authContextHolder.getContext().getUserKey()
-            .orElseGet(()-> authContextHolder.getContext().getLogin().orElse(StringUtils.EMPTY)));
+        event.setExecutedByUserKey(context.getUserKey()
+            .orElseGet(()-> context.getLogin().orElse(StringUtils.EMPTY)));
         event.setOperationType(operationType);
         event.setAmountDelta(amountDelta);
         event.setOperationDate(operationDate);

@@ -98,7 +98,7 @@ public class BalanceServiceUnitTest {
 
     private void expectedAuth() {
         XmAuthenticationContext auth = mock(XmAuthenticationContext.class);
-        when(auth.getRequiredUserKey()).thenReturn("requiredUserKey");
+        when(auth.getUserKey()).thenReturn(Optional.of("requiredUserKey"));
         when(authContextHolder.getContext()).thenReturn(auth);
     }
 
