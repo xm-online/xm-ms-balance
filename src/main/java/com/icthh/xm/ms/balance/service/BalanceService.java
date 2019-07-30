@@ -66,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BalanceService {
 
+    public static final String CLIENT_ID = "client_id";
     private final BalanceRepository balanceRepository;
     private final PermittedRepository permittedRepository;
     private final PocketRepository pocketRepository;
@@ -361,7 +362,7 @@ public class BalanceService {
         event.setBalanceTypeKey(balance.getTypeKey());
         event.setBalanceEntityId(balance.getEntityId());
         event.setExecutedByUserKey(context.getUserKey()
-            .orElseGet(()-> context.getLogin().orElse(StringUtils.EMPTY)));
+            .orElseGet(()-> context.getDetailsValue(CLIENT_ID, StringUtils.EMPTY)));
         event.setOperationType(operationType);
         event.setAmountDelta(amountDelta);
         event.setOperationDate(operationDate);
