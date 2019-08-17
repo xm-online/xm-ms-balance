@@ -18,6 +18,7 @@
     <include file="config/liquibase/changelog/20180512210100_add_transaction_history.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20192405155100_add_metadata.xml" relativeToChangelogFile="false" />
     <include file="config/liquibase/changelog/20190718122100_add_amountAfter_amountBefore.xml" relativeToChangelogFile="false" />
+    <include file="config/liquibase/changelog/20190815000000_make_matadata_jsonb.xml" relativeToChangelogFile="false" />
 
 </databaseChangeLog>
 

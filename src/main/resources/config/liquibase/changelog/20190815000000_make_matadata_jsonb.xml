@@ -1,0 +1,26 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <property name="jsonType" value="varchar" dbms="h2"/>
+    <property name="jsonType" value="jsonb" dbms="postgresql"/>
+    <property name="jsonType" value="varchar(1024)" dbms="oracle"/>
+
+    <property name="textType" value="varchar" dbms="postgresql, h2"/>
+    <property name="textType" value="varchar(1024)" dbms="oracle"/>
+
+
+    <changeSet id="20192405155102" author="ssenko">
+
+        <addColumn tableName="pocket">
+            <column name="metadata_json" type="${jsonType}">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <sql>UPDATE pocket SET metadata_json = metadata_value</sql>
+
+    </changeSet>
+
+</databaseChangeLog>

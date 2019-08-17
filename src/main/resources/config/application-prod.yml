@@ -34,12 +34,12 @@ spring:
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
         url: jdbc:postgresql://localhost:5432/balance
-        username: balance
-        password:
+        username: postgres
+        password: postgres
         hikari:
             auto-commit: false
     jpa:
-        database-platform: io.github.jhipster.domain.util.FixedPostgreSQL82Dialect
+        database-platform: com.icthh.xm.ms.balance.config.CustomPostgreSQL82Dialect
         database: POSTGRESQL
         show-sql: false
         properties:
@@ -51,7 +51,7 @@ spring:
     liquibase:
         contexts: prod
     kafka:
-        bootstrap-servers: localhost
+        bootstrap-servers: localhost:9092
     mail:
         host: localhost
         port: 25
