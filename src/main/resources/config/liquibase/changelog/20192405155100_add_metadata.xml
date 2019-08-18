@@ -6,7 +6,7 @@
     <property name="textType" value="varchar" dbms="postgresql, h2"/>
     <property name="textType" value="varchar(1024)" dbms="oracle"/>
 
-    <changeSet id="20192405155100" author="ssenko">
+    <changeSet id="20190815000000" author="ssenko">
         <validCheckSum>7:0687305da0e18ad5022d53e5f70a7e01</validCheckSum>
         <addColumn tableName="pocket">
             <column name="metadata_value" type="${textType}">

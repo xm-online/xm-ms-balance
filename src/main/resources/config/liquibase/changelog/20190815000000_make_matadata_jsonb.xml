@@ -19,7 +19,31 @@
             </column>
         </addColumn>
 
-        <sql>UPDATE pocket SET metadata_json = metadata_value</sql>
+        <addColumn tableName="balance_change_event">
+            <column name="metadata_json" type="${jsonType}">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="pocket_change_event">
+            <column name="metadata_json" type="${jsonType}">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <update tableName="pocket">
+            <column name="metadata_json" valueComputed="CAST(metadata_value AS ${jsonType})"/>
+        </update>
+
+        <update tableName="balance_change_event">
+            <column name="metadata_json" valueComputed="CAST(metadata_value AS ${jsonType})"/>
+        </update>
+
+        <update tableName="pocket_change_event">
+            <column name="metadata_json" valueComputed="CAST(metadata_value AS ${jsonType})"/>
+        </update>
+
+        <!--<sql>UPDATE pocket SET metadata_json = metadata_value</sql>-->
 
     </changeSet>
 

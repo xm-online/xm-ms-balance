@@ -29,11 +29,11 @@ spring:
         consul:
             discovery:
                 prefer-ip-address: true
-            host: localhost
+            host: 192.168.1.76
             port: 8500
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:postgresql://localhost:5432/balance
+        url: jdbc:postgresql://192.168.1.76:5432/balance
         username: postgres
         password: postgres
         hikari:
@@ -51,7 +51,7 @@ spring:
     liquibase:
         contexts: prod
     kafka:
-        bootstrap-servers: localhost:9092
+        bootstrap-servers: 192.168.1.76:9092
     mail:
         host: localhost
         port: 25

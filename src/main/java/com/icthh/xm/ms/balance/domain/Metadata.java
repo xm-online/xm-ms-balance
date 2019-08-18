@@ -31,12 +31,16 @@ public class Metadata implements Serializable {
     @Column(name="metadata_value")
     private String value = null;
 
+    @Column(name="metadata_json")
+    private String json = null;
+
     public Metadata() {}
 
     @SneakyThrows
     public Metadata(Map<String, String> metadata) {
         if (metadata != null) {
             this.value = objectMapper.writeValueAsString(metadata);
+            this.json = value;
             this.metadata = unmodifiableMap(metadata);
         }
     }
