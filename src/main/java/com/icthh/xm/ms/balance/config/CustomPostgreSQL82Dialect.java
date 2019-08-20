@@ -9,9 +9,8 @@ public class CustomPostgreSQL82Dialect extends FixedPostgreSQL82Dialect {
 
     public CustomPostgreSQL82Dialect() {
         super();
-        //registerColumnType(Types.JAVA_OBJECT, "jsonb");
-        registerFunction("jsonField", new SQLFunctionTemplate(StringType.INSTANCE, "?1 ->> ?2"));
-        registerFunction("toJsonb", new SQLFunctionTemplate(StringType.INSTANCE, "to_jsonb(?1)"));
+        registerFunction("json_field_text", new SQLFunctionTemplate(StringType.INSTANCE, "?1 ->> ?2"));
+        registerFunction("json_field_int", new SQLFunctionTemplate(StringType.INSTANCE, "(?1 ->> ?2)::int"));
     }
 
 }
