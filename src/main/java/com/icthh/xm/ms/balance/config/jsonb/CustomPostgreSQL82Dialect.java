@@ -1,4 +1,4 @@
-package com.icthh.xm.ms.balance.config;
+package com.icthh.xm.ms.balance.config.jsonb;
 
 import io.github.jhipster.domain.util.FixedPostgreSQL82Dialect;
 import java.sql.Types;

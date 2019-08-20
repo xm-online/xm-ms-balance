@@ -39,7 +39,7 @@ spring:
         hikari:
             auto-commit: false
     jpa:
-        database-platform: com.icthh.xm.ms.balance.config.CustomPostgreSQL82Dialect
+        database-platform: com.icthh.xm.ms.balance.config.jsonb.CustomPostgreSQL82Dialect
         database: POSTGRESQL
         show-sql: false
         properties:
@@ -48,7 +48,7 @@ spring:
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: false
-            hibernate.dialect: com.icthh.xm.ms.balance.config.CustomPostgreSQL82Dialect
+            hibernate.dialect: com.icthh.xm.ms.balance.config.jsonb.CustomPostgreSQL82Dialect
     liquibase:
         contexts: prod
     kafka:

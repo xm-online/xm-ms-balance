@@ -5,6 +5,7 @@ import static java.util.Collections.unmodifiableMap;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.icthh.xm.ms.balance.config.jsonb.Jsonb;
 import com.icthh.xm.ms.balance.domain.converter.MapToStringConverter;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import java.io.Serializable;
@@ -23,7 +24,6 @@ import org.hibernate.annotations.TypeDef;
 @Data
 @Embeddable
 @EqualsAndHashCode
-@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class Metadata implements Serializable {
 
     private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -36,7 +36,12 @@ public class Metadata implements Serializable {
     @Column(name="metadata_value")
     private String value = null;
 
-    //@Type(type = "jsonb")
+    /**
+     * Field that stored in postgres as jsonb, and in other as varchar.
+     * For postgres it's object and for other db need to string converter.
+     * @see com.icthh.xm.ms.balance.config.jsonb.JsonbTypeRegistrator
+     */
+    @Jsonb
     @Column(name="metadata_json")
     @Convert(converter = MapToStringConverter.class)
     private Map<String, String> json = null;
