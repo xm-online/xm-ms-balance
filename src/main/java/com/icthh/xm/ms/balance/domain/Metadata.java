@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.icthh.xm.ms.balance.config.jsonb.Jsonb;
 import com.icthh.xm.ms.balance.domain.converter.MapToStringConverter;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,8 +17,6 @@ import javax.persistence.Transient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 @Data
 @Embeddable

@@ -10,8 +10,7 @@
     <property name="textType" value="varchar" dbms="postgresql, h2"/>
     <property name="textType" value="varchar(1024)" dbms="oracle"/>
 
-
-    <changeSet id="20192405155102" author="ssenko">
+    <changeSet id="20190815000000" author="ssenko">
 
         <addColumn tableName="pocket">
             <column name="metadata_json" type="${jsonType}">
@@ -42,8 +41,6 @@
         <update tableName="pocket_change_event">
             <column name="metadata_json" valueComputed="CAST(metadata_value AS ${jsonType})"/>
         </update>
-
-        <!--<sql>UPDATE pocket SET metadata_json = metadata_value</sql>-->
 
     </changeSet>
 
