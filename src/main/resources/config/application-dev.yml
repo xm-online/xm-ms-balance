@@ -1,5 +1,5 @@
 # ===================================================================
-# Spring Boot configuration for the "prod" profile.
+# Spring Boot configuration for the "dev" profile.
 #
 # This configuration overrides the application.yml file.
 #
@@ -15,51 +15,67 @@
 
 logging:
     level:
-        ROOT: INFO
-        com.icthh.xm.ms.balance: INFO
-        io.github.jhipster: INFO
+        ROOT: DEBUG
+        io.github.jhipster: DEBUG
+        com.icthh.xm.ms.balance: DEBUG
 
 spring:
+    profiles:
+        active: dev
+        include:
+            - swagger
+            # Uncomment to activate TLS for the dev profile
+            #- tls
     devtools:
         restart:
-            enabled: false
+            enabled: true
+            additional-exclude: .h2.server.properties
         livereload:
-            enabled: false
+            enabled: false # we use Webpack dev server + BrowserSync for livereload
+    jackson:
+        serialization:
+            indent-output: true
     cloud:
         consul:
             discovery:
-                prefer-ip-address: true
-            host: 192.168.1.76
+               prefer-ip-address: true
+            host: localhost
             port: 8500
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:postgresql://192.168.1.76:5432/balance
-        username: postgres
-        password: postgres
+        url: jdbc:h2:mem:balance;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        username: balance
+        password:
         hikari:
             auto-commit: false
+    h2:
+        console:
+            enabled: false
     jpa:
-        database-platform: com.icthh.xm.ms.balance.config.jsonb.CustomPostgreSQL82Dialect
-        database: POSTGRESQL
-        show-sql: false
+        database-platform: io.github.jhipster.domain.util.FixedH2Dialect
+        database: H2
+        show-sql: true
         properties:
             hibernate.id.new_generator_mappings: true
             hibernate.connection.provider_disables_autocommit: true
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
-            hibernate.generate_statistics: false
-            hibernate.dialect: com.icthh.xm.ms.balance.config.jsonb.CustomPostgreSQL82Dialect
-    liquibase:
-        contexts: prod
+            hibernate.generate_statistics: true
+            #hibernate.cache.region.factory_class: com.hazelcast.hibernate.HazelcastCacheRegionFactory
+            #hibernate.cache.hazelcast.instance_name: balance
+            hibernate.cache.use_minimal_puts: true
+            #hibernate.cache.hazelcast.use_lite_member: true
     kafka:
-        bootstrap-servers: 192.168.1.76:9092
+        bootstrap-servers: localhost:9093
     mail:
         host: localhost
         port: 25
         username:
         password:
+    messages:
+        cache-duration: PT1S # 1 second, see the ISO 8601 standard
     thymeleaf:
-        cache: true
+        cache: false
     sleuth:
         sampler:
             probability: 1 # report 100% of traces
@@ -69,32 +85,11 @@ spring:
         locator:
             discovery:
                 enabled: true
+    liquibase:
+        contexts: dev
 
-# ===================================================================
-# To enable TLS in production, generate a certificate using:
-# keytool -genkey -alias balance -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 3650
-#
-# You can also use Let's Encrypt:
-# https://maximilian-boehm.com/hp2121/Create-a-Java-Keystore-JKS-from-Let-s-Encrypt-Certificates.htm
-#
-# Then, modify the server.ssl properties so your "server" configuration looks like:
-#
-# server:
-#    port: 443
-#    ssl:
-#        key-store: classpath:config/tls/keystore.p12
-#        key-store-password: password
-#        key-store-type: PKCS12
-#        key-alias: balance
-#        # The ciphers suite enforce the security by deactivating some old and deprecated SSL cipher, this list was tested against SSL Labs (https://www.ssllabs.com/ssltest/)
-#        ciphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 ,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 ,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 ,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA,TLS_RSA_WITH_CAMELLIA_256_CBC_SHA,TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA,TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
-# ===================================================================
 server:
     port: 8085
-    compression:
-        enabled: true
-        mime-types: text/html,text/xml,text/plain,text/css, application/javascript, application/json
-        min-response-size: 1024
 
 # ===================================================================
 # JHipster specific properties
@@ -104,9 +99,16 @@ server:
 
 jhipster:
     http:
-        version: V_1_1 # To use HTTP/2 you will need SSL support (see above the "server.ssl" configuration)
-        cache: # Used by the CachingHttpHeadersFilter
-            timeToLiveInDays: 1461
+        version: V_1_1 # To use HTTP/2 you will need to activate TLS (see application-tls.yml)
+    # CORS is disabled by default on microservices, as you should access them through a gateway.
+    # If you want to enable it, please uncomment the configuration below.
+    # cors:
+        # allowed-origins: "*"
+        # allowed-methods: "*"
+        # allowed-headers: "*"
+        # exposed-headers: "Authorization,Link,X-Total-Count"
+        # allow-credentials: true
+        # max-age: 1800
     security:
         client-authorization:
             access-token-uri: http://uaa/oauth/token
@@ -115,7 +117,7 @@ jhipster:
             client-secret: internal
     mail: # specific JHipster mail property, for standard properties see MailProperties
         from: balance@localhost
-        base-url: http://my-server-url-to-change # Modify according to your server's URL
+        base-url: http://127.0.0.1:8085
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx:
             enabled: true
@@ -138,7 +140,7 @@ oauth2:
         #max. rate at which public keys will be fetched (in ms)
         public-key-refresh-rate-limit: 10000
     web-client-configuration:
-        #change client secret in production, keep in sync with UAA configuration
+        #keep in sync with UAA configuration
         client-id: web_app
         secret: changeit
 
