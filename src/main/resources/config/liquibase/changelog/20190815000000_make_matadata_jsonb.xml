@@ -30,18 +30,24 @@
             </column>
         </addColumn>
 
+    </changeSet>
+
+    <changeSet id="20190815000001" author="ssenko">
         <update tableName="pocket">
             <column name="metadata_json" valueComputed="CAST(metadata_value AS ${jsonType})"/>
         </update>
+    </changeSet>
 
+    <changeSet id="20190815000002" author="ssenko">
         <update tableName="balance_change_event">
             <column name="metadata_json" valueComputed="CAST(metadata_value AS ${jsonType})"/>
         </update>
+    </changeSet>
 
+    <changeSet id="20190815000003" author="ssenko">
         <update tableName="pocket_change_event">
             <column name="metadata_json" valueComputed="CAST(metadata_value AS ${jsonType})"/>
         </update>
-
     </changeSet>
 
 </databaseChangeLog>

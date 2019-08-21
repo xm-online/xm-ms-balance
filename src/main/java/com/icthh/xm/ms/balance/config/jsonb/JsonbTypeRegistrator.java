@@ -24,7 +24,7 @@ import org.hibernate.mapping.SimpleValue;
  * This class update metadata of field marked as @Jsonb.
  * 1) Remove converter is exists.
  * 2) Update type to JsonBinaryType
- * Operation run only if hibernate dialect extends PostgreSQL81Dialect
+ * Operation run only on postgres (determine db by hibernate dialect, it should extends PostgreSQL81Dialect)
  */
 @Slf4j
 public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
@@ -33,7 +33,8 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
     public SessionFactoryBuilder getSessionFactoryBuilder(final MetadataImplementor metadata, final SessionFactoryBuilderImplementor defaultBuilder) {
         MetadataImpl metadataImpl = (MetadataImpl) metadata;
         if (metadataImpl.getDatabase().getDialect() instanceof PostgreSQL81Dialect) {
-            log.info("Run on {} dialect. Metadata will be processed", metadataImpl.getDatabase().getDialect());
+            log.info("Run on {} dialect. Metadata will be processed. And field marker as @Jsonb will be replaced to jsonb type.",
+                     metadataImpl.getDatabase().getDialect());
             metadataImpl.getEntityBindings().forEach(mapping -> updateEntityMapping(metadataImpl, mapping.getDeclaredPropertyIterator(), mapping.getMappedClass()));
         } else {
             log.info("Run on {} dialect. Metadata will not be processed", metadataImpl.getDatabase().getDialect());
@@ -49,7 +50,7 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
                 Component component = (Component) property.getValue();
                 updateEntityMapping(metadata, component.getPropertyIterator(), fieldType);
             } else if (property.getValue() instanceof SimpleValue && isJsonb(persistentClass, property)) {
-                updateMetadata(metadata, property, fieldType.getCanonicalName());
+                updateMappingTypeToJsonb(metadata, property, fieldType.getCanonicalName());
             }
         }
     }
@@ -63,7 +64,7 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
         return persistentClass.getDeclaredField(property.getName());
     }
 
-    private void updateMetadata(MetadataImpl metadata, Property jsonProperty, String fieldClassName) {
+    private void updateMappingTypeToJsonb(MetadataImpl metadata, Property jsonProperty, String fieldClassName) {
         log.info("Set type for {} to jsonb", jsonProperty.getName());
         SimpleValue simpleValue = new SimpleValue(metadata);
         simpleValue.setTypeName(JsonBinaryType.class.getCanonicalName());

@@ -4,7 +4,7 @@ import static com.google.common.collect.ImmutableMap.of;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static com.icthh.xm.commons.lep.XmLepScriptConstants.BINDING_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.ms.balance.config.jsonb.JsonbUtils.jsonIntField;
-import static com.icthh.xm.ms.balance.config.jsonb.JsonbUtils.jsonTestField;
+import static com.icthh.xm.ms.balance.config.jsonb.JsonbUtils.jsonTextField;
 import static com.icthh.xm.ms.balance.domain.Metadata_.json;
 import static com.icthh.xm.ms.balance.domain.Pocket_.metadata;
 import static org.junit.Assert.assertEquals;
@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.criteria.Expression;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -115,13 +114,13 @@ public class PostgressConfigIntTest {
 
         List<Pocket> falsePockets = pocketRepository.findAll(Specification.where(
             (Specification<Pocket>) (root, query, cb) -> {
-                Expression<String> bvalue = jsonTestField(cb, root.get(metadata).get(json), "bvalue");
+                Expression<String> bvalue = jsonTextField(cb, root.get(metadata).get(json), "bvalue");
                 return cb.equal(bvalue, "false");
             }));
 
         List<Pocket> truePockets = pocketRepository.findAll(Specification.where(
             (Specification<Pocket>) (root, query, cb) -> {
-                Expression<String> bvalue = jsonTestField(cb, root.get(metadata).get(json), "bvalue");
+                Expression<String> bvalue = jsonTextField(cb, root.get(metadata).get(json), "bvalue");
                 return cb.equal(bvalue, "true");
             }));
 
