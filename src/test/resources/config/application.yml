@@ -48,6 +48,7 @@ spring:
             hibernate.hbm2ddl.auto: validate
     liquibase:
         contexts: test
+        change-log: config/liquibase/master.xml
     mail:
         host: localhost
     messages:

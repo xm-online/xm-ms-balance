@@ -294,10 +294,10 @@ dependencies {
     testCompile "com.mattbertolini:liquibase-slf4j"
     testCompile "org.hamcrest:hamcrest-library"
     testCompile "com.h2database:h2"
-    testCompile(group: 'org.testcontainers', name: 'testcontainers', version: '1.6.0') {
+    testCompile(group: 'org.testcontainers', name: 'testcontainers', version: '1.10.5') {
         exclude group: 'commons-io', module: 'commons-io'
     }
-    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.6.0'
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.10.5'
 
     testCompile("com.github.database-rider:rider-spring:1.2.7") {
         exclude module: 'slf4j-api'
@@ -305,8 +305,6 @@ dependencies {
     }
     liquibaseRuntime "com.h2database:h2"
     testCompileOnly "org.projectlombok:lombok:${lombok_version}"
-
-    testCompile 'com.opentable.components:otj-pg-embedded:0.13.1'
 
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
 
