@@ -66,14 +66,12 @@ public class PostgressConfigIntTest {
 
     @Autowired
     private PocketRepository pocketRepository;
+
     @Autowired
     private BalanceRepository balanceRepository;
 
     @Autowired
     private TenantContextHolder tenantContextHolder;
-
-    @Autowired
-    private DataSource dataSource;
 
     @Autowired
     private LepManager lepManager;
