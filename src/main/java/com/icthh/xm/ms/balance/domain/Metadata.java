@@ -1,15 +1,17 @@
 package com.icthh.xm.ms.balance.domain;
 
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.icthh.xm.ms.balance.config.jsonb.Jsonb;
+import com.icthh.xm.ms.balance.domain.converter.MapToStringConverter;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 import lombok.Data;
@@ -31,12 +33,23 @@ public class Metadata implements Serializable {
     @Column(name="metadata_value")
     private String value = null;
 
+    /**
+     * Field that stored in postgres as jsonb, and in other as varchar.
+     * For postgres it's object and for other db need to string converter.
+     * @see com.icthh.xm.ms.balance.config.jsonb.JsonbTypeRegistrator
+     */
+    @Jsonb
+    @Column(name="metadata_json")
+    @Convert(converter = MapToStringConverter.class)
+    private Map<String, String> json = null;
+
     public Metadata() {}
 
     @SneakyThrows
     public Metadata(Map<String, String> metadata) {
         if (metadata != null) {
             this.value = objectMapper.writeValueAsString(metadata);
+            this.json = metadata;
             this.metadata = unmodifiableMap(metadata);
         }
     }
