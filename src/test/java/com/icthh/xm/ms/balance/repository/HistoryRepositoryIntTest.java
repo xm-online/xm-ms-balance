@@ -36,7 +36,7 @@ public class HistoryRepositoryIntTest extends BaseDaoTest {
             RELOAD,
             ofEpochSecond(1525132800L),
             ofEpochSecond(1527811200L),
-            new PageRequest(0, 50)
+            PageRequest.of(0, 50)
         );
 
         List<PocketChangeEvent> content = pocketsHidtory.getContent();
@@ -63,7 +63,7 @@ public class HistoryRepositoryIntTest extends BaseDaoTest {
             RELOAD,
             ofEpochSecond(1525132800L),
             ofEpochSecond(1527811200L),
-            new PageRequest(0, 50)
+            PageRequest.of(0, 50)
         );
 
         List<BalanceChangeEvent> content = balancesHistory.getContent();

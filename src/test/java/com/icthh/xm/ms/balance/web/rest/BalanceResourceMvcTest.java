@@ -31,7 +31,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static java.time.Instant.now;
-import static org.mockito.Matchers.refEq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
