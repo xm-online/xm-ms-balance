@@ -2,7 +2,7 @@ package com.icthh.xm.ms.balance.web.rest;
 
 import com.icthh.xm.commons.gen.api.TenantsApiDelegate;
 import com.icthh.xm.commons.gen.model.Tenant;
-import com.icthh.xm.ms.balance.service.tenant.TenantService;
+import com.icthh.xm.commons.tenantendpoint.TenantManager;
 
 import java.util.List;
 
@@ -18,19 +18,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TenantResource implements TenantsApiDelegate {
 
-    private final TenantService tenantService;
+    private final TenantManager tenantManager;
 
     @Override
     @PreAuthorize("hasPermission({'tenant':#tenant}, 'BALANCE.TENANT.CREATE')")
     public ResponseEntity<Void> addTenant(Tenant tenant) {
-        tenantService.createTenant(tenant.getTenantKey());
+        tenantManager.createTenant(tenant);
         return ResponseEntity.ok().build();
     }
 
     @Override
     @PreAuthorize("hasPermission({'tenantKey':#tenantKey}, 'BALANCE.TENANT.DELETE')")
     public ResponseEntity<Void> deleteTenant(String tenantKey) {
-        tenantService.deleteTenant(tenantKey);
+        tenantManager.deleteTenant(tenantKey);
         return ResponseEntity.ok().build();
     }
 
@@ -49,7 +49,7 @@ public class TenantResource implements TenantsApiDelegate {
     @Override
     @PreAuthorize("hasPermission({'tenant':#tenant, 'state':#state}, 'BALANCE.TENANT.UPDATE')")
     public ResponseEntity<Void> manageTenant(String tenant, String state) {
-        tenantService.manageTenant(tenant, state);
+        tenantManager.manageTenant(tenant, state);
         return ResponseEntity.ok().build();
     }
 }
