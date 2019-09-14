@@ -37,6 +37,7 @@ public class PocketChangeEvent {
     private String pocketLabel;
 
     @Embedded
+    @Builder.Default
     private Metadata metadata = new Metadata();
 
     @Column(precision = 10, scale = 2)
