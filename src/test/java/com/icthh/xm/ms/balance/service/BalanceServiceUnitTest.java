@@ -63,7 +63,7 @@ import org.springframework.data.domain.PageRequest;
 @RunWith(MockitoJUnitRunner.class)
 public class BalanceServiceUnitTest {
 
-    public static final String EMPTY_METADATA_VALUE = null;
+    private static final String EMPTY_METADATA_VALUE = null;
 
     @InjectMocks
     private BalanceService balanceService;
@@ -87,8 +87,6 @@ public class BalanceServiceUnitTest {
 
     @Captor
     private ArgumentCaptor<BalanceChangeEvent> captor;
-
-    private long pocketId = 0;
 
     @Before
     public void before() {

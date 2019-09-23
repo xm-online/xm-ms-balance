@@ -119,6 +119,7 @@ public class WebConfigurerTest {
         container.getBuilderCustomizers().forEach(c -> c.customize(builder));
         OptionMap.Builder serverOptions =
             (OptionMap.Builder) ReflectionTestUtils.getField(builder, "serverOptions");
+        assertThat(serverOptions).isNotNull();
         assertThat(serverOptions.getMap().get(UndertowOptions.ENABLE_HTTP2)).isNull();
     }
 
@@ -131,6 +132,7 @@ public class WebConfigurerTest {
         container.getBuilderCustomizers().forEach(c -> c.customize(builder));
         OptionMap.Builder serverOptions =
             (OptionMap.Builder) ReflectionTestUtils.getField(builder, "serverOptions");
+        assertThat(serverOptions).isNotNull();
         assertThat(serverOptions.getMap().get(UndertowOptions.ENABLE_HTTP2)).isTrue();
     }
 

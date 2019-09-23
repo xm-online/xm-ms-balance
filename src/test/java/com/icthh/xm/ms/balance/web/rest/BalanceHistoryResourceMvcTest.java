@@ -61,6 +61,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableSpringDataWebSupport
 @WebMvcTest(controllers = BalanceHistoryResource.class)
 @ContextConfiguration(classes = {BalanceHistoryResource.class, ExceptionTranslator.class})
+@SuppressWarnings("unused")
 public class BalanceHistoryResourceMvcTest {
 
     @Autowired

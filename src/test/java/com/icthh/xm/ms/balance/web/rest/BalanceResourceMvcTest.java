@@ -49,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BalanceResource.class)
 @ContextConfiguration(classes = {BalanceResource.class, ExceptionTranslator.class})
+@SuppressWarnings("unused")
 public class BalanceResourceMvcTest {
 
     @Autowired

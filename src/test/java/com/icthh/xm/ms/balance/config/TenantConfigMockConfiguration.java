@@ -36,8 +36,7 @@ public class TenantConfigMockConfiguration {
 
     @Bean
     public TenantConfigRepository tenantConfigRepository() {
-        TenantConfigRepository tenantConfigRepository = mock(TenantConfigRepository.class);
-        return  tenantConfigRepository;
+        return mock(TenantConfigRepository.class);
     }
 
     @Bean
