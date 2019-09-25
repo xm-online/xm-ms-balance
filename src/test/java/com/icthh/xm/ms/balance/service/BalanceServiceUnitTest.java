@@ -6,7 +6,6 @@ import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
 import static com.icthh.xm.ms.balance.utils.TestReflectionUtils.setClock;
-import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -14,8 +13,9 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.refEq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,7 +52,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
@@ -64,7 +63,7 @@ import org.springframework.data.domain.PageRequest;
 @RunWith(MockitoJUnitRunner.class)
 public class BalanceServiceUnitTest {
 
-    public static final String EMPTY_METADATA_VALUE = null;
+    private static final String EMPTY_METADATA_VALUE = null;
 
     @InjectMocks
     private BalanceService balanceService;
@@ -89,8 +88,6 @@ public class BalanceServiceUnitTest {
     @Captor
     private ArgumentCaptor<BalanceChangeEvent> captor;
 
-    private long pocketId = 0;
-
     @Before
     public void before() {
         balanceService.setSelf(balanceService);
@@ -103,13 +100,13 @@ public class BalanceServiceUnitTest {
     }
 
     private void deleteZeroPocketDisabled() {
-        when(balanceSpecService.getBalanceSpec(Matchers.any())).thenReturn(new BalanceSpec.BalanceTypeSpec());
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(new BalanceSpec.BalanceTypeSpec());
     }
 
     private void deleteZeroPocketEnabled() {
         BalanceSpec.BalanceTypeSpec spec = new BalanceSpec.BalanceTypeSpec();
         spec.setRemoveZeroPockets(true);
-        when(balanceSpecService.getBalanceSpec(Matchers.any())).thenReturn(spec);
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(spec);
     }
 
     @Test
@@ -401,7 +398,7 @@ public class BalanceServiceUnitTest {
         when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(1, 3)))
             .thenReturn(new PageImpl<>(emptyList()));
 
-        Pocket any = Matchers.any();
+        Pocket any = any();
         when(pocketRepository.save(any)).then(in -> in.getArguments()[0]);
 
         balanceService.charging(

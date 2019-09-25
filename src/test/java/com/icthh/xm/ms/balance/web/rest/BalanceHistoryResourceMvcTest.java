@@ -41,9 +41,9 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.refEq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -61,6 +61,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @EnableSpringDataWebSupport
 @WebMvcTest(controllers = BalanceHistoryResource.class)
 @ContextConfiguration(classes = {BalanceHistoryResource.class, ExceptionTranslator.class})
+@SuppressWarnings("unused")
 public class BalanceHistoryResourceMvcTest {
 
     @Autowired
@@ -97,7 +98,7 @@ public class BalanceHistoryResourceMvcTest {
     @Test
     @SneakyThrows
     public void testPocketHistory() {
-        when(balanceHistoryService.getPocketChangesByTypeAndDate(createTestRequest(), new PageRequest(1, 50)))
+        when(balanceHistoryService.getPocketChangesByTypeAndDate(createTestRequest(), PageRequest.of(1, 50)))
             .thenReturn(new PageImpl<>(singletonList(
                 createPocket()
             )));
@@ -106,14 +107,14 @@ public class BalanceHistoryResourceMvcTest {
         ResultActions resultActions = mockMvc.perform(testRequestUrl(url)).andDo(print()).andExpect(status().isOk());
 
         assertPocketEvent(resultActions);
-        verify(balanceHistoryService).getPocketChangesByTypeAndDate(refEq(createTestRequest()), refEq(new PageRequest(1, 50)));
+        verify(balanceHistoryService).getPocketChangesByTypeAndDate(refEq(createTestRequest()), refEq(PageRequest.of(1, 50)));
     }
 
     @Test
     @SneakyThrows
     public void testSearchPocketHistoryByTemplateName() {
 
-        when(balanceHistoryService.findPocketChanges(eq("templateName"), any(), refEq(new PageRequest(1, 50))))
+        when(balanceHistoryService.findPocketChanges(eq("templateName"), any(), refEq(PageRequest.of(1, 50))))
             .thenReturn(new PageImpl<>(singletonList(
                 createPocket()
             )));
@@ -123,7 +124,7 @@ public class BalanceHistoryResourceMvcTest {
         assertPocketEvent(resultActions);
 
 
-        verify(balanceHistoryService).findPocketChanges(eq("templateName"), mapArgumentCaptor.capture(), refEq(new PageRequest(1, 50)));
+        verify(balanceHistoryService).findPocketChanges(eq("templateName"), mapArgumentCaptor.capture(), refEq(PageRequest.of(1, 50)));
         Map<String, Object> actual = mapArgumentCaptor.getValue();
         assertEquals(actual.size(), 4);
         assertEquals(actual.get("operationType"), "RELOAD");
@@ -136,7 +137,7 @@ public class BalanceHistoryResourceMvcTest {
     @Test
     @SneakyThrows
     public void testBalancesHistory() {
-        when(balanceHistoryService.getBalanceChangesByTypeAndDate(createTestRequest(), new PageRequest(1, 50)))
+        when(balanceHistoryService.getBalanceChangesByTypeAndDate(createTestRequest(), PageRequest.of(1, 50)))
             .thenReturn(new PageImpl<>(singletonList(
                 createTestBalanceEvent()
             )));
@@ -145,14 +146,14 @@ public class BalanceHistoryResourceMvcTest {
         ResultActions resultActions = mockMvc.perform(testRequestUrl(url)).andDo(print()).andExpect(status().isOk());
 
         balanceAsserts("$.[*]", resultActions);
-        verify(balanceHistoryService).getBalanceChangesByTypeAndDate(refEq(createTestRequest()), refEq(new PageRequest(1, 50)));
+        verify(balanceHistoryService).getBalanceChangesByTypeAndDate(refEq(createTestRequest()), refEq(PageRequest.of(1, 50)));
     }
 
     @Test
     @SneakyThrows
     public void testSearchBalancesHistoryByTemplateName() {
 
-        when(balanceHistoryService.findBalanceChanges(eq("templateName"), any(), refEq(new PageRequest(1, 50))))
+        when(balanceHistoryService.findBalanceChanges(eq("templateName"), any(), refEq(PageRequest.of(1, 50))))
             .thenReturn(new PageImpl<>(singletonList(
                 createTestBalanceEvent()
             )));
@@ -162,7 +163,7 @@ public class BalanceHistoryResourceMvcTest {
         balanceAsserts("$.[*]", resultActions);
 
 
-        verify(balanceHistoryService).findBalanceChanges(eq("templateName"), mapArgumentCaptor.capture(), refEq(new PageRequest(1, 50)));
+        verify(balanceHistoryService).findBalanceChanges(eq("templateName"), mapArgumentCaptor.capture(), refEq(PageRequest.of(1, 50)));
         Map<String, Object> actual = mapArgumentCaptor.getValue();
         assertEquals(actual.size(), 4);
         assertEquals(actual.get("operationType"), "RELOAD");

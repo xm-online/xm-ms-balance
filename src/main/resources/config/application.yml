@@ -87,6 +87,7 @@ spring:
         mode: HTML
     liquibase:
         default-schema: XM
+        change-log: classpath:config/liquibase/master.xml
 security:
     oauth2:
         resource:

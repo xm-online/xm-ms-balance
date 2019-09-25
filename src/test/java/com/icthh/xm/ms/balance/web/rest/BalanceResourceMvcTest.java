@@ -31,7 +31,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static java.time.Instant.now;
-import static org.mockito.Matchers.refEq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -49,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(controllers = BalanceResource.class)
 @ContextConfiguration(classes = {BalanceResource.class, ExceptionTranslator.class})
+@SuppressWarnings("unused")
 public class BalanceResourceMvcTest {
 
     @Autowired

@@ -57,6 +57,7 @@ public class BalanceChangeEvent {
     private String operationId;
 
     @Embedded
+    @Builder.Default
     private Metadata metadata = new Metadata();
 
     @Column(precision = 10, scale = 2)
@@ -65,6 +66,7 @@ public class BalanceChangeEvent {
     @Column(precision = 10, scale = 2)
     private BigDecimal amountAfter;
 
+    @Builder.Default
     @OneToMany(mappedBy = "transaction", cascade = ALL)
     private List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();
 
