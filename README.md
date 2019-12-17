@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/xm-online/xm-ms-balance.svg?branch=master)](https://travis-ci.org/xm-online/xm-ms-balance) [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?&metric=sqale_index&branch=master&project=xm-online:xm-ms-balance)](https://sonarcloud.io/dashboard/index/xm-online:xm-ms-balance) [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?&metric=ncloc&branch=master&project=xm-online:xm-ms-balance)](https://sonarcloud.io/dashboard/index/xm-online:xm-ms-balance) [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?&metric=coverage&branch=master&project=xm-online:xm-ms-balance)](https://sonarcloud.io/dashboard/index/xm-online:xm-ms-balance)
+
 # balance
 
 This application was generated using JHipster 6.5.1, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.5.1](https://www.jhipster.tech/documentation-archive/v6.5.1).
