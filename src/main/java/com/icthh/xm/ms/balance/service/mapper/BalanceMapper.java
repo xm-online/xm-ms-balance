@@ -8,10 +8,11 @@ import org.mapstruct.Mapping;
 /**
  * Mapper for the entity Balance and its DTO BalanceDTO.
  */
-@Mapper(componentModel = "spring", uses = {})
+@Mapper(componentModel = "spring")
 public interface BalanceMapper extends EntityMapper<BalanceDTO, Balance> {
 
-
+    @Mapping(target = "removePockets", ignore = true)
+    @Mapping(target = "removeMetrics", ignore = true)
     @Mapping(target = "pockets", ignore = true)
     @Mapping(target = "metrics", ignore = true)
     Balance toEntity(BalanceDTO balanceDTO);

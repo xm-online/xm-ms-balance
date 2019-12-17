@@ -3,7 +3,7 @@
     "promptValues": {
       "packageName": "com.icthh.xm.ms.balance"
     },
-    "jhipsterVersion": "5.7.2",
+    "jhipsterVersion": "6.5.1",
     "applicationType": "microservice",
     "baseName": "balance",
     "packageName": "com.icthh.xm.ms.balance",
@@ -21,7 +21,7 @@
     "serviceDiscoveryType": "consul",
     "buildTool": "gradle",
     "enableSwaggerCodegen": false,
-    "jwtSecretKey": "N2U1MDdlZjM0NTUwZjhkNGEyYjg1MGY3ODJmZWM1MTk2OWNlOGQ0MjhjNTczZjMwNjQ2Yjc5ZTVlZDAwY2M2OTI3ZTI4ZTAwMzc0MWU5MGY5N2U1ZmJiMDFkOGQ0NGM0YzYzYTI1MzRiMDA5ZjhmN2Q2OTAyNDQxMjdjMGNhMDc=",
+    "jwtSecretKey": "ZmYxMjlhODUzNmZmOGJjMWE3ZmI3MGNlYzVhYjlmZDUzOGMzNWYxOTU4NjkzMTgwMTAzMTE3NmFlODdiNThlY2M3NDA5MjI4MjVlOWU2ODlmZDNkNzQ4MWRlMzhiY2I1NDM3YmQzOTViNTNiYzkzNzVkOTM1YmEzMmQ0ZGMxZjM=",
     "testFrameworks": [
       "gatling",
       "cucumber"
@@ -31,6 +31,10 @@
     "enableTranslation": false,
     "clientPackageManager": "npm",
     "skipClient": true,
-    "skipUserManagement": true
+    "skipUserManagement": true,
+    "embeddableLaunchScript": false,
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "blueprints": []
   }
 }

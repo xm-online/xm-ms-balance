@@ -56,6 +56,8 @@ management:
 spring:
     application:
         name: balance
+    main:
+        allow-bean-definition-overriding: true
     cloud:
         inetutils:
             preferredNetworks:
@@ -136,6 +138,9 @@ jhipster:
         contact-email:
         license:
         license-url:
+    metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
+        logs: # Reports Dropwizard metrics in the logs
+            enabled: false
 
 # ===================================================================
 # Application specific properties

@@ -15,6 +15,7 @@ public interface PocketMapper extends EntityMapper<PocketDTO, Pocket> {
     @Mapping(source = "metadata.metadata", target = "metadata")
     PocketDTO toDto(Pocket pocket);
 
+    @Mapping(target = "subtractAmount", ignore = true)
     @Mapping(source = "balanceId", target = "balance")
     @Mapping(source = "metadata", target = "metadata")
     Pocket toEntity(PocketDTO pocketDTO);

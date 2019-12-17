@@ -5,7 +5,7 @@ import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_
 import static com.icthh.xm.commons.lep.XmLepScriptConstants.BINDING_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.ms.balance.config.jsonb.JsonbUtils.jsonIntField;
 import static com.icthh.xm.ms.balance.config.jsonb.JsonbUtils.jsonTextField;
-import static com.icthh.xm.ms.balance.domain.Metadata_.json;
+import static com.icthh.xm.ms.balance.domain.Metadata_.JSON;
 import static com.icthh.xm.ms.balance.domain.Pocket_.metadata;
 import static org.junit.Assert.assertEquals;
 
@@ -88,12 +88,10 @@ public class PostgressConfigIntTest {
     }
 
     @After
-    @Override
-    public void finalize() {
+    public void tearDown() {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         lepManager.endThreadContext();
     }
-
 
     @Test
     public void testSearchUsingMetadata() {
@@ -108,19 +106,19 @@ public class PostgressConfigIntTest {
 
         List<Pocket> pockets3 = pocketRepository.findAll(Specification.where(
             (Specification<Pocket>) (root, query, cb) -> {
-                Expression<Integer> eId = jsonIntField(cb, root.get(metadata).get(json), "eId");
+                Expression<Integer> eId = jsonIntField(cb, root.get(metadata).get(JSON), "eId");
                 return cb.equal(eId, 3);
             }));
 
         List<Pocket> falsePockets = pocketRepository.findAll(Specification.where(
             (Specification<Pocket>) (root, query, cb) -> {
-                Expression<String> bvalue = jsonTextField(cb, root.get(metadata).get(json), "bvalue");
+                Expression<String> bvalue = jsonTextField(cb, root.get(metadata).get(JSON), "bvalue");
                 return cb.equal(bvalue, "false");
             }));
 
         List<Pocket> truePockets = pocketRepository.findAll(Specification.where(
             (Specification<Pocket>) (root, query, cb) -> {
-                Expression<String> bvalue = jsonTextField(cb, root.get(metadata).get(json), "bvalue");
+                Expression<String> bvalue = jsonTextField(cb, root.get(metadata).get(JSON), "bvalue");
                 return cb.equal(bvalue, "true");
             }));
 
@@ -139,8 +137,7 @@ public class PostgressConfigIntTest {
         return new Pocket().key(key.toString()).label("label_" + key)
                            .balance(balance)
                            .amount(new BigDecimal(key.toString()))
-                           .metadata(new Metadata(metadata))
-            ;
+                           .metadata(new Metadata(metadata));
     }
 
 }
