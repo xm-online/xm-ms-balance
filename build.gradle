@@ -110,13 +110,6 @@ springBoot {
     mainClassName = "com.icthh.xm.ms.balance.BalanceApp"
 }
 
-
-compileJava {
-    dependsOn processResources
-    // add method parameters names to .class (used by LEP scripts)
-    options.compilerArgs << '-parameters'
-}
-
 test {
     useJUnitPlatform()
     systemProperty "spring.profiles.active", "test"
@@ -313,7 +306,6 @@ dependencies {
     // XM custom dependencies
     implementation "org.hibernate:hibernate-envers"
     implementation 'com.vladmihalcea:hibernate-types-52:2.4.3'
-    implementation 'com.vladmihalcea:hibernate-types-52:2.4.3'
 
     compileOnly "org.projectlombok:lombok:${lombok_version}"
     annotationProcessor "org.projectlombok:lombok:${lombok_version}"
@@ -362,6 +354,10 @@ task stage(dependsOn: 'bootWar') {
 }
 
 bootWar.dependsOn war
-compileJava.dependsOn processResources
+compileJava {
+    dependsOn processResources
+    // add method parameters names to .class (used by LEP scripts)
+    options.compilerArgs << '-parameters'
+}
 processResources.dependsOn cleanResources, bootBuildInfo
 bootBuildInfo.mustRunAfter cleanResources
