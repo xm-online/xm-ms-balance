@@ -1,6 +1,7 @@
 package com.icthh.xm.ms.balance.service;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
@@ -47,6 +48,7 @@ public class BalanceQueryService extends QueryService<Balance> {
      */
     @FindWithPermission("BALANCE.GET_LIST")
     @Transactional(readOnly = true)
+    @PrivilegeDescription("Privilege to get all balances which matches the criteria from the database")
     public List<BalanceDTO> findByCriteria(BalanceCriteria criteria, String privilegeKey) {
         List<Balance> result = permittedRepository.findWithPermission(Balance.class, criteria, null, privilegeKey)
             .getContent();
@@ -62,6 +64,7 @@ public class BalanceQueryService extends QueryService<Balance> {
      */
     @FindWithPermission("BALANCE.GET_LIST")
     @Transactional(readOnly = true)
+    @PrivilegeDescription("Privilege to get all balances which matches the criteria from the database")
     public Page<BalanceDTO> findByCriteria(BalanceCriteria criteria, Pageable pageable, String privilegeKey) {
         Page<Balance> page = permittedRepository.findWithPermission(Balance.class, criteria, pageable, privilegeKey);
         List<BalanceDTO> dtos = page.map(balanceMapper::toDto).getContent();

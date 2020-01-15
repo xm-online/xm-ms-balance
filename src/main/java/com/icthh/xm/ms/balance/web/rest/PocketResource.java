@@ -3,6 +3,7 @@ package com.icthh.xm.ms.balance.web.rest;
 import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.ms.balance.service.PocketQueryService;
 import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
@@ -56,6 +57,7 @@ public class PocketResource {
     @PreAuthorize("hasPermission({'pocket': #pocket}, 'POCKET.CREATE')")
     @PostMapping("/pockets")
     @Timed
+    @PrivilegeDescription("Privilege to create a new pocket")
     public ResponseEntity<PocketDTO> createPocket(@Valid @RequestBody PocketDTO pocketDTO) throws URISyntaxException {
         if (pocketDTO.getId() != null) {
             throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
@@ -79,6 +81,7 @@ public class PocketResource {
     @PreAuthorize("hasPermission({'id': #pocket.id, 'newPocket': #pocket}, 'pocket', 'POCKET.UPDATE')")
     @PutMapping("/pockets")
     @Timed
+    @PrivilegeDescription("Privilege to updates an existing pocket")
     public ResponseEntity<PocketDTO> updatePocket(@Valid @RequestBody PocketDTO pocketDTO) throws URISyntaxException {
         if (pocketDTO.getId() == null) {
             return createPocket(pocketDTO);
@@ -111,6 +114,7 @@ public class PocketResource {
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'POCKET.GET_LIST.ITEM')")
     @GetMapping("/pockets/{id}")
     @Timed
+    @PrivilegeDescription("Privilege to get the pocket by id")
     public ResponseEntity<PocketDTO> getPocket(@PathVariable Long id) {
         PocketDTO pocketDTO = pocketService.findOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(pocketDTO));
@@ -125,6 +129,7 @@ public class PocketResource {
     @PreAuthorize("hasPermission({'id': #id}, 'pocket', 'POCKET.DELETE')")
     @DeleteMapping("/pockets/{id}")
     @Timed
+    @PrivilegeDescription("Privilege to delete the pocket by id")
     public ResponseEntity<Void> deletePocket(@PathVariable Long id) {
         pocketService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();

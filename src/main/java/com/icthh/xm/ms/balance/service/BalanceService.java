@@ -12,6 +12,7 @@ import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
@@ -100,6 +101,7 @@ public class BalanceService {
      */
     @FindWithPermission("BALANCE.GET_LIST")
     @Transactional(readOnly = true)
+    @PrivilegeDescription("Privilege to get all balances")
     public Page<BalanceDTO> findAll(Pageable pageable, String privilegeKey) {
         Page<Balance> page = permittedRepository.findAll(pageable, Balance.class, privilegeKey);
         List<BalanceDTO> dtos = page.map(balanceMapper::toDto).getContent();

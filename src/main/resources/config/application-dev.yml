@@ -66,7 +66,7 @@ spring:
             hibernate.cache.use_minimal_puts: true
             #hibernate.cache.hazelcast.use_lite_member: true
     kafka:
-        bootstrap-servers: localhost:9093
+        bootstrap-servers: localhost:9092
     mail:
         host: localhost
         port: 25

@@ -1,6 +1,7 @@
 package com.icthh.xm.ms.balance.service;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
 import com.icthh.xm.ms.balance.domain.Pocket;
 
@@ -46,6 +47,7 @@ public class PocketQueryService extends QueryService<Pocket> {
      */
     @Transactional(readOnly = true)
     @FindWithPermission("POCKET.GET_LIST")
+    @PrivilegeDescription("Privilege to get all pockets which matches the criteria from the database")
     public List<PocketDTO> findByCriteria(PocketCriteria criteria, String privilegeKey) {
         List<Pocket> result = permittedRepository.findWithPermission(Pocket.class, criteria, null, privilegeKey)
             .getContent();
@@ -62,6 +64,7 @@ public class PocketQueryService extends QueryService<Pocket> {
      */
     @Transactional(readOnly = true)
     @FindWithPermission("POCKET.GET_LIST")
+    @PrivilegeDescription("Privilege to get all pockets which matches the criteria from the database")
     public Page<PocketDTO> findByCriteria(PocketCriteria criteria, Pageable page, final String privilegeKey) {
         Page<Pocket> result = permittedRepository.findWithPermission(Pocket.class, criteria, page, privilegeKey);
         return result.map(pocketMapper::toDto);
