@@ -40,7 +40,7 @@ management:
         web:
             base-path: /management
             exposure:
-                include: ["configprops", "env", "health", "info", "threaddump", "logfile" ]
+                include: ["configprops", "env", "health", "info", "threaddump", "logfile", "jhimetrics", "prometheus" ]
     endpoint:
         health:
             show-details: when-authorized
@@ -51,11 +51,21 @@ management:
         mail:
             enabled: false # When using the MailService, configure an SMTP server and set this to true
     metrics:
-        enabled: false # http://micrometer.io/ is disabled by default, as we use http://metrics.dropwizard.io/ instead
-
+        enable:
+            http: true
+            jvm: true
+            logback: true
+            process: true
+            system: true
+        export:
+            prometheus:
+                enabled: true
+                step: 60
 spring:
     application:
         name: balance
+    main:
+        allow-bean-definition-overriding: true
     cloud:
         inetutils:
             preferredNetworks:
@@ -78,6 +88,9 @@ spring:
             naming:
                 physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
                 implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        properties:
+            # see org.hibernate.cfg.AvailableSettings.PREFER_GENERATOR_NAME_AS_DEFAULT_SEQUENCE_NAME
+            hibernate.model.generator_name_as_sequence_name: false
     messages:
         basename: i18n/messages
     mvc:
@@ -136,6 +149,9 @@ jhipster:
         contact-email:
         license:
         license-url:
+    metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
+        logs: # Reports Dropwizard metrics in the logs
+            enabled: false
 
 # ===================================================================
 # Application specific properties

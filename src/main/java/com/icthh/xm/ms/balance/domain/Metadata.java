@@ -1,7 +1,5 @@
 package com.icthh.xm.ms.balance.domain;
 
-import static java.util.Collections.unmodifiableMap;
-
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -16,11 +14,15 @@ import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+
+import static java.util.Collections.unmodifiableMap;
 
 @Data
 @Embeddable
 @EqualsAndHashCode
+@NoArgsConstructor
 public class Metadata implements Serializable {
 
     private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -30,20 +32,19 @@ public class Metadata implements Serializable {
     @Transient
     private Map<String, String> metadata = null;
 
-    @Column(name="metadata_value")
+    @Column(name = "metadata_value")
     private String value = null;
 
     /**
      * Field that stored in postgres as jsonb, and in other as varchar.
      * For postgres it's object and for other db need to string converter.
+     *
      * @see com.icthh.xm.ms.balance.config.jsonb.JsonbTypeRegistrator
      */
     @Jsonb
-    @Column(name="metadata_json")
+    @Column(name = "metadata_json")
     @Convert(converter = MapToStringConverter.class)
     private Map<String, String> json = null;
-
-    public Metadata() {}
 
     @SneakyThrows
     public Metadata(Map<String, String> metadata) {

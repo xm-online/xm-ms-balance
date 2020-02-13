@@ -139,8 +139,7 @@ public class BalanceResourceIntTest {
     }
 
     @After
-    @Override
-    public void finalize() {
+    public void tearDown() {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         lepManager.endThreadContext();
     }

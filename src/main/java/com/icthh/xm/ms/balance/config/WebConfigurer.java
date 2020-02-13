@@ -16,9 +16,11 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.server.MimeMappings;
 import org.springframework.boot.web.server.WebServerFactory;
@@ -37,6 +39,7 @@ import org.springframework.web.filter.CorsFilter;
  * Configuration of web application with Servlet 3.0 APIs.
  */
 @Configuration
+@RequiredArgsConstructor
 public class WebConfigurer implements ServletContextInitializer, WebServerFactoryCustomizer<WebServerFactory> {
 
     private final Logger log = LoggerFactory.getLogger(WebConfigurer.class);
@@ -45,13 +48,9 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
 
     private final JHipsterProperties jhipsterProperties;
 
+    private final ServerProperties serverProperties;
+
     private MetricRegistry metricRegistry;
-
-    public WebConfigurer(Environment env, JHipsterProperties jhipsterProperties) {
-
-        this.env = env;
-        this.jhipsterProperties = jhipsterProperties;
-    }
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
@@ -80,9 +79,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
          * See the JHipsterProperties class and your application-*.yml configuration files
          * for more information.
          */
-        if (jhipsterProperties.getHttp().getVersion().equals(JHipsterProperties.Http.Version.V_2_0)
-            && server instanceof UndertowServletWebServerFactory) {
-
+        if (serverProperties.getHttp2().isEnabled() && server instanceof UndertowServletWebServerFactory) {
             ((UndertowServletWebServerFactory) server)
                 .addBuilderCustomizers(builder ->
                     builder.setServerOption(UndertowOptions.ENABLE_HTTP2, true));

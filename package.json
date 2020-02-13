@@ -1,16 +1,17 @@
 {
-    "name": "balance",
-    "version": "0.0.0",
-    "description": "Description for balance",
-    "private": true,
-    "license": "UNLICENSED",
-    "cacheDirectories": [
-        "node_modules"
-    ],
-    "devDependencies": {
-        "generator-jhipster": "5.7.2"
-    },
-    "engines": {
-        "node": ">=8.9.0"
-    }
+  "name": "balance",
+  "version": "0.0.0",
+  "description": "Description for balance",
+  "private": true,
+  "license": "UNLICENSED",
+  "cacheDirectories": [
+    "node_modules"
+  ],
+  "devDependencies": {
+    "generator-jhipster": "6.5.1",
+    "@openapitools/openapi-generator-cli": "0.0.14-4.0.2"
+  },
+  "engines": {
+    "node": ">=8.9.0"
+  }
 }

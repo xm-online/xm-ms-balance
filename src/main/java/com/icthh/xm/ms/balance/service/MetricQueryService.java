@@ -1,6 +1,7 @@
 package com.icthh.xm.ms.balance.service;
 
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
 import com.icthh.xm.ms.balance.domain.Metric;
 
@@ -44,6 +45,7 @@ public class MetricQueryService extends QueryService<Metric> {
      */
     @Transactional(readOnly = true)
     @FindWithPermission("METRIC.GET_LIST")
+    @PrivilegeDescription("Privilege to get all metrics which matches the criteria from the database")
     public List<MetricDTO> findByCriteria(MetricCriteria criteria, String privilegeKey) {
         List<Metric> result = permittedRepository.findWithPermission(Metric.class, criteria, null, privilegeKey)
             .getContent();
@@ -59,6 +61,7 @@ public class MetricQueryService extends QueryService<Metric> {
      */
     @Transactional(readOnly = true)
     @FindWithPermission("METRIC.GET_LIST")
+    @PrivilegeDescription("Privilege to get all metrics which matches the criteria from the database")
     public Page<MetricDTO> findByCriteria(MetricCriteria criteria, Pageable page, String privilegeKey) {
         Page<Metric> result = permittedRepository.findWithPermission(Metric.class, criteria, page, privilegeKey);
         return result.map(metricMapper::toDto);

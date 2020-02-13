@@ -3,6 +3,7 @@ package com.icthh.xm.ms.balance.web.rest;
 import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.ms.balance.service.MetricQueryService;
 import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
@@ -56,6 +57,7 @@ public class MetricResource {
     @PreAuthorize("hasPermission({'metric': #metric}, 'METRIC.CREATE')")
     @PostMapping("/metrics")
     @Timed
+    @PrivilegeDescription("Privilege to create a new metric")
     public ResponseEntity<MetricDTO> createMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
         if (metricDTO.getId() != null) {
             throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
@@ -79,6 +81,7 @@ public class MetricResource {
     @PreAuthorize("hasPermission({'id': #metric.id, 'newMetric': #metric}, 'metric', 'METRIC.UPDATE')")
     @PutMapping("/metrics")
     @Timed
+    @PrivilegeDescription("Privilege to updates an existing metric")
     public ResponseEntity<MetricDTO> updateMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
         if (metricDTO.getId() == null) {
             return createMetric(metricDTO);
@@ -111,6 +114,7 @@ public class MetricResource {
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'METRIC.GET_LIST.ITEM')")
     @GetMapping("/metrics/{id}")
     @Timed
+    @PrivilegeDescription("Privilege to get the metric by id")
     public ResponseEntity<MetricDTO> getMetric(@PathVariable Long id) {
         MetricDTO metricDTO = metricService.findOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(metricDTO));
@@ -125,6 +129,7 @@ public class MetricResource {
     @PreAuthorize("hasPermission({'id': #id}, 'metric', 'METRIC.DELETE')")
     @DeleteMapping("/metrics/{id}")
     @Timed
+    @PrivilegeDescription("Privilege to delete the metric by id")
     public ResponseEntity<Void> deleteMetric(@PathVariable Long id) {
         metricService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();

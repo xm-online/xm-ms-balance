@@ -3,6 +3,7 @@ package com.icthh.xm.ms.balance.web.rest;
 import com.codahale.metrics.annotation.Timed;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
+import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
@@ -66,6 +67,7 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'balance': #balance}, 'BALANCE.CREATE')")
     @PostMapping("/balances")
     @Timed
+    @PrivilegeDescription("Privilege to create a new balance")
     public ResponseEntity<BalanceDTO> createBalance(@Valid @RequestBody BalanceDTO balanceDTO) throws URISyntaxException {
         if (balanceDTO.getId() != null) {
             throw new BusinessException(ErrorConstants.ERR_BUSINESS_IDEXISTS,
@@ -89,6 +91,7 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'id': #balance.id, 'newBalance': #balance}, 'balance', 'BALANCE.UPDATE')")
     @PutMapping("/balances")
     @Timed
+    @PrivilegeDescription("Privilege to updates an existing balance")
     public ResponseEntity<BalanceDTO> updateBalance(@Valid @RequestBody BalanceDTO balanceDTO) throws URISyntaxException {
         if (balanceDTO.getId() == null) {
             return createBalance(balanceDTO);
@@ -123,6 +126,7 @@ public class BalanceResource {
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'BALANCE.GET_LIST.ITEM')")
     @GetMapping("/balances/{id}")
     @Timed
+    @PrivilegeDescription("Privilege to get the balance by id")
     public ResponseEntity<BalanceDTO> getBalance(@PathVariable Long id) {
         BalanceDTO balanceDTO = balanceService.findOne(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balanceDTO));
@@ -137,6 +141,7 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'id': #id}, 'balance', 'BALANCE.DELETE')")
     @DeleteMapping("/balances/{id}")
     @Timed
+    @PrivilegeDescription("Privilege to delete the balance by id")
     public ResponseEntity<Void> deleteBalance(@PathVariable Long id) {
         balanceService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
@@ -145,6 +150,7 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'reloadRequest': #reloadRequest}, 'BALANCE.RELOAD')")
     @PostMapping("/balances/reload")
     @Timed
+    @PrivilegeDescription("Privilege to reload the balance")
     public ResponseEntity<BalanceChangeEventDto> reloadBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
         BalanceChangeEventDto balanceChangeEventDto = balanceService.reload(reloadRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balanceChangeEventDto));
@@ -153,6 +159,7 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'chargingRequest': #chargingRequest}, 'BALANCE.CHARGING')")
     @PostMapping("/balances/charging")
     @Timed
+    @PrivilegeDescription("Privilege to charging the balance")
     public ResponseEntity<BalanceChangeEventDto> chargingBalance(@Valid @RequestBody ChargingBalanceRequest chargingRequest) {
         BalanceChangeEventDto balanceChangeEventDto = balanceService.charging(chargingRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balanceChangeEventDto));
@@ -161,6 +168,7 @@ public class BalanceResource {
     @PreAuthorize("hasPermission({'transferRequest': #transferRequest}, 'BALANCE.TRANSFER')")
     @PostMapping("/balances/transfer")
     @Timed
+    @PrivilegeDescription("Privilege to transfer the balance")
     public ResponseEntity<TransferDto> transferBalance(@Valid @RequestBody TransferBalanceRequest transferRequest) {
         TransferDto response = balanceService.transfer(transferRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(response));
