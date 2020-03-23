@@ -1,0 +1,35 @@
+version: '3.3'
+services:
+    balance-app:
+        image: xmonline/xm-ms-balance:${IMAGE_TAG:-latest}
+        networks:
+            - xm2
+        env_file:
+            - ./env/balance-app.env
+        secrets:
+            - source: SPRING_DATASOURCE_PASSWORD
+              target: SPRING_DATASOURCE_PASSWORD
+            - source: SPRING_DATASOURCE_URL
+              target: SPRING_DATASOURCE_URL
+            - source: SPRING_DATASOURCE_USERNAME
+              target: SPRING_DATASOURCE_USERNAME
+        deploy:
+            mode: replicated
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+        logging:
+            driver: syslog
+            options:
+                tag: balance
+                syslog-facility: local7
+secrets:
+    SPRING_DATASOURCE_PASSWORD:
+        external: true
+    SPRING_DATASOURCE_URL:
+        external: true
+    SPRING_DATASOURCE_USERNAME:
+        external: true
+networks:
+    xm2:
+        driver: overlay
