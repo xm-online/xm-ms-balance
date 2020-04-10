@@ -55,7 +55,6 @@ dependencyManagement {
 defaultTasks 'bootRun'
 
 group = 'com.icthh.xm.ms.balance'
-version = '0.0.1-SNAPSHOT'
 
 description = ''
 
