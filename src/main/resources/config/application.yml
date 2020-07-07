@@ -183,3 +183,7 @@ application:
 
     specification-name: balancespec.yml
     specification-path-pattern: /config/tenants/{tenantName}/balance/${application.specification-name}
+
+gracefulShutdown:
+    enabled: false
+    shutdownDelay:
