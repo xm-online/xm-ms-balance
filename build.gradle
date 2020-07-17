@@ -229,7 +229,7 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5"
     implementation "com.fasterxml.jackson.core:jackson-annotations"
-    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jackson_databind_version}"
     implementation "com.fasterxml.jackson.module:jackson-module-afterburner"
     implementation "org.hibernate:hibernate-core"
     implementation "com.zaxxer:HikariCP"
