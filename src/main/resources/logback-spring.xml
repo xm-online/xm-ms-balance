@@ -30,6 +30,10 @@
         </encoder>
     </appender>
 
+    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender> 
+    
     <logger name="com.icthh.xm.balance" level="#logback.loglevel#"/>
 
     <logger name="io.github.jhipster" level="#logback.loglevel#"/>
@@ -71,7 +75,7 @@
     </contextListener>
 
     <root level="#logback.loglevel#">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="${LOG_APPENDER_NAME:-STDOUT}"/>
 <!--
         <appender-ref ref="FILE"/>
 -->
