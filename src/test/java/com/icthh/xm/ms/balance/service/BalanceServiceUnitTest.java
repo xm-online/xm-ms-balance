@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -993,6 +994,26 @@ public class BalanceServiceUnitTest {
                               )
                                  );
         verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test
+    public void chargingMoneyWithExistsOperationId() {
+
+        Balance balance = createBalance(1L);
+        expectBalance(balance, "100");
+
+        String uuid = UUID.randomUUID().toString();
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of(createBalanceEvent("90", 1L, RELOAD, "100", "10")));
+
+        balanceService.charging(
+            new ChargingBalanceRequest()
+                .setAmount(new BigDecimal("2"))
+                .setBalanceId(1L)
+                .setUuid(uuid)
+        );
+
     }
 
     private void verifySavePocket(Pocket pocket) {

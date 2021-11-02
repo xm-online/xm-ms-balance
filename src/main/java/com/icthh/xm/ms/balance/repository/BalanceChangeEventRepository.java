@@ -44,5 +44,5 @@ public interface BalanceChangeEventRepository
         }), pageable);
     }
 
-    Optional<BalanceChangeEvent> findBalanceChangeEventByOperationId(String operationId);
+    List<BalanceChangeEvent> findBalanceChangeEventsByOperationId(String operationId);
 }
