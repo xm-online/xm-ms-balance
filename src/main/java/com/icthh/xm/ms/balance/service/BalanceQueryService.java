@@ -68,8 +68,10 @@ public class BalanceQueryService extends QueryService<Balance> {
     public Page<BalanceDTO> findByCriteria(BalanceCriteria criteria, Pageable pageable, String privilegeKey) {
         Page<Balance> page = permittedRepository.findWithPermission(Balance.class, criteria, pageable, privilegeKey);
         List<BalanceDTO> dtos = page.map(balanceMapper::toDto).getContent();
-        Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmountMap(page.getContent());
-        dtos.forEach(it -> it.setAmount(balancesAmount.getOrDefault(it.getId(), BigDecimal.ZERO)));
+        if (!dtos.isEmpty()) {
+            Map<Long, BigDecimal> balancesAmount = balanceRepository.getBalancesAmountMap(page.getContent());
+            dtos.forEach(it -> it.setAmount(balancesAmount.getOrDefault(it.getId(), BigDecimal.ZERO)));
+        }
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 

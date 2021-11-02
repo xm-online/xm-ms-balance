@@ -16,6 +16,7 @@ public class BalanceSpec {
         private Map<String, String> name;
         private boolean isWithPockets;
         private boolean removeZeroPockets = false;
+        private boolean allowNegative = false;
     }
 
 }

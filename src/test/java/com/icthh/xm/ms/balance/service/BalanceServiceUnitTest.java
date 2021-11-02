@@ -29,6 +29,7 @@ import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.BalanceSpec;
+import com.icthh.xm.ms.balance.domain.BalanceSpec.BalanceTypeSpec;
 import com.icthh.xm.ms.balance.domain.Metadata;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
@@ -46,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -91,6 +93,7 @@ public class BalanceServiceUnitTest {
     @Before
     public void before() {
         balanceService.setSelf(balanceService);
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(new BalanceTypeSpec());
     }
 
     private void expectedAuth() {
@@ -101,6 +104,12 @@ public class BalanceServiceUnitTest {
 
     private void deleteZeroPocketDisabled() {
         when(balanceSpecService.getBalanceSpec(any())).thenReturn(new BalanceSpec.BalanceTypeSpec());
+    }
+
+    private void allowNegative() {
+        BalanceTypeSpec balanceSpec = new BalanceTypeSpec();
+        balanceSpec.setAllowNegative(true);
+        when(balanceSpecService.getBalanceSpec(any())).thenReturn(balanceSpec);
     }
 
     private void deleteZeroPocketEnabled() {
@@ -283,6 +292,119 @@ public class BalanceServiceUnitTest {
             .setAmount(new BigDecimal("20"))
             .setBalanceId(1L)
         );
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test
+    public void successCheckoutAllManyFromOnePocketWithNegativeAllowed() {
+        expectedAuth();
+        deleteZeroPocketDisabled();
+        allowNegative();
+
+        Balance balance = createBalanceWithAmount(1L, "600");
+        expectBalance(balance, "600");
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
+        Page<Pocket> pockets = new PageImpl<>(asList(pocket("600", "label1")), PageRequest.of(0, 100), 1);
+        when(pocketRepository.findPocketForChargingWithNegativeOrderByDates(balance, PageRequest.of(0, 100)))
+            .thenReturn(pockets);
+
+        setClock(balanceService, 1525428386000L);
+        when(pocketRepository.save(refEq(pocket("0", "label1"))))
+            .thenReturn(pocket("0", "label1", 441L));
+        when(pocketRepository.save(refEq(pocket("-1", "label1"))))
+            .thenReturn(pocket("-1", "label1", 441L));
+
+        balanceService.charging(
+            new ChargingBalanceRequest()
+                .setAmount(new BigDecimal("601"))
+                .setBalanceId(1L)
+        );
+        verify(pocketRepository).findPocketForChargingWithNegativeOrderByDates(balance, PageRequest.of(0, 100));
+
+        ArgumentCaptor<Pocket> pocketCaptor = ArgumentCaptor.forClass(Pocket.class);
+        verify(pocketRepository, times(2)).save(pocketCaptor.capture());
+        List<Pocket> actual = pocketCaptor.getAllValues();
+        assertEquals(actual.size(), 2);
+        Pocket actualPocket = actual.get(0);
+        assertEquals(actualPocket.getAmount(), new BigDecimal("-1"));
+
+        verifyNoMoreInteractions(pocketRepository);
+        verifyNoMoreInteractions(metricService);
+        expectBalanceChangeEvents(createBalanceEvent("601", 1L, CHARGING, "-1", "600",
+            createPocketEvent("600", 441L, null, "label1", "0", "600"),
+            createPocketEvent("1", 441L, null, "label1", "-1", "0")
+
+        ));
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test
+    public void successChargingAllManyFromManyPocketWithNegativeAllowed() {
+        expectedAuth();
+        deleteZeroPocketDisabled();
+        allowNegative();
+
+        Balance balance = createBalanceWithAmount(1L, "225");
+        expectBalance(balance, "225");
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
+
+        when(pocketRepository.save(refEq(pocket("0", "label1"))))
+            .thenReturn(pocket("0", "label1", 11L));
+        when(pocketRepository.save(refEq(pocket("0", "label2"))))
+            .thenReturn(pocket("0", "label2", 12L));
+        when(pocketRepository.save(refEq(pocket("0", "label3"))))
+            .thenReturn(pocket("0", "label3", 13L));
+        when(pocketRepository.save(refEq(pocket("0", "label4"))))
+            .thenReturn(pocket("0", "label4", 14L));
+        when(pocketRepository.save(refEq(pocket("0", "label5"))))
+            .thenReturn(pocket("0", "label5", 15L));
+        when(pocketRepository.save(refEq(pocket("0", "label6"))))
+            .thenReturn(pocket("0", "label6", 16L));
+        when(pocketRepository.save(refEq(pocket("-1", "label6"))))
+            .thenReturn(pocket("-1", "label6", 16L));
+
+        when(pocketRepository.findPocketForChargingWithNegativeOrderByDates(balance, PageRequest.of(0, 3)))
+            .thenReturn(new PageImpl<>(asList(
+                pocket("50", "label1"),
+                pocket("30", "label2"),
+                pocket("20", "label3")
+            ), PageRequest.of(0, 3), 6));
+        when(pocketRepository.findPocketForChargingWithNegativeOrderByDates(balance, PageRequest.of(1, 3)))
+            .thenReturn(new PageImpl<>(asList(
+                pocket("100", "label4"),
+                pocket("10", "label5"),
+                pocket("15", "label6")
+            ), PageRequest.of(1, 3), 6));
+
+        setClock(balanceService, 1525428386000L);
+
+        balanceService.charging(
+            new ChargingBalanceRequest()
+                .setAmount(new BigDecimal("226"))
+                .setBalanceId(1L)
+        );
+
+        verify(pocketRepository).findPocketForChargingWithNegativeOrderByDates(balance, PageRequest.of(0, 3));
+        verify(pocketRepository).findPocketForChargingWithNegativeOrderByDates(balance, PageRequest.of(1, 3));
+        verify(pocketRepository).save(refEq(pocket("0", "label1")));
+        verify(pocketRepository).save(refEq(pocket("0", "label2")));
+        verify(pocketRepository).save(refEq(pocket("0", "label3")));
+        verify(pocketRepository).save(refEq(pocket("0", "label4")));
+        verify(pocketRepository).save(refEq(pocket("0", "label5")));
+        verify(pocketRepository, times(2)).save(refEq(pocket("-1", "label6")));
+
+        verifyNoMoreInteractions(pocketRepository);
+        verifyNoMoreInteractions(metricService);
+
+        expectBalanceChangeEvents(createBalanceEvent("226", 1L, CHARGING, "-1", "225",
+            createPocketEvent("50", 11L, null, "label1", "0", "50"),
+            createPocketEvent("30", 12L, null, "label2", "0", "30"),
+            createPocketEvent("20", 13L, null, "label3", "0", "20"),
+            createPocketEvent("100", 14L, null, "label4", "0", "100"),
+            createPocketEvent("10", 15L, null, "label5", "0", "10"),
+            createPocketEvent("15", 16L, null, "label6", "0", "15"),
+            createPocketEvent("1", 16L, null, "label6", "-1", "0")
+        ));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
@@ -502,7 +624,7 @@ public class BalanceServiceUnitTest {
         verify(metricService).updateMaxMetric(targetBalance);
 
         expectBalanceChangeEvents(
-            createBalanceEvent("501.22", 1L, TRANSFER_FROM,"98.78", "600",
+            createBalanceEvent("501.22", 1L, TRANSFER_FROM, "98.78", "600",
                 createPocketEvent("501.22", 9875L, null, "label1", "98.78", "600")),
             createBalanceEvent("501.22", 2L, TRANSFER_TO, "751.22", "250",
                 createPocketEvent("501.22", 10L, null, "label1", "751.22", "250"))
@@ -849,7 +971,6 @@ public class BalanceServiceUnitTest {
         verifyFindPocketForReload(targetBalance, null, "l2");
         verifySavePocket(pocket("0", "l2", 88L));
         verifySavePocket(pocket("10", "l2"));
-
 
         verifyFindPocketForReload(targetBalance, of("other", "value"), "l3");
         verifySavePocket(pocket("4", "l3", 89L, of("other", "value")));
