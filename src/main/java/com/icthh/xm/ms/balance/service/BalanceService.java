@@ -4,6 +4,7 @@ import static com.icthh.xm.ms.balance.service.OperationType.CHARGING;
 import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
+import static java.lang.Boolean.FALSE;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
@@ -362,7 +363,7 @@ public class BalanceService {
     private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
         if (pockets.isEmpty()) {
             BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-            if (Boolean.FALSE.equals(balanceTypeSpec.isAllowNegative())) {
+            if (!balanceTypeSpec.isAllowNegative()) {
                 throw new NoEnoughMoneyException(balance.getId(), amount.subtract(amountToCheckout));
             }
         }
@@ -372,7 +373,7 @@ public class BalanceService {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
             BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-            if (Boolean.FALSE.equals(balanceTypeSpec.isAllowNegative())) {
+            if (!balanceTypeSpec.isAllowNegative()) {
                 throw new NoEnoughMoneyException(balance.getId(), currentAmount);
             }
         }
