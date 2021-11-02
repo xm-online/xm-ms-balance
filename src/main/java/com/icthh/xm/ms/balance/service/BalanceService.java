@@ -47,6 +47,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -77,7 +78,7 @@ public class BalanceService {
     private final BalanceSpecService balanceSpecService;
     @Setter(onMethod = @__(@Autowired))
     private BalanceService self;
-    private Clock clock = Clock.systemDefaultZone();
+    private final Clock clock = Clock.systemDefaultZone();
 
 
     /**
@@ -218,7 +219,17 @@ public class BalanceService {
     @Transactional
     @LogicExtensionPoint(value = "Charging", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto charging(Balance balance, ChargingBalanceRequest chargingRequest) {
-        assertBalanceAmout(balance, chargingRequest.getAmount());
+        assertBalanceAmount(balance, chargingRequest.getAmount());
+
+        String operationUuid = chargingRequest.getUuid();
+        if (StringUtils.isNotBlank(operationUuid)) {
+            Optional<BalanceChangeEvent> existBalanceChangeEvent =
+                balanceChangeEventRepository.findBalanceChangeEventByOperationId(operationUuid);
+            if (existBalanceChangeEvent.isPresent()) {
+                log.warn("find duplicate...");
+                return balanceChangeEventMapper.toDto(existBalanceChangeEvent.get());
+            }
+        }
 
         BigDecimal amountBefore = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         BigDecimal amountAfter = getAmountAfter(true, amountBefore, chargingRequest.getAmount());
@@ -240,7 +251,7 @@ public class BalanceService {
         Balance sourceBalance = getBalanceForUpdate(transferRequest.getSourceBalanceId());
         BigDecimal amount = transferRequest.getAmount();
         Metadata metadata = Metadata.of(transferRequest.getMetadata());
-        assertBalanceAmout(sourceBalance, amount);
+        assertBalanceAmount(sourceBalance, amount);
 
         Instant now = now(clock);
 
@@ -343,7 +354,7 @@ public class BalanceService {
         }
     }
 
-    private void assertBalanceAmout(Balance balance, BigDecimal amount) {
+    private void assertBalanceAmount(Balance balance, BigDecimal amount) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
             throw new NoEnoughMoneyException(balance.getId(), currentAmount);
@@ -354,6 +365,17 @@ public class BalanceService {
                                                         BigDecimal amountDelta, Instant operationDate,
                                                         UUID transactionId, Metadata metadata, BigDecimal amountAfter,
                                                         BigDecimal amountBefore) {
+        return createBalanceChangeEvent(
+            balance, operationType,
+            amountDelta, operationDate,
+            transactionId.toString(), metadata,
+            amountAfter, amountBefore);
+    }
+
+    private BalanceChangeEvent createBalanceChangeEvent(Balance balance, OperationType operationType,
+                                                        BigDecimal amountDelta, Instant operationDate,
+                                                        String transactionId, Metadata metadata, BigDecimal amountAfter,
+        BigDecimal amountBefore) {
         BalanceChangeEvent event = new BalanceChangeEvent();
         event.setBalanceId(balance.getId());
         event.setBalanceKey(balance.getKey());
@@ -363,7 +385,7 @@ public class BalanceService {
         event.setOperationType(operationType);
         event.setAmountDelta(amountDelta);
         event.setOperationDate(operationDate);
-        event.setOperationId(transactionId.toString());
+        event.setOperationId(transactionId);
         event.setMetadata(metadata);
         event.setAmountAfter(amountAfter);
         event.setAmountBefore(amountBefore);

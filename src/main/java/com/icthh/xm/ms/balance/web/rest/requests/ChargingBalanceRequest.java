@@ -20,6 +20,7 @@ public class ChargingBalanceRequest {
     @Min(0)
     private BigDecimal amount;
     private Map<String, String> metadata;
+    private String uuid;
 
     public ChargingBalanceRequest(@NotNull Long balanceId, @NotNull @Min(0) BigDecimal amount) {
         this.balanceId = balanceId;
