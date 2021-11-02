@@ -56,6 +56,8 @@ public interface PocketRepository
         + " ORDER BY p.endDateTime ASC NULLS LAST, p.startDateTime ASC NULLS LAST")
     Page<Pocket> findPocketForChargingWithNegativeOrderByDates(@Param("balance") Balance balance, Pageable pageable);
 
+    Optional<Pocket> findByLabelAndBalanceId(String label, Long balanceId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Pocket e WHERE e.id = :id")
     Optional<Pocket> findOneByIdForUpdate(@Param("id") Long id);

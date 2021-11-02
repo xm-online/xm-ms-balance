@@ -66,6 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BalanceService {
 
+    public static final String NEGATIVE_POCKET_LABEL = "NEGATIVE_POCKET";
+
     private final BalanceRepository balanceRepository;
     private final PermittedRepository permittedRepository;
     private final PocketRepository pocketRepository;
@@ -300,7 +302,7 @@ public class BalanceService {
             log.debug("Fetch pockets {} by {}", pockets, pageable);
             assertNotEmpty(balance, amount, amountToCheckout, pockets);
 
-            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, isAllowNegative);
+            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, isAllowNegative, balance);
         }
 
         if (balanceTypeSpec.isRemoveZeroPockets()) {
@@ -320,7 +322,7 @@ public class BalanceService {
     }
 
     private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCharging> affectedPockets,
-        Page<Pocket> pockets, BalanceChangeEvent changeEvent, Boolean isAllowNegative) {
+        Page<Pocket> pockets, BalanceChangeEvent changeEvent, Boolean isAllowNegative, Balance balance) {
 
         for (Pocket pocket : pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
@@ -342,13 +344,19 @@ public class BalanceService {
         }
 
         if (amountToBalanceCheckout.compareTo(ZERO) > 0 && pockets.isLast() && isAllowNegative) {
-            List<Pocket> pocketList = pockets.getContent();
-            Pocket lastPocket = pocketList.get(pocketList.size() - 1);
-            BigDecimal pocketAmount = lastPocket.getAmount();
-            lastPocket.subtractAmount(amountToBalanceCheckout);
-            affectedPockets.add(new PocketCharging(lastPocket, amountToBalanceCheckout));
+            Pocket negativePocket = pocketRepository.findByLabelAndBalanceId(NEGATIVE_POCKET_LABEL,
+                balance.getId()).orElse(new Pocket()
+                .key(randomUUID().toString())
+                .balance(balance)
+                .amount(ZERO)
+                .label(NEGATIVE_POCKET_LABEL)
+            );
 
-            Pocket saved = pocketRepository.save(lastPocket);
+            BigDecimal pocketAmount = negativePocket.getAmount();
+            negativePocket.subtractAmount(amountToBalanceCheckout);
+            affectedPockets.add(new PocketCharging(negativePocket, amountToBalanceCheckout));
+
+            Pocket saved = pocketRepository.save(negativePocket);
             changeEvent.addPocketChangeEvent(createPocketChangeEvent(saved, amountToBalanceCheckout, pocketAmount));
 
             amountToBalanceCheckout = ZERO;
