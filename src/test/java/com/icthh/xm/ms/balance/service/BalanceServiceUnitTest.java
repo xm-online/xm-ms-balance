@@ -109,7 +109,8 @@ public class BalanceServiceUnitTest {
 
     private void allowNegative() {
         BalanceTypeSpec balanceSpec = new BalanceTypeSpec();
-        balanceSpec.setAllowNegative(true);
+
+        balanceSpec.getAllowNegative().setEnabled(true);
         when(balanceSpecService.getBalanceSpec(any())).thenReturn(balanceSpec);
     }
 

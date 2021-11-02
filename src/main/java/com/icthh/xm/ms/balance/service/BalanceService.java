@@ -20,6 +20,7 @@ import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.BalanceSpec;
+import com.icthh.xm.ms.balance.domain.BalanceSpec.AllowNegative;
 import com.icthh.xm.ms.balance.domain.Metadata;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
@@ -293,16 +294,16 @@ public class BalanceService {
         List<PocketCharging> affectedPockets = new ArrayList<>();
         Integer pocketCheckoutBatchSize = applicationProperties.getPocketChargingBatchSize();
         BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-        boolean isAllowNegative = balanceTypeSpec.isAllowNegative();
+        AllowNegative allowNegative = balanceTypeSpec.getAllowNegative();
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
             PageRequest pageable = PageRequest.of(i, pocketCheckoutBatchSize);
-            Page<Pocket> pocketsPage = self.getPocketForCharging(balance, pageable, changeEvent, isAllowNegative);
+            Page<Pocket> pocketsPage = self.getPocketForCharging(balance, pageable, changeEvent, allowNegative.isEnabled());
             List<Pocket> pockets = pocketsPage.getContent();
             log.debug("Fetch pockets {} by {}", pockets, pageable);
             assertNotEmpty(balance, amount, amountToCheckout, pockets);
 
-            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, isAllowNegative, balance);
+            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, allowNegative, balance);
         }
 
         if (balanceTypeSpec.isRemoveZeroPockets()) {
@@ -322,7 +323,7 @@ public class BalanceService {
     }
 
     private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCharging> affectedPockets,
-        Page<Pocket> pockets, BalanceChangeEvent changeEvent, Boolean isAllowNegative, Balance balance) {
+        Page<Pocket> pockets, BalanceChangeEvent changeEvent, AllowNegative allowNegative, Balance balance) {
 
         for (Pocket pocket : pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
@@ -343,8 +344,8 @@ public class BalanceService {
             }
         }
 
-        if (amountToBalanceCheckout.compareTo(ZERO) > 0 && pockets.isLast() && isAllowNegative) {
-            Pocket negativePocket = pocketRepository.findByLabelAndBalanceId(NEGATIVE_POCKET_LABEL,
+        if (amountToBalanceCheckout.compareTo(ZERO) > 0 && pockets.isLast() && allowNegative.isEnabled()) {
+            Pocket negativePocket = pocketRepository.findByLabelAndBalanceId(allowNegative.getLabel(),
                 balance.getId()).orElse(new Pocket()
                 .key(randomUUID().toString())
                 .balance(balance)
@@ -371,7 +372,7 @@ public class BalanceService {
     private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
         if (pockets.isEmpty()) {
             BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-            if (!balanceTypeSpec.isAllowNegative()) {
+            if (!balanceTypeSpec.getAllowNegative().isEnabled()) {
                 throw new NoEnoughMoneyException(balance.getId(), amount.subtract(amountToCheckout));
             }
         }
@@ -381,7 +382,7 @@ public class BalanceService {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
             BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-            if (!balanceTypeSpec.isAllowNegative()) {
+            if (!balanceTypeSpec.getAllowNegative().isEnabled()) {
                 throw new NoEnoughMoneyException(balance.getId(), currentAmount);
             }
         }
