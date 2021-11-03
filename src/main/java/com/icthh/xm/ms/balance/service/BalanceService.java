@@ -327,6 +327,9 @@ public class BalanceService {
 
         for (Pocket pocket : pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
+            if (pocketAmount.compareTo(ZERO) <= 0) {
+              continue;
+            }
             BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocketAmount);
             pocket.subtractAmount(amountToPocketCheckout);
             amountToBalanceCheckout = amountToBalanceCheckout.subtract(amountToPocketCheckout);
@@ -350,7 +353,7 @@ public class BalanceService {
                 .key(randomUUID().toString())
                 .balance(balance)
                 .amount(ZERO)
-                .label(NEGATIVE_POCKET_LABEL)
+                .label(allowNegative.getLabel())
             );
 
             BigDecimal pocketAmount = negativePocket.getAmount();
