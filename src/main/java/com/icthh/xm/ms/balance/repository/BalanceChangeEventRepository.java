@@ -10,7 +10,6 @@ import com.icthh.xm.ms.balance.service.OperationType;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import javax.persistence.criteria.Predicate;
 
 import org.springframework.data.domain.Page;

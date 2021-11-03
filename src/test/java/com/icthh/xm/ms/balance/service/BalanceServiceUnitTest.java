@@ -35,7 +35,9 @@ import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
+import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.TransferDto;
+import com.icthh.xm.ms.balance.service.dto.TransferDto.TransferDtoBuilder;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapperImpl;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
@@ -997,23 +999,147 @@ public class BalanceServiceUnitTest {
     }
 
     @Test
-    public void chargingMoneyWithExistsOperationId() {
-
+    public void chargingMoneyWithOperationIdAndExistsChangeEvent() {
         Balance balance = createBalance(1L);
         expectBalance(balance, "100");
 
         String uuid = UUID.randomUUID().toString();
 
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", 1L, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuid);
         when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
-            .thenReturn(List.of(createBalanceEvent("90", 1L, RELOAD, "100", "10")));
+            .thenReturn(List.of(existBalanceChangeEvent));
 
-        balanceService.charging(
+        BalanceChangeEventDto charging = balanceService.charging(
             new ChargingBalanceRequest()
                 .setAmount(new BigDecimal("2"))
                 .setBalanceId(1L)
                 .setUuid(uuid)
         );
 
+        verify(balanceRepository).findOneByIdForUpdate(1L);
+        verify(balanceRepository).findBalanceAmount(balance);
+
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuid);
+        assertEquals(uuid, charging.getOperationId());
+        assertEquals(balanceChangeEventMapper.toDto(existBalanceChangeEvent), charging);
+        verifyNoMoreInteractions(balanceRepository);
+    }
+
+    @Test
+    public void chargingMoneyWithOperationIdAndNonExistsChangeEvent() {
+        expectedAuth();
+        deleteZeroPocketDisabled();
+
+        String uuid = UUID.randomUUID().toString();
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of());
+        Balance balance = createBalanceWithAmount(1L, "600");
+        expectBalance(balance, "600");
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
+        Page<Pocket> pockets = new PageImpl<>(asList(
+            pocket("600", "label1")
+        ));
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, PageRequest.of(0, 100)))
+            .thenReturn(pockets);
+        setClock(balanceService, 1525428386000L);
+        when(pocketRepository.save(refEq(pocket("98.78", "label1"))))
+            .thenReturn(pocket("98.78", "label1", 441L));
+
+        balanceService.charging(
+            new ChargingBalanceRequest()
+                .setAmount(new BigDecimal("501.22"))
+                .setBalanceId(1L)
+                .setUuid(uuid)
+        );
+
+        BalanceChangeEvent expectedBalanceChangeEvent =
+            createBalanceEvent("501.22", 1L, CHARGING, "98.78", "600");
+            expectedBalanceChangeEvent.setOperationId(uuid);
+        verify(balanceChangeEventRepository).save(refEq(expectedBalanceChangeEvent, "pocketChangeEvents"));
+
+    }
+
+    @Test
+    public void reloadMoneyWithOperationIdAndExistsChangeEvent() {
+        Balance balance = createBalance(1L);
+        expectBalance(balance, "100");
+
+        String uuid = UUID.randomUUID().toString();
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", 1L, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuid);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of(existBalanceChangeEvent));
+
+        BalanceChangeEventDto charging = balanceService.reload(
+            new ReloadBalanceRequest()
+                .setBalanceId(1L)
+                .setAmount(new BigDecimal("100"))
+                .setUuid(uuid)
+        );
+        verify(balanceRepository).findOneByIdForUpdate(1L);
+
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuid);
+        assertEquals(uuid, charging.getOperationId());
+        assertEquals(balanceChangeEventMapper.toDto(existBalanceChangeEvent), charging);
+        verifyNoMoreInteractions(balanceRepository);
+    }
+
+    @Test
+    public void transferMoneyWithOperationIdAndExistsChangeEventAndOtherOperationType() {
+        Balance targetBalance = createBalance(1L);
+        Balance sourceBalance = createBalance(2L);
+        expectBalance(sourceBalance, "100");
+
+        String uuid = UUID.randomUUID().toString();
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", 1L, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuid);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of(existBalanceChangeEvent));
+
+        TransferDto actualTransferDto = balanceService.transfer(
+            new TransferBalanceRequest().setTargetBalanceId(targetBalance.getId())
+                .setSourceBalanceId(sourceBalance.getId())
+                .setAmount(new BigDecimal("100"))
+                .setUuid(uuid));
+
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuid);
+        assertEquals(TransferDto.builder().build(), actualTransferDto);
+        verifyNoMoreInteractions(balanceRepository);
+    }
+
+    @Test
+    public void transferMoneyWithOperationIdAndExistsChangeEventAndSameOperationType() {
+        Balance targetBalance = createBalance(1L);
+        Balance sourceBalance = createBalance(2L);
+        expectBalance(sourceBalance, "100");
+        String uuid = UUID.randomUUID().toString();
+
+        BalanceChangeEvent transferFrom = createBalanceEvent("100", 2L, TRANSFER_FROM, "0", "100");
+        transferFrom.setOperationId(uuid);
+        BalanceChangeEvent transferTo = createBalanceEvent("100", 1L, TRANSFER_TO, "100", "0");
+        transferTo.setOperationId(uuid);
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of(transferFrom, transferTo));
+
+        TransferDto actualTransferDto = balanceService.transfer(
+            new TransferBalanceRequest().setTargetBalanceId(targetBalance.getId())
+                .setSourceBalanceId(sourceBalance.getId())
+                .setAmount(new BigDecimal("100"))
+                .setUuid(uuid));
+
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuid);
+
+        TransferDtoBuilder expectedTransferDto = TransferDto.builder()
+            .from(balanceChangeEventMapper.toDto(transferFrom))
+            .to(balanceChangeEventMapper.toDto(transferTo));
+
+        assertEquals(expectedTransferDto.build(), actualTransferDto);
+        verifyNoMoreInteractions(balanceRepository);
     }
 
     private void verifySavePocket(Pocket pocket) {
