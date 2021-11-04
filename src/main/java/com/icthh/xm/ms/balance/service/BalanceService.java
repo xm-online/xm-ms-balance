@@ -4,6 +4,7 @@ import static com.icthh.xm.ms.balance.service.OperationType.CHARGING;
 import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
+import static java.lang.Boolean.FALSE;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
@@ -19,6 +20,7 @@ import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.BalanceSpec;
+import com.icthh.xm.ms.balance.domain.BalanceSpec.AllowNegative;
 import com.icthh.xm.ms.balance.domain.Metadata;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
@@ -65,6 +67,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 public class BalanceService {
+
+    public static final String NEGATIVE_POCKET_LABEL = "NEGATIVE_POCKET";
 
     private final BalanceRepository balanceRepository;
     private final PermittedRepository permittedRepository;
@@ -342,18 +346,19 @@ public class BalanceService {
         BigDecimal amountToCheckout = amount;
         List<PocketCharging> affectedPockets = new ArrayList<>();
         Integer pocketCheckoutBatchSize = applicationProperties.getPocketChargingBatchSize();
+        BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+        AllowNegative allowNegative = balanceTypeSpec.getAllowNegative();
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
             PageRequest pageable = PageRequest.of(i, pocketCheckoutBatchSize);
-            Page<Pocket> pocketsPage = self.getPocketForCharging(balance, pageable, changeEvent);
+            Page<Pocket> pocketsPage = self.getPocketForCharging(balance, pageable, changeEvent, allowNegative.isEnabled());
             List<Pocket> pockets = pocketsPage.getContent();
             log.debug("Fetch pockets {} by {}", pockets, pageable);
             assertNotEmpty(balance, amount, amountToCheckout, pockets);
 
-            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pockets, changeEvent);
+            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, allowNegative, balance);
         }
 
-        BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
         if (balanceTypeSpec.isRemoveZeroPockets()) {
             pocketRepository.deletePocketWithZeroAmount(balance.getId());
         }
@@ -362,15 +367,22 @@ public class BalanceService {
     }
 
     @LogicExtensionPoint("GetPocketForCharging")
-    public Page<Pocket> getPocketForCharging(Balance balance, PageRequest pageable, BalanceChangeEvent changeEvent) {
+    public Page<Pocket> getPocketForCharging(Balance balance, PageRequest pageable, BalanceChangeEvent changeEvent, Boolean isNegativeAllowed) {
+        if (Boolean.TRUE.equals(isNegativeAllowed)) {
+            return pocketRepository.findPocketForChargingWithNegativeOrderByDates(balance, pageable);
+        }
+
         return pocketRepository.findPocketForChargingOrderByDates(balance, pageable);
     }
 
     private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCharging> affectedPockets,
-                                       List<Pocket> pockets, BalanceChangeEvent changeEvent) {
+        Page<Pocket> pockets, BalanceChangeEvent changeEvent, AllowNegative allowNegative, Balance balance) {
 
         for (Pocket pocket : pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
+            if (pocketAmount.compareTo(ZERO) <= 0) {
+              continue;
+            }
             BigDecimal amountToPocketCheckout = amountToBalanceCheckout.min(pocketAmount);
             pocket.subtractAmount(amountToPocketCheckout);
             amountToBalanceCheckout = amountToBalanceCheckout.subtract(amountToPocketCheckout);
@@ -387,19 +399,48 @@ public class BalanceService {
                 break;
             }
         }
+
+        if (amountToBalanceCheckout.compareTo(ZERO) > 0 && pockets.isLast() && allowNegative.isEnabled()) {
+            Pocket negativePocket = pocketRepository.findByLabelAndBalanceId(allowNegative.getLabel(),
+                balance.getId()).orElse(new Pocket()
+                .key(randomUUID().toString())
+                .balance(balance)
+                .amount(ZERO)
+                .label(allowNegative.getLabel())
+            );
+
+            BigDecimal pocketAmount = negativePocket.getAmount();
+            negativePocket.subtractAmount(amountToBalanceCheckout);
+            affectedPockets.add(new PocketCharging(negativePocket, amountToBalanceCheckout));
+
+            Pocket saved = pocketRepository.save(negativePocket);
+            changeEvent.addPocketChangeEvent(createPocketChangeEvent(saved, amountToBalanceCheckout, pocketAmount));
+
+            amountToBalanceCheckout = ZERO;
+
+            log.info("Checkout pocket id:{} label:{}, from {} -> {} | leftCheckoutAmound: {}",
+                saved.getId(), saved.getLabel(), pocketAmount, saved.getAmount(), amountToBalanceCheckout);
+        }
+
         return amountToBalanceCheckout;
     }
 
     private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
         if (pockets.isEmpty()) {
-            throw new NoEnoughMoneyException(balance.getId(), amount.subtract(amountToCheckout));
+            BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+            if (!balanceTypeSpec.getAllowNegative().isEnabled()) {
+                throw new NoEnoughMoneyException(balance.getId(), amount.subtract(amountToCheckout));
+            }
         }
     }
 
     private void assertBalanceAmount(Balance balance, BigDecimal amount) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
-            throw new NoEnoughMoneyException(balance.getId(), currentAmount);
+            BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+            if (!balanceTypeSpec.getAllowNegative().isEnabled()) {
+                throw new NoEnoughMoneyException(balance.getId(), currentAmount);
+            }
         }
     }
 
