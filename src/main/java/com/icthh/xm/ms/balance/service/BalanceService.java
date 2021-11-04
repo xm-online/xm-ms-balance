@@ -201,17 +201,11 @@ public class BalanceService {
     public BalanceChangeEventDto reload(Balance balance, ReloadBalanceRequest reloadRequest) {
 
         String operationUuid = reloadRequest.getUuid();
-        if (StringUtils.isNotBlank(operationUuid)) {
-            List<BalanceChangeEvent> existBalanceChangeEvents =
-                balanceChangeEventRepository.findBalanceChangeEventsByOperationId(operationUuid);
-
-            if (!existBalanceChangeEvents.isEmpty()) {
-                log.warn("find duplicate balance change events for operationId: {} - {}, reload won't be processed",
-                    operationUuid, existBalanceChangeEvents);
-                return balanceChangeEventMapper.toDto(existBalanceChangeEvents.get(0));
-            }
+        List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
+        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents);
+        if (balanceChangeEventDto != null) {
+            return balanceChangeEventDto;
         }
-
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
 
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
@@ -241,18 +235,12 @@ public class BalanceService {
         assertBalanceAmount(balance, chargingRequest.getAmount());
 
         String operationUuid = chargingRequest.getUuid();
-        if (StringUtils.isNotBlank(operationUuid)) {
-            List<BalanceChangeEvent> existBalanceChangeEvents =
-                balanceChangeEventRepository.findBalanceChangeEventsByOperationId(operationUuid);
-
-            if (!existBalanceChangeEvents.isEmpty()) {
-                log.warn("find duplicate balance change events for operationId: {} - {}, charging won't be processed",
-                    operationUuid, existBalanceChangeEvents);
-                return balanceChangeEventMapper.toDto(existBalanceChangeEvents.get(0));
-            }
+        List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
+        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents);
+        if (balanceChangeEventDto != null) {
+            return balanceChangeEventDto;
         }
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
-
         BigDecimal amountBefore = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         BigDecimal amountAfter = getAmountAfter(true, amountBefore, chargingRequest.getAmount());
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, CHARGING, chargingRequest.getAmount(),
@@ -264,32 +252,32 @@ public class BalanceService {
         return balanceChangeEventMapper.toDto(changeEvent);
     }
 
+    private List<BalanceChangeEvent> getBalanceChangeEventsByOperationId(String operationUuid) {
+        if (StringUtils.isBlank(operationUuid)) {
+            return List.of();
+        }
+        return balanceChangeEventRepository.findBalanceChangeEventsByOperationId(operationUuid);
+    }
+
+    private BalanceChangeEventDto returnExistBalanceChangeEventDto(List<BalanceChangeEvent> existsBalanceChangeEvents) {
+        if (!existsBalanceChangeEvents.isEmpty()) {
+            BalanceChangeEvent balanceChangeEvent = existsBalanceChangeEvents.get(0);
+            log.warn("find duplicate balance change events for operationId: {} - {}, operation won't be processed",
+                balanceChangeEvent.getOperationId(), existsBalanceChangeEvents);
+            return balanceChangeEventMapper.toDto(balanceChangeEvent);
+        }
+        return null;
+    }
+
     @Transactional
     @LogicExtensionPoint("Transfer")
     public TransferDto transfer(TransferBalanceRequest transferRequest) {
-
         String operationUuid = transferRequest.getUuid();
-        if (StringUtils.isNotBlank(operationUuid)) {
-            List<BalanceChangeEvent> existBalanceChangeEvents =
-                balanceChangeEventRepository.findBalanceChangeEventsByOperationId(operationUuid);
-
-            if (!existBalanceChangeEvents.isEmpty()) {
-                log.warn("find duplicate balance change events for operationId: {} - {}, transfer won't be processed",
-                    operationUuid, existBalanceChangeEvents);
-
-                TransferDto transferDto = TransferDto.builder().build();
-                existBalanceChangeEvents.forEach(balanceChangeEvent -> {
-                    if (TRANSFER_FROM.equals(balanceChangeEvent.getOperationType())) {
-                        transferDto.setFrom(balanceChangeEventMapper.toDto(balanceChangeEvent));
-                    }
-                    if (TRANSFER_TO.equals(balanceChangeEvent.getOperationType())) {
-                        transferDto.setTo(balanceChangeEventMapper.toDto(balanceChangeEvent));
-                    }
-                });
-                return transferDto;
-            }
+        List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
+        TransferDto transferDto = returnExistTransferDto(existBalanceChangeEvents);
+        if (transferDto != null) {
+            return transferDto;
         }
-
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
 
         Long targetBalanceId = transferRequest.getTargetBalanceId();
@@ -324,6 +312,25 @@ public class BalanceService {
             .from(balanceChangeEventMapper.toDto(eventFrom))
             .to(balanceChangeEventMapper.toDto(eventTo))
             .build();
+    }
+
+    private TransferDto returnExistTransferDto(List<BalanceChangeEvent> existsBalanceChangeEvents) {
+        if (!existsBalanceChangeEvents.isEmpty()) {
+            log.warn("find duplicate balance change events for operationId: {} - {}, operation won't be processed",
+                existsBalanceChangeEvents.get(0).getOperationId(), existsBalanceChangeEvents);
+
+            TransferDto transferDto = TransferDto.builder().build();
+            existsBalanceChangeEvents.forEach(balanceChangeEvent -> {
+                if (TRANSFER_FROM.equals(balanceChangeEvent.getOperationType())) {
+                    transferDto.setFrom(balanceChangeEventMapper.toDto(balanceChangeEvent));
+                }
+                if (TRANSFER_TO.equals(balanceChangeEvent.getOperationType())) {
+                    transferDto.setTo(balanceChangeEventMapper.toDto(balanceChangeEvent));
+                }
+            });
+            return transferDto;
+        }
+        return null;
     }
 
     private ReloadBalanceRequest toReloadRequest(PocketCharging pocket, Long targetBalanceId, Metadata metadata) {
