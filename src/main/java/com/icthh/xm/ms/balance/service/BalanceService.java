@@ -49,6 +49,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -198,12 +199,21 @@ public class BalanceService {
     @Transactional
     @LogicExtensionPoint(value = "Reload", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto reload(Balance balance, ReloadBalanceRequest reloadRequest) {
+
+        String operationUuid = reloadRequest.getUuid();
+        List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
+        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents);
+        if (balanceChangeEventDto != null) {
+            return balanceChangeEventDto;
+        }
+        operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
+
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
         BigDecimal beforeAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         BigDecimal amountAfter = getAmountAfter(false, beforeAmount, reloadRequest.getAmount());
 
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, RELOAD, reloadRequest.getAmount(),
-            operationDate, randomUUID(), Metadata.of(reloadRequest.getMetadata()), amountAfter, beforeAmount);
+            operationDate, operationUuid, Metadata.of(reloadRequest.getMetadata()), amountAfter, beforeAmount);
         reloadPocket(reloadRequest, balance, changeEvent);
 
         metricService.updateMaxMetric(balance);
@@ -222,12 +232,19 @@ public class BalanceService {
     @Transactional
     @LogicExtensionPoint(value = "Charging", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto charging(Balance balance, ChargingBalanceRequest chargingRequest) {
-        assertBalanceAmout(balance, chargingRequest.getAmount());
+        assertBalanceAmount(balance, chargingRequest.getAmount());
 
+        String operationUuid = chargingRequest.getUuid();
+        List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
+        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents);
+        if (balanceChangeEventDto != null) {
+            return balanceChangeEventDto;
+        }
+        operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
         BigDecimal amountBefore = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         BigDecimal amountAfter = getAmountAfter(true, amountBefore, chargingRequest.getAmount());
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(balance, CHARGING, chargingRequest.getAmount(),
-            now(clock), randomUUID(), Metadata.of(chargingRequest.getMetadata()), amountAfter, amountBefore);
+            now(clock), operationUuid, Metadata.of(chargingRequest.getMetadata()), amountAfter, amountBefore);
         chargingPockets(balance, chargingRequest.getAmount(), changeEvent);
 
         changeEvent = balanceChangeEventRepository.save(changeEvent);
@@ -235,30 +252,54 @@ public class BalanceService {
         return balanceChangeEventMapper.toDto(changeEvent);
     }
 
+    private List<BalanceChangeEvent> getBalanceChangeEventsByOperationId(String operationUuid) {
+        if (StringUtils.isBlank(operationUuid)) {
+            return List.of();
+        }
+        return balanceChangeEventRepository.findBalanceChangeEventsByOperationId(operationUuid);
+    }
+
+    private BalanceChangeEventDto returnExistBalanceChangeEventDto(List<BalanceChangeEvent> existsBalanceChangeEvents) {
+        if (!existsBalanceChangeEvents.isEmpty()) {
+            BalanceChangeEvent balanceChangeEvent = existsBalanceChangeEvents.get(0);
+            log.warn("find duplicate balance change events for operationId: {} - {}, operation won't be processed",
+                balanceChangeEvent.getOperationId(), existsBalanceChangeEvents);
+            return balanceChangeEventMapper.toDto(balanceChangeEvent);
+        }
+        return null;
+    }
+
     @Transactional
     @LogicExtensionPoint("Transfer")
     public TransferDto transfer(TransferBalanceRequest transferRequest) {
+        String operationUuid = transferRequest.getUuid();
+        List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
+        TransferDto transferDto = returnExistTransferDto(existBalanceChangeEvents);
+        if (transferDto != null) {
+            return transferDto;
+        }
+        operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
+
         Long targetBalanceId = transferRequest.getTargetBalanceId();
 
         log.info("Start transfer balance with request {}", transferRequest);
         Balance sourceBalance = getBalanceForUpdate(transferRequest.getSourceBalanceId());
         BigDecimal amount = transferRequest.getAmount();
         Metadata metadata = Metadata.of(transferRequest.getMetadata());
-        assertBalanceAmout(sourceBalance, amount);
+        assertBalanceAmount(sourceBalance, amount);
 
         Instant now = now(clock);
 
-        UUID transactionId = randomUUID();
         BigDecimal amountBeforeTransferFrom = balanceRepository.findBalanceAmount(sourceBalance).orElse(ZERO);
         BigDecimal amountAfterTransferFrom = getAmountAfter(true, amountBeforeTransferFrom, amount);
         BalanceChangeEvent eventFrom = createBalanceChangeEvent(sourceBalance, TRANSFER_FROM, amount, now,
-                                                                transactionId, metadata, amountAfterTransferFrom, amountBeforeTransferFrom);
+                                                                operationUuid, metadata, amountAfterTransferFrom, amountBeforeTransferFrom);
         List<PocketCharging> pockets = chargingPockets(sourceBalance, amount, eventFrom);
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
         BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(targetBalance).orElse(ZERO);
         BigDecimal amountAfterTransferTo = getAmountAfter(false, amountBeforeTransferTo, amount);
-        BalanceChangeEvent eventTo = createBalanceChangeEvent(targetBalance, TRANSFER_TO, amount, now, transactionId,
+        BalanceChangeEvent eventTo = createBalanceChangeEvent(targetBalance, TRANSFER_TO, amount, now, operationUuid,
                                                               metadata, amountAfterTransferTo, amountBeforeTransferTo);
         pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId, metadata))
                .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo));
@@ -271,6 +312,25 @@ public class BalanceService {
             .from(balanceChangeEventMapper.toDto(eventFrom))
             .to(balanceChangeEventMapper.toDto(eventTo))
             .build();
+    }
+
+    private TransferDto returnExistTransferDto(List<BalanceChangeEvent> existsBalanceChangeEvents) {
+        if (!existsBalanceChangeEvents.isEmpty()) {
+            log.warn("find duplicate balance change events for operationId: {} - {}, operation won't be processed",
+                existsBalanceChangeEvents.get(0).getOperationId(), existsBalanceChangeEvents);
+
+            TransferDto transferDto = TransferDto.builder().build();
+            existsBalanceChangeEvents.forEach(balanceChangeEvent -> {
+                if (TRANSFER_FROM.equals(balanceChangeEvent.getOperationType())) {
+                    transferDto.setFrom(balanceChangeEventMapper.toDto(balanceChangeEvent));
+                }
+                if (TRANSFER_TO.equals(balanceChangeEvent.getOperationType())) {
+                    transferDto.setTo(balanceChangeEventMapper.toDto(balanceChangeEvent));
+                }
+            });
+            return transferDto;
+        }
+        return null;
     }
 
     private ReloadBalanceRequest toReloadRequest(PocketCharging pocket, Long targetBalanceId, Metadata metadata) {
@@ -381,7 +441,7 @@ public class BalanceService {
         }
     }
 
-    private void assertBalanceAmout(Balance balance, BigDecimal amount) {
+    private void assertBalanceAmount(Balance balance, BigDecimal amount) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
             BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
@@ -395,6 +455,17 @@ public class BalanceService {
                                                         BigDecimal amountDelta, Instant operationDate,
                                                         UUID transactionId, Metadata metadata, BigDecimal amountAfter,
                                                         BigDecimal amountBefore) {
+        return createBalanceChangeEvent(
+            balance, operationType,
+            amountDelta, operationDate,
+            transactionId.toString(), metadata,
+            amountAfter, amountBefore);
+    }
+
+    private BalanceChangeEvent createBalanceChangeEvent(Balance balance, OperationType operationType,
+                                                        BigDecimal amountDelta, Instant operationDate,
+                                                        String transactionId, Metadata metadata, BigDecimal amountAfter,
+        BigDecimal amountBefore) {
         BalanceChangeEvent event = new BalanceChangeEvent();
         event.setBalanceId(balance.getId());
         event.setBalanceKey(balance.getKey());
@@ -404,7 +475,7 @@ public class BalanceService {
         event.setOperationType(operationType);
         event.setAmountDelta(amountDelta);
         event.setOperationDate(operationDate);
-        event.setOperationId(transactionId.toString());
+        event.setOperationId(transactionId);
         event.setMetadata(metadata);
         event.setAmountAfter(amountAfter);
         event.setAmountBefore(amountBefore);

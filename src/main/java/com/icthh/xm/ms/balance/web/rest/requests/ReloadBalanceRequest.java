@@ -21,5 +21,6 @@ public class ReloadBalanceRequest {
     private Instant startDateTime;
     private Instant endDateTime;
     private Map<String, String> metadata;
+    private String uuid;
 
 }

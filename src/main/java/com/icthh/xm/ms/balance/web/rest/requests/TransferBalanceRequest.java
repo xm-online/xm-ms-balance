@@ -20,5 +20,6 @@ public class TransferBalanceRequest {
     @Min(0)
     private BigDecimal amount;
     private Map<String, String> metadata;
+    private String uuid;
 
 }
