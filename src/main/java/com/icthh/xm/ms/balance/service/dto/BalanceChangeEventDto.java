@@ -18,6 +18,7 @@ public class BalanceChangeEventDto {
     private OperationType operationType;
     private String operationId;
     private Instant operationDate;
+    private Instant prevOperationDate;
     private BigDecimal amountDelta;
     Map<String, String> metadata;
     private BigDecimal amountBefore;

@@ -9,13 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -75,6 +79,15 @@ public class HistoryRepositoryIntTest extends BaseDaoTest {
         assertTrue(events.contains(13L));
         assertTrue(events.contains(17L));
         log.info("{}", content);
+    }
+
+    @Test
+    @DataSet(value = "mockHistory-init.xml", disableConstraints = true)
+    public void testLastBalanceChangeEvent() {
+        Optional<BalanceChangeEvent> balancesHistory = balanceChangeEventRepository.findLastBalanceChangeEvent(1L);
+        BalanceChangeEvent balanceChangeEvent = balancesHistory.get();
+        assertThat(balanceChangeEvent.getId()).isEqualTo(19L);
+        assertThat(balanceChangeEvent.getBalanceId()).isEqualTo(1L);
     }
 
 }
