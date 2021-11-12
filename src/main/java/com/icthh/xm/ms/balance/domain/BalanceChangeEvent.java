@@ -56,6 +56,9 @@ public class BalanceChangeEvent {
     @Column(name = "operation_date", nullable = false)
     private Instant operationDate;
 
+    @Column(name = "prev_operation_date")
+    private Instant prevOperationDate;
+
     @NotNull
     @Column(name = "executed_by_user_key", nullable = false)
     private String executedByUserKey;

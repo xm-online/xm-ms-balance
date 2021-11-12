@@ -10,6 +10,7 @@ import com.icthh.xm.ms.balance.service.OperationType;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import javax.persistence.criteria.Predicate;
 
 import org.springframework.data.domain.Page;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface BalanceChangeEventRepository
     extends JpaRepository<BalanceChangeEvent, Long>, JpaSpecificationExecutor<BalanceChangeEvent>, ResourceRepository {
@@ -44,4 +47,7 @@ public interface BalanceChangeEventRepository
     }
 
     List<BalanceChangeEvent> findBalanceChangeEventsByOperationId(String operationId);
+
+    @Query("SELECT e FROM BalanceChangeEvent e WHERE e.operationDate = (SELECT MAX(e1.operationDate) from BalanceChangeEvent e1 WHERE e1.balanceId = :balanceId) AND e.balanceId = :balanceId")
+    Optional<BalanceChangeEvent> findLastBalanceChangeEvent(@Param("balanceId") Long balanceId);
 }
