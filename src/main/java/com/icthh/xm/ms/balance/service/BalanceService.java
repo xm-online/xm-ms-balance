@@ -14,6 +14,7 @@ import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
+import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
@@ -317,7 +318,8 @@ public class BalanceService {
         event.setBalanceKey(balance.getKey());
         event.setBalanceTypeKey(balance.getTypeKey());
         event.setBalanceEntityId(balance.getEntityId());
-        event.setExecutedByUserKey(authContextHolder.getContext().getRequiredUserKey());
+        XmAuthenticationContext context = authContextHolder.getContext();
+        event.setExecutedByUserKey(context.getUserKey().orElse(context.getRequiredLogin()));
         event.setOperationType(transferTo);
         event.setAmountDelta(amount);
         event.setOperationDate(now);
