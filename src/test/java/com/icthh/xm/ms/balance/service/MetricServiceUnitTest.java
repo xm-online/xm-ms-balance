@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -36,10 +37,11 @@ public class MetricServiceUnitTest {
     public void ifMetricsNotExistsCreateNew() {
         Balance balance = new Balance();
         balance.setId(456L);
-        when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("5")));
+        Instant now = Instant.now();
+        when(balanceRepository.findBalanceAmount(balance, now)).thenReturn(of(new BigDecimal("5")));
         when(metricRepository.findByTypeKeyAndBalance("MAX", balance)).thenReturn(empty());
 
-        metricService.updateMaxMetric(balance);
+        metricService.updateMaxMetric(balance, now);
 
         verify(metricRepository).save(refEq(new Metric().typeKey("MAX").value("5"), "key", "balance"));
     }
@@ -48,10 +50,11 @@ public class MetricServiceUnitTest {
     public void ifNewBalanceMoreThenInMetricMetricsUpdated() {
         Balance balance = new Balance();
         balance.setId(456L);
-        when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("18")));
+        Instant now = Instant.now();
+        when(balanceRepository.findBalanceAmount(balance, now)).thenReturn(of(new BigDecimal("18")));
         when(metricRepository.findByTypeKeyAndBalance("MAX", balance)).thenReturn(of(new Metric().typeKey("MAX").value("17")));
 
-        metricService.updateMaxMetric(balance);
+        metricService.updateMaxMetric(balance, now);
 
         verify(metricRepository).save(refEq(new Metric().typeKey("MAX").value("18"), "key", "balance"));
     }
@@ -60,10 +63,10 @@ public class MetricServiceUnitTest {
     public void ifNewBalanceLessThenInMetricMetricsNotChanged() {
         Balance balance = new Balance();
         balance.setId(456L);
-        when(balanceRepository.findBalanceAmount(balance)).thenReturn(of(new BigDecimal("17")));
+        when(balanceRepository.findBalanceAmount(balance, Instant.now())).thenReturn(of(new BigDecimal("17")));
         when(metricRepository.findByTypeKeyAndBalance("MAX", balance)).thenReturn(of(new Metric().typeKey("MAX").value("18")));
 
-        metricService.updateMaxMetric(balance);
+        metricService.updateMaxMetric(balance, Instant.now());
 
         verify(metricRepository).findByTypeKeyAndBalance(eq("MAX"), refEq(balance));
         verifyNoMoreInteractions(metricRepository);

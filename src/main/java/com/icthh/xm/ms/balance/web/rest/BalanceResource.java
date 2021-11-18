@@ -19,6 +19,7 @@ import io.github.jhipster.web.util.ResponseUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -30,14 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller for managing Balance.
@@ -127,8 +121,8 @@ public class BalanceResource {
     @GetMapping("/balances/{id}")
     @Timed
     @PrivilegeDescription("Privilege to get the balance by id")
-    public ResponseEntity<BalanceDTO> getBalance(@PathVariable Long id) {
-        BalanceDTO balanceDTO = balanceService.findOne(id);
+    public ResponseEntity<BalanceDTO> getBalance(@PathVariable Long id, @RequestParam(value = "applyDate", required = false) Instant applyDate) {
+        BalanceDTO balanceDTO = balanceService.findOne(id, applyDate);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balanceDTO));
     }
 

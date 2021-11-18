@@ -12,6 +12,7 @@ import com.icthh.xm.ms.balance.service.dto.MetricDTO;
 import com.icthh.xm.ms.balance.service.mapper.MetricMapper;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,10 +38,10 @@ public class MetricService {
     private final MetricMapper metricMapper;
 
     @Transactional
-    public void updateMaxMetric(Balance balance) {
+    public void updateMaxMetric(Balance balance, Instant applyDate) {
         Metric max = metricRepository.findByTypeKeyAndBalance(MAX_METRIC_TYPE_KEY, balance).orElse(new Metric()
             .key(randomUUID().toString()).typeKey(MAX_METRIC_TYPE_KEY).value("0").balance(balance));
-        BigDecimal currentBalance = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
+        BigDecimal currentBalance = balanceRepository.findBalanceAmount(balance, applyDate).orElse(ZERO);
         if (currentBalance.compareTo(new BigDecimal(max.getValue())) > 0) {
             max.setValue(currentBalance.toString());
             metricRepository.save(max);

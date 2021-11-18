@@ -122,11 +122,11 @@ public class BalanceService {
      * @return the entity
      */
     @Transactional(readOnly = true)
-    public BalanceDTO findOne(Long id) {
+    public BalanceDTO findOne(Long id, Instant applyDate) {
         Balance balance = balanceRepository.findById(id).orElse(null);
         BalanceDTO balanceDTO = balanceMapper.toDto(balance);
         if (balanceDTO != null) {
-            balanceDTO.setAmount(balanceRepository.findBalanceAmount(balance).orElse(ZERO));
+            balanceDTO.setAmount(balanceRepository.findBalanceAmount(balance, applyDate == null ? now(clock) : applyDate).orElse(ZERO));
         }
         return balanceDTO;
     }
@@ -210,10 +210,10 @@ public class BalanceService {
 
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, reloadRequest.getAmount(),
-                Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, RELOAD);
+            Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, RELOAD);
         reloadPocket(reloadRequest, balance, changeEvent);
 
-        metricService.updateMaxMetric(balance);
+        metricService.updateMaxMetric(balance, operationDate);
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
         return balanceChangeEventMapper.toDto(changeEvent);
@@ -230,7 +230,7 @@ public class BalanceService {
     @LogicExtensionPoint(value = "Charging", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto charging(Balance balance, ChargingBalanceRequest chargingRequest) {
         Instant applyDate = chargingRequest.getApplyDate() != null ? chargingRequest.getApplyDate() : now(clock);
-        assertBalanceAmount(balance, chargingRequest.getAmount());
+        assertBalanceAmount(balance, chargingRequest.getAmount(), applyDate);
 
         String operationUuid = chargingRequest.getUuid();
         List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
@@ -283,19 +283,19 @@ public class BalanceService {
         BigDecimal amount = transferRequest.getAmount();
         Metadata metadata = Metadata.of(transferRequest.getMetadata());
 
-        Instant now = transferRequest.getApplyDate() == null ?  now(clock) : transferRequest.getApplyDate();
+        Instant applyDate = transferRequest.getApplyDate() == null ? now(clock) : transferRequest.getApplyDate();
 
-        assertBalanceAmount(sourceBalance, amount);
+        assertBalanceAmount(sourceBalance, amount, applyDate);
 
-        BalanceChangeEvent eventFrom = createBalanceChangeEvent(operationUuid, amount, metadata, now, sourceBalance, true, TRANSFER_FROM);
-        List<PocketCharging> pockets = chargingPockets(sourceBalance, amount, eventFrom, now);
+        BalanceChangeEvent eventFrom = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, sourceBalance, true, TRANSFER_FROM);
+        List<PocketCharging> pockets = chargingPockets(sourceBalance, amount, eventFrom, applyDate);
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
-        BalanceChangeEvent eventTo = createBalanceChangeEvent(operationUuid, amount, metadata, now, targetBalance, false, TRANSFER_TO);
+        BalanceChangeEvent eventTo = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, targetBalance, false, TRANSFER_TO);
         pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId, metadata))
-               .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo));
+            .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo));
 
-        metricService.updateMaxMetric(targetBalance);
+        metricService.updateMaxMetric(targetBalance, applyDate);
         balanceChangeEventRepository.save(eventFrom);
         balanceChangeEventRepository.save(eventTo);
         return TransferDto
@@ -306,9 +306,9 @@ public class BalanceService {
     }
 
     private BalanceChangeEvent createBalanceChangeEvent(String operationUuid, BigDecimal amount, Metadata metadata,
-                                                   Instant operationDate, Balance balance, boolean isSubtractAmount,
-                                                   OperationType transferTo) {
-        BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
+                                                        Instant operationDate, Balance balance, boolean isSubtractAmount,
+                                                        OperationType transferTo) {
+        BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(balance, operationDate).orElse(ZERO);
         BigDecimal amountAfterTransferTo = getAmountAfter(isSubtractAmount, amountBeforeTransferTo, amount);
         Instant prevOperationDate = balanceChangeEventRepository
             .findLastBalanceChangeEvent(balance.getId())
@@ -464,8 +464,8 @@ public class BalanceService {
         }
     }
 
-    private void assertBalanceAmount(Balance balance, BigDecimal amount) {
-        BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
+    private void assertBalanceAmount(Balance balance, BigDecimal amount, Instant aplyDate) {
+        BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance, aplyDate).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
             BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
             if (!balanceTypeSpec.getAllowNegative().isEnabled()) {

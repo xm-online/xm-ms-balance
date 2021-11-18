@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,7 +28,7 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
     @DataSet(value = "mockBalances-init.xml", disableConstraints = true)
     public void amountCalculatedFromPockedWithFilterByDate() {
         Optional<BigDecimal> balanceAmount = balanceRepository.findBalanceAmount(
-            balanceRepository.findById(1L).get());
+            balanceRepository.findById(1L).get(), Instant.now());
         assertEquals(new BigDecimal("123.00"), balanceAmount.get());
         log.info("{}", balanceAmount);
     }
