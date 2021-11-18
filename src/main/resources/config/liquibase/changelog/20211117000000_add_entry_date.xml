@@ -1,0 +1,34 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20211117000000" author="ssenko">
+        <addColumn tableName="balance_change_event">
+            <column name="entry_date" type="timestamp">
+            </column>
+        </addColumn>
+
+        <createIndex tableName="balance_change_event" indexName="bce_entry_date_index">
+            <column name="entry_date"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20211117000001" author="ssenko">
+        <update tableName="balance_change_event">
+            <column name="entry_date" valueComputed="operation_date"/>
+        </update>
+    </changeSet>
+
+    <changeSet id="20211117000002" author="ssenko">
+        <addNotNullConstraint tableName="balance_change_event" columnName="entry_date" columnDataType="timestamp" />
+    </changeSet>
+
+    <changeSet id="20211117000003" author="ssenko">
+        <renameColumn columnDataType="timestamp"
+                      newColumnName="prev_entry_date"
+                      oldColumnName="prev_operation_date"
+                      tableName="balance_change_event"/>
+    </changeSet>
+
+</databaseChangeLog>

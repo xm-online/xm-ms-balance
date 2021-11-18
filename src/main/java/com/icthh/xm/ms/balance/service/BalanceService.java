@@ -210,7 +210,7 @@ public class BalanceService {
 
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, reloadRequest.getAmount(),
-            Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, RELOAD);
+                Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, RELOAD);
         reloadPocket(reloadRequest, balance, changeEvent);
 
         metricService.updateMaxMetric(balance);
@@ -293,7 +293,7 @@ public class BalanceService {
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
         BalanceChangeEvent eventTo = createBalanceChangeEvent(operationUuid, amount, metadata, now, targetBalance, false, TRANSFER_TO);
         pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId, metadata))
-            .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo));
+               .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo));
 
         metricService.updateMaxMetric(targetBalance);
         balanceChangeEventRepository.save(eventFrom);
@@ -306,8 +306,8 @@ public class BalanceService {
     }
 
     private BalanceChangeEvent createBalanceChangeEvent(String operationUuid, BigDecimal amount, Metadata metadata,
-                                                        Instant now, Balance balance, boolean isSubtractAmount,
-                                                        OperationType transferTo) {
+                                                   Instant operationDate, Balance balance, boolean isSubtractAmount,
+                                                   OperationType transferTo) {
         BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         BigDecimal amountAfterTransferTo = getAmountAfter(isSubtractAmount, amountBeforeTransferTo, amount);
         Instant prevOperationDate = balanceChangeEventRepository
@@ -324,8 +324,9 @@ public class BalanceService {
         event.setExecutedByUserKey(context.getUserKey().orElse(context.getRequiredLogin()));
         event.setOperationType(transferTo);
         event.setAmountDelta(amount);
-        event.setOperationDate(now);
-        event.setPrevOperationDate(prevOperationDate);
+        event.setOperationDate(operationDate);
+        event.setEntryDate(Instant.now());
+        event.setPrevEntryDate(prevOperationDate);
         event.setOperationId(operationUuid);
         event.setMetadata(metadata);
         event.setAmountAfter(amountAfterTransferTo);
