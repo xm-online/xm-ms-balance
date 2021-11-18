@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest.requests;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
@@ -21,5 +22,6 @@ public class TransferBalanceRequest {
     private BigDecimal amount;
     private Map<String, String> metadata;
     private String uuid;
+    private Instant applyDate;
 
 }
