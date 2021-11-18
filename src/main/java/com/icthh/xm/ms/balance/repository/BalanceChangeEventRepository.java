@@ -48,6 +48,6 @@ public interface BalanceChangeEventRepository
 
     List<BalanceChangeEvent> findBalanceChangeEventsByOperationId(String operationId);
 
-    @Query("SELECT e FROM BalanceChangeEvent e WHERE e.operationDate = (SELECT MAX(e1.operationDate) from BalanceChangeEvent e1 WHERE e1.balanceId = :balanceId) AND e.balanceId = :balanceId")
+    @Query("SELECT e FROM BalanceChangeEvent e WHERE e.entryDate = (SELECT MAX(e1.entryDate) from BalanceChangeEvent e1 WHERE e1.balanceId = :balanceId) AND e.balanceId = :balanceId")
     Optional<BalanceChangeEvent> findLastBalanceChangeEvent(@Param("balanceId") Long balanceId);
 }

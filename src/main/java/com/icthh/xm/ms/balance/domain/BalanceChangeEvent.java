@@ -53,11 +53,15 @@ public class BalanceChangeEvent {
     private OperationType operationType;
 
     @NotNull
+    @Column(name = "entry_date", nullable = false)
+    private Instant entryDate;
+
+    @Column(name = "prev_entry_date")
+    private Instant prevEntryDate;
+
+    @NotNull
     @Column(name = "operation_date", nullable = false)
     private Instant operationDate;
-
-    @Column(name = "prev_operation_date")
-    private Instant prevOperationDate;
 
     @NotNull
     @Column(name = "executed_by_user_key", nullable = false)
