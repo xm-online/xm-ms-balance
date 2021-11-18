@@ -190,7 +190,7 @@ public class BalanceServiceUnitTest {
             BalanceChangeEvent actual = allValues.get(i);
             BalanceChangeEvent expected = balanceChangeEvents[i];
             assertTrue(new ReflectionEquals(expected,
-                "pocketChangeEvents", "operationId").matches(actual));
+                "pocketChangeEvents", "operationId", "entryDate").matches(actual));
             expectedPocketChangeEvents(actual, expected);
 
             if (operationId != null) {
@@ -232,7 +232,7 @@ public class BalanceServiceUnitTest {
             .executedByUserKey("requiredUserKey")
             .operationType(operationType)
             .operationDate(ofEpochSecond(1525428386))
-            .prevOperationDate(EPOCH)
+            .prevEntryDate(EPOCH)
             .pocketChangeEvents(asList(pocketChangeEvents))
             .metadata(new Metadata(metadata))
             .amountAfter(new BigDecimal(amountAfter))
@@ -244,7 +244,7 @@ public class BalanceServiceUnitTest {
                                                   long balanceId,
                                                   OperationType operationType,
                                                   Instant operationDate,
-                                                  Instant prevOperationDate,
+                                                  Instant prevEntryDate,
                                                   String amountAfter,
                                                   String amountBefore,
                                                   PocketChangeEvent... pocketChangeEvents) {
@@ -254,7 +254,7 @@ public class BalanceServiceUnitTest {
                 .executedByUserKey("requiredUserKey")
                 .operationType(operationType)
                 .operationDate(operationDate)
-                .prevOperationDate(prevOperationDate)
+                .prevEntryDate(prevEntryDate)
                 .pocketChangeEvents(asList(pocketChangeEvents))
                 .metadata(new Metadata())
                 .amountAfter(new BigDecimal(amountAfter))
@@ -1228,7 +1228,7 @@ public class BalanceServiceUnitTest {
         BalanceChangeEvent expectedBalanceChangeEvent =
             createBalanceEvent("501.22", 1L, CHARGING, "98.78", "600");
             expectedBalanceChangeEvent.setOperationId(uuid);
-        verify(balanceChangeEventRepository).save(refEq(expectedBalanceChangeEvent, "pocketChangeEvents"));
+        verify(balanceChangeEventRepository).save(refEq(expectedBalanceChangeEvent, "pocketChangeEvents", "entryDate"));
 
     }
 

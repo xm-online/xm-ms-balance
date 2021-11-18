@@ -304,7 +304,7 @@ public class BalanceService {
     }
 
     private BalanceChangeEvent createBalanceChangeEvent(String operationUuid, BigDecimal amount, Metadata metadata,
-                                                   Instant now, Balance balance, boolean isSubtractAmount,
+                                                   Instant operationDate, Balance balance, boolean isSubtractAmount,
                                                    OperationType transferTo) {
         BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(balance).orElse(ZERO);
         BigDecimal amountAfterTransferTo = getAmountAfter(isSubtractAmount, amountBeforeTransferTo, amount);
@@ -322,8 +322,9 @@ public class BalanceService {
         event.setExecutedByUserKey(context.getUserKey().orElse(context.getRequiredLogin()));
         event.setOperationType(transferTo);
         event.setAmountDelta(amount);
-        event.setOperationDate(now);
-        event.setPrevOperationDate(prevOperationDate);
+        event.setOperationDate(operationDate);
+        event.setEntryDate(Instant.now());
+        event.setPrevEntryDate(prevOperationDate);
         event.setOperationId(operationUuid);
         event.setMetadata(metadata);
         event.setAmountAfter(amountAfterTransferTo);
