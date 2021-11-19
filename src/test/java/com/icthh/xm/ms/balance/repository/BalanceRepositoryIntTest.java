@@ -31,6 +31,13 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
             balanceRepository.findById(1L).get(), Instant.now());
         assertEquals(new BigDecimal("123.00"), balanceAmount.get());
         log.info("{}", balanceAmount);
+
+        balanceAmount = balanceRepository.findBalanceAmount(
+            balanceRepository.findById(1L).get(), Instant.parse("2013-05-01T00:00:06Z"));
+        assertEquals(new BigDecimal("700.00"), balanceAmount.get());
+        balanceAmount = balanceRepository.findBalanceAmount(
+            balanceRepository.findById(1L).get(), Instant.parse("2015-05-01T00:00:06Z"));
+        assertEquals(new BigDecimal("1400.00"), balanceAmount.get());
     }
 
     @Test
@@ -45,5 +52,4 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
         assertEquals(new BigDecimal("123.00"), balancesAmount.get(1L));
         assertEquals(new BigDecimal("10000.00"), balancesAmount.get(2L));
     }
-
 }
