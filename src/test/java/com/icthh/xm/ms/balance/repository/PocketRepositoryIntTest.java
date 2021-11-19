@@ -110,17 +110,17 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
     public void amountCalculatedFromPockedWithFilterByStartDate() {
 
         Page<Pocket> pockets = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(6L).get(),
-            Instant.parse("2013-05-01T00:00:00Z"), PageRequest.of(0, 5));
+            Instant.parse("2013-05-03T00:00:00Z"), PageRequest.of(0, 5));
         log.info("{}", pockets.getContent());
         assertEquals(asList(31L, 32L), pockets.map(Pocket::getId).getContent());
 
         Page<Pocket> pockets1 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(6L).get(),
-            Instant.parse("2015-05-01T00:00:00Z"), PageRequest.of(0, 5));
+            Instant.parse("2015-05-03T00:00:00Z"), PageRequest.of(0, 5));
         log.info("{}", pockets1.getContent());
         assertEquals(asList(33L), pockets1.map(Pocket::getId).getContent());
 
         Page<Pocket> pockets2 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(6L).get(),
-            Instant.parse("2011-05-01T00:00:00Z"), PageRequest.of(0, 5));
+            Instant.parse("2011-05-03T00:00:00Z"), PageRequest.of(0, 5));
         log.info("{}", pockets2.getContent());
         assertEquals(asList(30L), pockets2.map(Pocket::getId).getContent());
     }

@@ -465,8 +465,8 @@ public class BalanceService {
         }
     }
 
-    private void assertBalanceAmount(Balance balance, BigDecimal amount, Instant aplyDate) {
-        BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance, aplyDate).orElse(ZERO);
+    private void assertBalanceAmount(Balance balance, BigDecimal amount, Instant applyDate) {
+        BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance, applyDate).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
             BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
             if (!balanceTypeSpec.getAllowNegative().isEnabled()) {
