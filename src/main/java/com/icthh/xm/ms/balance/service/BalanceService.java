@@ -123,10 +123,11 @@ public class BalanceService {
      */
     @Transactional(readOnly = true)
     public BalanceDTO findOne(Long id, Instant applyDate) {
+        Instant now  = applyDate == null ? now(clock) : applyDate;
         Balance balance = balanceRepository.findById(id).orElse(null);
         BalanceDTO balanceDTO = balanceMapper.toDto(balance);
         if (balanceDTO != null) {
-            balanceDTO.setAmount(balanceRepository.findBalanceAmount(balance, applyDate == null ? now(clock) : applyDate).orElse(ZERO));
+            balanceDTO.setAmount(balanceRepository.findBalanceAmount(balance, now).orElse(ZERO));
         }
         return balanceDTO;
     }
