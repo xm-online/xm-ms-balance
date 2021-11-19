@@ -6,6 +6,7 @@ import com.icthh.xm.commons.permission.access.repository.ResourceRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,8 +26,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BalanceRepository extends JpaRepository<Balance, Long>, JpaSpecificationExecutor<Balance>, ResourceRepository {
 
-    @Query("SELECT SUM(p.amount) FROM Pocket as p WHERE p.balance = :balance AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL)) AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL))")
-    Optional<BigDecimal> findBalanceAmount(@Param("balance") Balance balance);
+    @Query("SELECT SUM(p.amount) FROM Pocket as p WHERE p.balance = :balance AND ((p.startDateTime < :applyDate) OR (p.startDateTime IS NULL)) AND ((p.endDateTime > :applyDate ) OR (p.endDateTime IS NULL))")
+    Optional<BigDecimal> findBalanceAmount(@Param("balance") Balance balance, @Param("applyDate") Instant applyDate);
 
     @Query("SELECT new com.icthh.xm.ms.balance.repository.BalanceAmountDto(p.balance.id, SUM(p.amount)) FROM Pocket as p WHERE p.balance in :balances AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL)) AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL)) GROUP BY p.balance")
     List<BalanceAmountDto> getBalancesAmount(@Param("balances") List<Balance> balances);

@@ -44,17 +44,21 @@ public interface PocketRepository
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Pocket as p WHERE p.balance = :balance AND p.amount > 0 "
-        + " AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL))"
-        + " AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL))"
+        + " AND ((p.startDateTime < :chargeDate) OR (p.startDateTime IS NULL))"
+        + " AND ((p.endDateTime > :chargeDate) OR (p.endDateTime IS NULL))"
         + " ORDER BY p.endDateTime ASC NULLS LAST, p.startDateTime ASC NULLS LAST")
-    Page<Pocket> findPocketForChargingOrderByDates(@Param("balance") Balance balance, Pageable pageable);
+    Page<Pocket> findPocketForChargingOrderByDates(@Param("balance") Balance balance,
+                                                   @Param("chargeDate") Instant chargeDate,
+                                                   Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Pocket as p WHERE p.balance = :balance "
-        + " AND ((p.startDateTime < CURRENT_TIMESTAMP()) OR (p.startDateTime IS NULL))"
-        + " AND ((p.endDateTime > CURRENT_TIMESTAMP()) OR (p.endDateTime IS NULL))"
+        + " AND ((p.startDateTime < :chargeDate) OR (p.startDateTime IS NULL))"
+        + " AND ((p.endDateTime > :chargeDate) OR (p.endDateTime IS NULL))"
         + " ORDER BY p.endDateTime ASC NULLS LAST, p.startDateTime ASC NULLS LAST")
-    Page<Pocket> findPocketForChargingWithNegativeOrderByDates(@Param("balance") Balance balance, Pageable pageable);
+    Page<Pocket> findPocketForChargingWithNegativeOrderByDates(@Param("balance") Balance balance,
+                                                               @Param("chargeDate") Instant chargeDate,
+                                                               Pageable pageable);
 
     Optional<Pocket> findByLabelAndBalanceId(String label, Long balanceId);
 

@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
@@ -810,6 +811,52 @@ public class BalanceResourceIntTest {
         pocketRepository.saveAndFlush(pocket);
         pocketRepository.saveAndFlush(pocket1);
         pocketRepository.saveAndFlush(expired);
+    }
+
+    @Test
+    @Transactional
+    public void getBalanceWithApplyDate() throws Exception {
+        // Initialize the database
+        balanceRepository.saveAndFlush(balance);
+
+        expectBalanceHasPockets(balance);
+
+        // Get the balance
+        restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()).param("applyDate", Instant.now().toString()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
+            .andExpect(jsonPath("$.key").value(DEFAULT_KEY))
+            .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY))
+            .andExpect(jsonPath("$.measureKey").value(DEFAULT_MEASURE_KEY))
+            .andExpect(jsonPath("$.reserved").value(DEFAULT_RESERVED.intValue()))
+            .andExpect(jsonPath("$.entityId").value(DEFAULT_ENTITY_ID.intValue()))
+            .andExpect(jsonPath("$.createdBy").value(DEFAULT_CREATED_BY))
+            .andExpect(jsonPath("$.amount").value(AMOUNT.doubleValue()))
+            .andDo(print());
+    }
+
+    @Test
+    @Transactional
+    public void getBalanceAmountWithWrongApplyDate() throws Exception {
+        // Initialize the database
+        balanceRepository.saveAndFlush(balance);
+
+        expectBalanceHasPockets(balance);
+
+        // Get the balance
+        restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()).param("applyDate", Instant.now().plusSeconds(1000).toString()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
+            .andExpect(jsonPath("$.key").value(DEFAULT_KEY))
+            .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY))
+            .andExpect(jsonPath("$.measureKey").value(DEFAULT_MEASURE_KEY))
+            .andExpect(jsonPath("$.reserved").value(DEFAULT_RESERVED.intValue()))
+            .andExpect(jsonPath("$.entityId").value(DEFAULT_ENTITY_ID.intValue()))
+            .andExpect(jsonPath("$.createdBy").value(DEFAULT_CREATED_BY))
+            .andExpect(jsonPath("$.amount").value(0))
+            .andDo(print());
     }
 
 }

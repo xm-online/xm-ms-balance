@@ -9,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.core.api.dataset.ExpectedDataSet;
 import com.icthh.xm.ms.balance.domain.Pocket;
+
+import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -53,17 +55,17 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
         List<Long> expectedOrder = asList(11L, 18L, 24L, 13L, 22L, 25L, 23L, 14L, 15L, 16L, 19L, 17L, 20L, 21L);
 
         Page<Pocket> pockets = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(4L).get(),
-            PageRequest.of(0, 5));
+            Instant.now(), PageRequest.of(0, 5));
         log.info("{}", pockets.getContent());
         assertEquals(expectedOrder.subList(0, 5), pockets.map(Pocket::getId).getContent());
 
         Page<Pocket> pockets1 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(4L).get(),
-            PageRequest.of(1, 5));
+            Instant.now(), PageRequest.of(1, 5));
         log.info("{}", pockets1.getContent());
         assertEquals(expectedOrder.subList(5, 10), pockets1.map(Pocket::getId).getContent());
 
         Page<Pocket> pockets2 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(4L).get(),
-            PageRequest.of(2, 5));
+            Instant.now(), PageRequest.of(2, 5));
         log.info("{}", pockets2.getContent());
         assertEquals(expectedOrder.subList(10, 14), pockets2.map(Pocket::getId).getContent());
     }
@@ -102,5 +104,25 @@ public class PocketRepositoryIntTest extends BaseDaoTest {
         pocketRepository.deletePocketWithZeroAmount(1L);
     }
 
+
+    @Test
+    @DataSet(value = "mockBalances-init.xml", disableConstraints = true)
+    public void amountCalculatedFromPockedWithFilterByStartDate() {
+
+        Page<Pocket> pockets = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(6L).get(),
+            Instant.parse("2013-05-03T00:00:00Z"), PageRequest.of(0, 5));
+        log.info("{}", pockets.getContent());
+        assertEquals(asList(31L, 32L), pockets.map(Pocket::getId).getContent());
+
+        Page<Pocket> pockets1 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(6L).get(),
+            Instant.parse("2015-05-03T00:00:00Z"), PageRequest.of(0, 5));
+        log.info("{}", pockets1.getContent());
+        assertEquals(asList(33L), pockets1.map(Pocket::getId).getContent());
+
+        Page<Pocket> pockets2 = pocketRepository.findPocketForChargingOrderByDates(balanceRepository.findById(6L).get(),
+            Instant.parse("2011-05-03T00:00:00Z"), PageRequest.of(0, 5));
+        log.info("{}", pockets2.getContent());
+        assertEquals(asList(30L), pockets2.map(Pocket::getId).getContent());
+    }
 }
 
