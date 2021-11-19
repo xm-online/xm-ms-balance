@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.time.Instant.ofEpochSecond;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
@@ -33,10 +34,10 @@ public class BalanceRepositoryIntTest extends BaseDaoTest {
         log.info("{}", balanceAmount);
 
         balanceAmount = balanceRepository.findBalanceAmount(
-            balanceRepository.findById(1L).get(), Instant.parse("2013-05-01T00:00:06Z"));
+            balanceRepository.findById(1L).get(), ofEpochSecond(1367366406));
         assertEquals(new BigDecimal("700.00"), balanceAmount.get());
         balanceAmount = balanceRepository.findBalanceAmount(
-            balanceRepository.findById(1L).get(), Instant.parse("2015-05-01T00:00:06Z"));
+            balanceRepository.findById(1L).get(), ofEpochSecond(1430438406));
         assertEquals(new BigDecimal("1400.00"), balanceAmount.get());
     }
 
