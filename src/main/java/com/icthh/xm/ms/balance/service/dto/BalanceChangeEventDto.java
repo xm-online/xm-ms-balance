@@ -3,6 +3,7 @@ package com.icthh.xm.ms.balance.service.dto;
 import com.icthh.xm.ms.balance.service.OperationType;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -25,4 +26,5 @@ public class BalanceChangeEventDto {
     Map<String, String> metadata;
     private BigDecimal amountBefore;
     private BigDecimal amountAfter;
+    private List<PocketChangeEventDto> pocketChangeEvents;
 }

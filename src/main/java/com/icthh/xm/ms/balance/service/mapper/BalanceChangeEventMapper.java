@@ -12,6 +12,7 @@ import org.mapstruct.Mapping;
 public interface BalanceChangeEventMapper extends EntityMapper<BalanceChangeEventDto, BalanceChangeEvent> {
     @Override
     @Mapping(target = "metadata", source = "metadata.metadata" )
+    @Mapping(target = "pocketChangeEvents", source = "pocketChangeEvents", ignore = true )
     BalanceChangeEventDto toDto(BalanceChangeEvent entity);
 
     @Mapping(target = "metadata.metadata", source = "metadata" )

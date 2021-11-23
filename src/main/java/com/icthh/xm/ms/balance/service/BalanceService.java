@@ -19,8 +19,8 @@ import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
-import com.icthh.xm.ms.balance.domain.BalanceSpec;
 import com.icthh.xm.ms.balance.domain.BalanceSpec.AllowNegative;
+import com.icthh.xm.ms.balance.domain.BalanceSpec.BalanceTypeSpec;
 import com.icthh.xm.ms.balance.domain.Metadata;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
@@ -33,6 +33,7 @@ import com.icthh.xm.ms.balance.service.dto.PocketCharging;
 import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import com.icthh.xm.ms.balance.service.mapper.PocketChangeEventMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
@@ -80,6 +81,7 @@ public class BalanceService {
     private final XmAuthenticationContextHolder authContextHolder;
     private final BalanceChangeEventRepository balanceChangeEventRepository;
     private final BalanceSpecService balanceSpecService;
+    private final PocketChangeEventMapper pocketChangeEventMapper;
     @Setter(onMethod = @__(@Autowired))
     private BalanceService self;
     private Clock clock = Clock.systemDefaultZone();
@@ -203,7 +205,7 @@ public class BalanceService {
 
         String operationUuid = reloadRequest.getUuid();
         List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
-        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents);
+        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents, false);
         if (balanceChangeEventDto != null) {
             return balanceChangeEventDto;
         }
@@ -235,7 +237,7 @@ public class BalanceService {
 
         String operationUuid = chargingRequest.getUuid();
         List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
-        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents);
+        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents, chargingRequest.isWithAffectedPocketHistory());
         if (balanceChangeEventDto != null) {
             return balanceChangeEventDto;
         }
@@ -245,7 +247,11 @@ public class BalanceService {
         chargingPockets(balance, chargingRequest.getAmount(), changeEvent, applyDate);
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
-        return balanceChangeEventMapper.toDto(changeEvent);
+        BalanceChangeEventDto dto = balanceChangeEventMapper.toDto(changeEvent);
+        if (chargingRequest.isWithAffectedPocketHistory()){
+            dto.setPocketChangeEvents(pocketChangeEventMapper.toDto(changeEvent.getPocketChangeEvents()));
+        }
+        return dto;
     }
 
     private List<BalanceChangeEvent> getBalanceChangeEventsByOperationId(String operationUuid) {
@@ -255,11 +261,15 @@ public class BalanceService {
         return balanceChangeEventRepository.findBalanceChangeEventsByOperationId(operationUuid);
     }
 
-    private BalanceChangeEventDto returnExistBalanceChangeEventDto(List<BalanceChangeEvent> existsBalanceChangeEvents) {
+    private BalanceChangeEventDto returnExistBalanceChangeEventDto(List<BalanceChangeEvent> existsBalanceChangeEvents, boolean withAffectedPocketHistory) {
         if (!existsBalanceChangeEvents.isEmpty()) {
             BalanceChangeEvent balanceChangeEvent = existsBalanceChangeEvents.get(0);
             log.warn("find duplicate balance change events for operationId: {} - {}, operation won't be processed",
                 balanceChangeEvent.getOperationId(), existsBalanceChangeEvents);
+            BalanceChangeEventDto dto = balanceChangeEventMapper.toDto(balanceChangeEvent);
+            if (withAffectedPocketHistory){
+                dto.setPocketChangeEvents(pocketChangeEventMapper.toDto(balanceChangeEvent.getPocketChangeEvents()));
+            }
             return balanceChangeEventMapper.toDto(balanceChangeEvent);
         }
         return null;
@@ -375,7 +385,7 @@ public class BalanceService {
         BigDecimal amountToCheckout = amount;
         List<PocketCharging> affectedPockets = new ArrayList<>();
         Integer pocketCheckoutBatchSize = applicationProperties.getPocketChargingBatchSize();
-        BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+        BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
         AllowNegative allowNegative = balanceTypeSpec.getAllowNegative();
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
@@ -414,7 +424,7 @@ public class BalanceService {
     }
 
     private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketCharging> affectedPockets,
-                                       Page<Pocket> pockets, BalanceChangeEvent changeEvent, BalanceSpec.BalanceTypeSpec balanceSpec, Balance balance) {
+                                       Page<Pocket> pockets, BalanceChangeEvent changeEvent, BalanceTypeSpec balanceSpec, Balance balance) {
 
         for (Pocket pocket : pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
@@ -467,7 +477,7 @@ public class BalanceService {
 
     private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
         if (pockets.isEmpty()) {
-            BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+            BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
             if (!balanceTypeSpec.isAllowChargeAsManyAsHave() && !balanceTypeSpec.getAllowNegative().isEnabled()) {
                 throw new NoEnoughMoneyException(balance.getId(), amount.subtract(amountToCheckout));
             }
@@ -477,7 +487,7 @@ public class BalanceService {
     private void assertBalanceAmount(Balance balance, BigDecimal amount, Instant applyDate) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance, applyDate).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
-            BalanceSpec.BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+            BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
             if (!balanceTypeSpec.isAllowChargeAsManyAsHave() && !balanceTypeSpec.getAllowNegative().isEnabled()) {
                 throw new NoEnoughMoneyException(balance.getId(), currentAmount);
             }
