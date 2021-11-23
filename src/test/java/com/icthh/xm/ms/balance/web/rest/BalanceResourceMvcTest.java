@@ -32,9 +32,7 @@ import java.util.function.Consumer;
 
 import static java.time.Instant.now;
 import static org.mockito.ArgumentMatchers.refEq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -82,7 +80,7 @@ public class BalanceResourceMvcTest {
         Instant startDateTime = now();
         ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(endDateTime, startDateTime);
 
-        doReturn(createBalanceChangeEventDto()).when(balanceService).reload(reloadBalanceRequest);
+        doReturn(createBalanceChangeEventDto(OperationType.RELOAD)).when(balanceService).reload(reloadBalanceRequest);
 
         mockMvc.perform(post("/api/balances/reload")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -101,13 +99,20 @@ public class BalanceResourceMvcTest {
             .setLabel("label");
     }
 
-    private BalanceChangeEventDto createBalanceChangeEventDto() {
+    private BalanceChangeEventDto createBalanceChangeEventDto(OperationType operationType) {
         return new BalanceChangeEventDto()
             .setOperationId(UUID.randomUUID().toString())
-            .setOperationType(OperationType.RELOAD)
+            .setOperationType(operationType)
             .setAmountDelta(new BigDecimal("50"))
             .setBalanceId(5L)
             .setOperationDate(Instant.now());
+    }
+
+    private ChargingBalanceRequest chargingBalanceRequest() {
+        return new ChargingBalanceRequest()
+            .setBalanceId(5L)
+            .setAmount(new BigDecimal("50"))
+            .setWithAffectedPocketHistory(true);
     }
 
     @Test
@@ -163,4 +168,20 @@ public class BalanceResourceMvcTest {
         //{"error":"error.no.enough.many","error_description":"No enough many","params":{"currentAmount":"3.21","balanceId":"1"}
     }
 
+
+    @Test
+    @SneakyThrows
+    public void chargingBalanceWithAffectedPocketHistory() {
+        ChargingBalanceRequest request = chargingBalanceRequest();
+
+        doReturn(createBalanceChangeEventDto(OperationType.CHARGING)).when(balanceService).charging(request);
+
+        mockMvc.perform(post("/api/balances/charging")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(request)))
+            .andDo(print())
+            .andExpect(status().isOk());
+
+        verify(balanceService).charging(refEq(chargingBalanceRequest()));
+    }
 }

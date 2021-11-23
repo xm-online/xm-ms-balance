@@ -17,13 +17,9 @@ import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
-import com.icthh.xm.ms.balance.domain.Balance;
-import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
+import com.icthh.xm.ms.balance.domain.*;
 import com.icthh.xm.ms.balance.domain.BalanceSpec.AllowNegative;
 import com.icthh.xm.ms.balance.domain.BalanceSpec.BalanceTypeSpec;
-import com.icthh.xm.ms.balance.domain.Metadata;
-import com.icthh.xm.ms.balance.domain.Pocket;
-import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
@@ -213,7 +209,7 @@ public class BalanceService {
 
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, reloadRequest.getAmount(),
-            Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, reloadRequest.getAmount(), RELOAD);
+            Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, RELOAD);
         reloadPocket(reloadRequest, balance, changeEvent);
 
         metricService.updateMaxMetric(balance, operationDate);
@@ -243,7 +239,7 @@ public class BalanceService {
         }
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, chargingRequest.getAmount(),
-            Metadata.of(chargingRequest.getMetadata()), applyDate, balance, true, chargingRequest.getAmount(), CHARGING);
+            Metadata.of(chargingRequest.getMetadata()), applyDate, balance, true, CHARGING);
         chargingPockets(balance, chargingRequest.getAmount(), changeEvent, applyDate);
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
@@ -297,11 +293,11 @@ public class BalanceService {
 
         assertBalanceAmount(sourceBalance, amount, applyDate);
 
-        BalanceChangeEvent eventFrom = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, sourceBalance, true, amount, TRANSFER_FROM);
+        BalanceChangeEvent eventFrom = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, sourceBalance, true, TRANSFER_FROM);
         List<PocketCharging> pockets = chargingPockets(sourceBalance, amount, eventFrom, applyDate);
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
-        BalanceChangeEvent eventTo = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, targetBalance, false, amount, TRANSFER_TO);
+        BalanceChangeEvent eventTo = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, targetBalance, false, TRANSFER_TO);
         pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId, metadata))
             .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo));
 
@@ -317,7 +313,7 @@ public class BalanceService {
 
     private BalanceChangeEvent createBalanceChangeEvent(String operationUuid, BigDecimal amount, Metadata metadata,
                                                         Instant operationDate, Balance balance, boolean isSubtractAmount,
-                                                        BigDecimal amountTotal, OperationType transferTo) {
+                                                        OperationType transferTo) {
         BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(balance, operationDate).orElse(ZERO);
         BigDecimal amountAfterTransferTo = getAmountAfter(isSubtractAmount, amountBeforeTransferTo, amount);
         Instant prevOperationDate = balanceChangeEventRepository
@@ -334,7 +330,7 @@ public class BalanceService {
         event.setExecutedByUserKey(context.getUserKey().orElse(context.getRequiredLogin()));
         event.setOperationType(transferTo);
         event.setAmountDelta(amount);
-        event.setAmountTotal(amountTotal);
+        event.setAmountTotal(amount);
         event.setOperationDate(operationDate);
         event.setEntryDate(Instant.now());
         event.setPrevEntryDate(prevOperationDate);
@@ -398,12 +394,7 @@ public class BalanceService {
 
             amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, balanceTypeSpec, balance);
 
-            if (amountToCheckout.compareTo(ZERO) > 0 && pocketsPage.isLast() && balanceTypeSpec.isAllowChargeAsManyAsHave()) {
-                BigDecimal chargedAmount = changeEvent.getAmountTotal().subtract(amountToCheckout);
-                changeEvent.setAmountDelta(chargedAmount);
-                changeEvent.setAmountAfter(ZERO);
-                break;
-            }
+            amountToCheckout = handleAsManyAsPossibleCharging(amountToCheckout, pocketsPage.isLast(), balanceTypeSpec, changeEvent);
         }
 
         if (balanceTypeSpec.isRemoveZeroPockets()) {
@@ -411,6 +402,18 @@ public class BalanceService {
         }
 
         return affectedPockets;
+    }
+
+    private BigDecimal handleAsManyAsPossibleCharging(BigDecimal amountToCheckout, boolean isLastPocketPage,
+                                                      BalanceTypeSpec balanceTypeSpec, BalanceChangeEvent changeEvent) {
+        if (amountToCheckout.compareTo(ZERO) > 0 && isLastPocketPage && balanceTypeSpec.isAllowChargeAsManyAsHave()) {
+            BigDecimal chargedAmount = changeEvent.getAmountTotal().subtract(amountToCheckout);
+            changeEvent.setAmountDelta(chargedAmount);
+            changeEvent.setAmountAfter(ZERO);
+
+            amountToCheckout = ZERO;
+        }
+        return amountToCheckout;
     }
 
     @LogicExtensionPoint("GetPocketForCharging")
@@ -449,8 +452,16 @@ public class BalanceService {
             }
         }
 
-        AllowNegative allowNegative = balanceSpec.getAllowNegative();
-        if (amountToBalanceCheckout.compareTo(ZERO) > 0 && pockets.isLast() && allowNegative.isEnabled()) {
+        amountToBalanceCheckout = handleNegativeCharging(amountToBalanceCheckout, balanceSpec, pockets.isLast(), balance,
+            affectedPockets, changeEvent);
+
+        return amountToBalanceCheckout;
+    }
+
+    private BigDecimal handleNegativeCharging(BigDecimal amountToBalanceCheckout, BalanceTypeSpec balanceTypeSpec, boolean isLastPocketPage,
+                                              Balance balance, List<PocketCharging> affectedPockets, BalanceChangeEvent changeEvent) {
+        AllowNegative allowNegative = balanceTypeSpec.getAllowNegative();
+        if (amountToBalanceCheckout.compareTo(ZERO) > 0 && isLastPocketPage && allowNegative.isEnabled()) {
             Pocket negativePocket = pocketRepository.findByLabelAndBalanceId(allowNegative.getLabel(),
                 balance.getId()).orElse(new Pocket()
                 .key(randomUUID().toString())
@@ -471,8 +482,7 @@ public class BalanceService {
             log.info("Checkout pocket id:{} label:{}, from {} -> {} | leftCheckoutAmount: {}",
                 saved.getId(), saved.getLabel(), pocketAmount, saved.getAmount(), amountToBalanceCheckout);
         }
-
-        return amountToBalanceCheckout;
+        return  amountToBalanceCheckout;
     }
 
     private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
