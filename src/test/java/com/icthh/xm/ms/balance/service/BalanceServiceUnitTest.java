@@ -1567,7 +1567,6 @@ public class BalanceServiceUnitTest {
     public void successChargingAllManyFromManyPocketWithAllowChargeAsManyAsHave() {
         expectedAuth();
         deleteZeroPocketDisabled();
-        allowChargeAsManyAsHave();
 
         Balance balance = createBalanceWithAmount(1L, "300");
         expectBalance(balance, "300");
@@ -1605,6 +1604,7 @@ public class BalanceServiceUnitTest {
             new ChargingBalanceRequest()
                 .setAmount(new BigDecimal("315"))
                 .setBalanceId(1L)
+                .setChargeAsManyAsPossible(true)
         );
 
         verify(pocketRepository).findPocketForChargingOrderByDates(balance, MOCK_CURRENT_DATE, PageRequest.of(0, 3));
@@ -1632,11 +1632,4 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
-
-    private void allowChargeAsManyAsHave() {
-        BalanceTypeSpec balanceSpec = new BalanceTypeSpec();
-
-        balanceSpec.setAllowChargeAsManyAsHave(true);
-        when(balanceSpecService.getBalanceSpec(any())).thenReturn(balanceSpec);
-    }
 }

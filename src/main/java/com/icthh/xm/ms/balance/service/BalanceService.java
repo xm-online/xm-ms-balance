@@ -229,7 +229,7 @@ public class BalanceService {
     @LogicExtensionPoint(value = "Charging", resolver = BalanceTypeKeyResolver.class)
     public BalanceChangeEventDto charging(Balance balance, ChargingBalanceRequest chargingRequest) {
         Instant applyDate = chargingRequest.getApplyDate() != null ? chargingRequest.getApplyDate() : now(clock);
-        assertBalanceAmount(balance, chargingRequest.getAmount(), applyDate);
+        assertBalanceAmount(balance, chargingRequest.getAmount(), applyDate, chargingRequest.isChargeAsManyAsPossible());
 
         String operationUuid = chargingRequest.getUuid();
         List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
@@ -240,7 +240,7 @@ public class BalanceService {
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, chargingRequest.getAmount(),
             Metadata.of(chargingRequest.getMetadata()), applyDate, balance, true, CHARGING);
-        chargingPockets(balance, chargingRequest.getAmount(), changeEvent, applyDate);
+        chargingPockets(balance, chargingRequest.getAmount(), changeEvent, applyDate, chargingRequest.isChargeAsManyAsPossible());
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
         BalanceChangeEventDto dto = balanceChangeEventMapper.toDto(changeEvent);
@@ -382,6 +382,11 @@ public class BalanceService {
 
     private List<PocketCharging> chargingPockets(Balance balance, BigDecimal amount, BalanceChangeEvent changeEvent,
                                                  Instant chargeDateTime) {
+        return chargingPockets(balance, amount, changeEvent, chargeDateTime, false);
+    }
+
+    private List<PocketCharging> chargingPockets(Balance balance, BigDecimal amount, BalanceChangeEvent changeEvent,
+                                                 Instant chargeDateTime, boolean isChargeAsManyAsPossible) {
         BigDecimal amountToCheckout = amount;
         List<PocketCharging> affectedPockets = new ArrayList<>();
         Integer pocketCheckoutBatchSize = applicationProperties.getPocketChargingBatchSize();
@@ -394,11 +399,13 @@ public class BalanceService {
                 allowNegative.isEnabled(), chargeDateTime);
             List<Pocket> pockets = pocketsPage.getContent();
             log.debug("Fetch pockets {} by {}", pockets, pageable);
-            assertNotEmpty(balance, amount, amountToCheckout, pockets);
+            assertNotEmpty(balance, amount, amountToCheckout, pockets, isChargeAsManyAsPossible);
 
             amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, balanceTypeSpec, balance);
 
-            amountToCheckout = handleAsManyAsPossibleCharging(amountToCheckout, pocketsPage.isLast(), balanceTypeSpec, changeEvent);
+            if (isChargeAsManyAsPossible) {
+                amountToCheckout = handleAsManyAsPossibleCharging(amountToCheckout, pocketsPage.isLast(), changeEvent);
+            }
         }
 
         if (balanceTypeSpec.isRemoveZeroPockets()) {
@@ -409,8 +416,8 @@ public class BalanceService {
     }
 
     private BigDecimal handleAsManyAsPossibleCharging(BigDecimal amountToCheckout, boolean isLastPocketPage,
-                                                      BalanceTypeSpec balanceTypeSpec, BalanceChangeEvent changeEvent) {
-        if (amountToCheckout.compareTo(ZERO) > 0 && isLastPocketPage && balanceTypeSpec.isAllowChargeAsManyAsHave()) {
+                                                       BalanceChangeEvent changeEvent) {
+        if (amountToCheckout.compareTo(ZERO) > 0 && isLastPocketPage) {
             BigDecimal chargedAmount = changeEvent.getAmountTotal().subtract(amountToCheckout);
             changeEvent.setAmountDelta(chargedAmount);
             changeEvent.setAmountAfter(ZERO);
@@ -489,22 +496,26 @@ public class BalanceService {
         return  amountToBalanceCheckout;
     }
 
-    private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
+    private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets, boolean chargeAsManyAsPossible) {
         if (pockets.isEmpty()) {
-            assertIsEnoughMoney(balance, amount.subtract(amountToCheckout));
+            assertIsEnoughMoney(balance, amount.subtract(amountToCheckout), chargeAsManyAsPossible);
         }
     }
 
     private void assertBalanceAmount(Balance balance, BigDecimal amount, Instant applyDate) {
+        assertBalanceAmount(balance, amount, applyDate, false);
+    }
+
+    private void assertBalanceAmount(Balance balance, BigDecimal amount, Instant applyDate, boolean chargeAsManyAsPossible) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance, applyDate).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
-            assertIsEnoughMoney(balance, amount);
+            assertIsEnoughMoney(balance, amount, chargeAsManyAsPossible);
         }
     }
 
-    private void assertIsEnoughMoney(Balance balance, BigDecimal currentAmount){
+    private void assertIsEnoughMoney(Balance balance, BigDecimal currentAmount, boolean chargeAsManyAsPossible){
         BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-        if (!balanceTypeSpec.isAllowChargeAsManyAsHave() && !balanceTypeSpec.getAllowNegative().isEnabled()) {
+        if (!chargeAsManyAsPossible && !balanceTypeSpec.getAllowNegative().isEnabled()) {
             throw new NoEnoughMoneyException(balance.getId(), currentAmount);
         }
     }

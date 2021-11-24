@@ -112,6 +112,7 @@ public class BalanceResourceMvcTest {
         return new ChargingBalanceRequest()
             .setBalanceId(5L)
             .setAmount(new BigDecimal("50"))
+            .setWithAffectedPocketHistory(true)
             .setWithAffectedPocketHistory(true);
     }
 
