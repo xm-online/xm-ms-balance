@@ -201,7 +201,7 @@ public class BalanceService {
 
         String operationUuid = reloadRequest.getUuid();
         List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
-        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents, false);
+        BalanceChangeEventDto balanceChangeEventDto = returnExistBalanceChangeEventDto(existBalanceChangeEvents);
         if (balanceChangeEventDto != null) {
             return balanceChangeEventDto;
         }
@@ -255,6 +255,10 @@ public class BalanceService {
             return List.of();
         }
         return balanceChangeEventRepository.findBalanceChangeEventsByOperationId(operationUuid);
+    }
+
+    private BalanceChangeEventDto returnExistBalanceChangeEventDto(List<BalanceChangeEvent> existsBalanceChangeEvents) {
+        return returnExistBalanceChangeEventDto(existsBalanceChangeEvents, false);
     }
 
     private BalanceChangeEventDto returnExistBalanceChangeEventDto(List<BalanceChangeEvent> existsBalanceChangeEvents, boolean withAffectedPocketHistory) {
@@ -487,20 +491,21 @@ public class BalanceService {
 
     private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets) {
         if (pockets.isEmpty()) {
-            BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-            if (!balanceTypeSpec.isAllowChargeAsManyAsHave() && !balanceTypeSpec.getAllowNegative().isEnabled()) {
-                throw new NoEnoughMoneyException(balance.getId(), amount.subtract(amountToCheckout));
-            }
+            assertIsEnoughMoney(balance, amount.subtract(amountToCheckout));
         }
     }
 
     private void assertBalanceAmount(Balance balance, BigDecimal amount, Instant applyDate) {
         BigDecimal currentAmount = balanceRepository.findBalanceAmount(balance, applyDate).orElse(ZERO);
         if (currentAmount.compareTo(amount) < 0) {
-            BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
-            if (!balanceTypeSpec.isAllowChargeAsManyAsHave() && !balanceTypeSpec.getAllowNegative().isEnabled()) {
-                throw new NoEnoughMoneyException(balance.getId(), currentAmount);
-            }
+            assertIsEnoughMoney(balance, amount);
+        }
+    }
+
+    private void assertIsEnoughMoney(Balance balance, BigDecimal currentAmount){
+        BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+        if (!balanceTypeSpec.isAllowChargeAsManyAsHave() && !balanceTypeSpec.getAllowNegative().isEnabled()) {
+            throw new NoEnoughMoneyException(balance.getId(), currentAmount);
         }
     }
 
