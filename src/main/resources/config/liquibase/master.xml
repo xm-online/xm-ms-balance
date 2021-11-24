@@ -21,6 +21,7 @@
     <include file="config/liquibase/changelog/20190815000000_make_matadata_jsonb.xml" relativeToChangelogFile="false" />
     <include file="config/liquibase/changelog/20211111000000_add_prev_operation_date.xml" relativeToChangelogFile="false" />
     <include file="config/liquibase/changelog/20211117000000_add_entry_date.xml" relativeToChangelogFile="false" />
+    <include file="config/liquibase/changelog/20211122000000_add_total_amount.xml" relativeToChangelogFile="false" />
 
 </databaseChangeLog>
 

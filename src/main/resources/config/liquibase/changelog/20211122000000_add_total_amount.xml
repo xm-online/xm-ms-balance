@@ -1,0 +1,19 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20211122000000" author="vviter">
+        <addColumn tableName="balance_change_event">
+            <column name="amount_total" type="decimal(10,2)"/>
+        </addColumn>
+
+        <update tableName="balance_change_event">
+            <column name="amount_total" valueComputed="amount_delta"/>
+        </update>
+    </changeSet>
+
+    <changeSet id="20211122000001" author="vviter">
+        <addNotNullConstraint tableName="balance_change_event" columnName="amount_total" columnDataType="decimal(10,2)" />
+    </changeSet>
+</databaseChangeLog>

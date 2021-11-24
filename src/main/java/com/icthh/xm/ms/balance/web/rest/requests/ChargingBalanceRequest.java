@@ -23,6 +23,8 @@ public class ChargingBalanceRequest {
     private Map<String, String> metadata;
     private String uuid;
     private Instant applyDate;
+    private boolean withAffectedPocketHistory;
+    private boolean chargeAsManyAsPossible;
 
     public ChargingBalanceRequest(@NotNull Long balanceId, @NotNull @Min(0) BigDecimal amount) {
         this.balanceId = balanceId;

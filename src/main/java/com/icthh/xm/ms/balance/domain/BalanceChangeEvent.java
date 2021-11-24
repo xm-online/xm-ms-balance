@@ -96,6 +96,10 @@ public class BalanceChangeEvent {
     @Column(name = "balance_type_key")
     private String balanceTypeKey;
 
+    @NotNull
+    @Column(name = "amount_total", precision = 10, scale = 2, nullable = false)
+    private BigDecimal amountTotal;
+
     @Builder.Default
     @OneToMany(mappedBy = "transaction", cascade = ALL)
     private List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();
