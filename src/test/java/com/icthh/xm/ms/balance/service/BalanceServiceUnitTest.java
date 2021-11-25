@@ -191,7 +191,7 @@ public class BalanceServiceUnitTest {
             BalanceChangeEvent actual = allValues.get(i);
             BalanceChangeEvent expected = balanceChangeEvents[i];
             assertTrue(new ReflectionEquals(expected,
-                "pocketChangeEvents", "operationId", "entryDate").matches(actual));
+                "pocketChangeEvents", "operationId", "entryDate", "prevEntryDate").matches(actual));
             expectedPocketChangeEvents(actual, expected);
 
             if (operationId != null) {
