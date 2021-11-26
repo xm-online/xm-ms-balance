@@ -47,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -267,10 +268,12 @@ public class BalanceService {
             log.warn("find duplicate balance change events for operationId: {} - {}, operation won't be processed",
                 balanceChangeEvent.getOperationId(), existsBalanceChangeEvents);
             BalanceChangeEventDto dto = balanceChangeEventMapper.toDto(balanceChangeEvent);
-            if (withAffectedPocketHistory){
-                dto.setPocketChangeEvents(pocketChangeEventMapper.toDto(balanceChangeEvent.getPocketChangeEvents()));
+            if (withAffectedPocketHistory) {
+                List<PocketChangeEvent> pocketChangeEvents = balanceChangeEvent.getPocketChangeEvents();
+                Hibernate.initialize(pocketChangeEvents);
+                dto.setPocketChangeEvents(pocketChangeEventMapper.toDto(pocketChangeEvents));
             }
-            return balanceChangeEventMapper.toDto(balanceChangeEvent);
+            return dto;
         }
         return null;
     }

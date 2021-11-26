@@ -122,3 +122,4 @@ application:
         tenant-script-storage: XM_MS_CONFIG
     specification-name: balancespec.yml
     specification-path-pattern: /config/tenants/{tenantName}/balance/${application.specification-name}
+    pocket-charging-batch-size: 100

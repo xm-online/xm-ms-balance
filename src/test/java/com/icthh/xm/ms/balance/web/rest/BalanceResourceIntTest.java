@@ -11,11 +11,14 @@ import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Pocket;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
+import com.icthh.xm.ms.balance.repository.BalanceRepositoryIntTest;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
+import com.icthh.xm.ms.balance.service.BalanceSpecService;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
+import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -38,10 +41,12 @@ import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static com.icthh.xm.commons.lep.XmLepScriptConstants.BINDING_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
+import static java.math.BigDecimal.TEN;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -125,6 +130,9 @@ public class BalanceResourceIntTest {
 
     @Autowired
     private XmLepScriptConfigServerResourceLoader leps;
+
+    @Autowired
+    private BalanceSpecService balanceSpecService;
 
     private MockMvc restBalanceMockMvc;
 
@@ -857,6 +865,77 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.createdBy").value(DEFAULT_CREATED_BY))
             .andExpect(jsonPath("$.amount").value(0))
             .andDo(print());
+    }
+
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void chargeWithPocketHistoryAndSameOperationId() throws Exception {
+
+        BigDecimal balanceAmount = new BigDecimal("60.0");
+        BigDecimal chargingAmount = new BigDecimal("100.0");
+
+        // Initialize the database
+        Balance balance = new Balance()
+            .key(DEFAULT_KEY)
+            .typeKey("BALANCE")
+            .measureKey("UNIT")
+            .amount(DEFAULT_AMOUNT)
+            .reserved(DEFAULT_RESERVED)
+            .entityId(DEFAULT_ENTITY_ID)
+            .createdBy(DEFAULT_CREATED_BY);
+
+        Pocket pocket = new Pocket().amount(balanceAmount).balance(balance).startDateTime(now().minusSeconds(500))
+            .endDateTime(now().plusSeconds(500)).label("LABEL1").key("KEY");
+        balanceRepository.saveAndFlush(balance);
+        pocketRepository.saveAndFlush(pocket);
+
+        String balanceSpec = new String(BalanceRepositoryIntTest.class.getResourceAsStream("/config/balancespec.yml").readAllBytes());
+        balanceSpecService.onRefresh("/config/tenants/RESINTTEST/balance/balancespec.yml", balanceSpec);
+
+        String uuid = UUID.randomUUID().toString();
+        ChargingBalanceRequest request = new ChargingBalanceRequest(balance.getId(), chargingAmount);
+        request.setWithAffectedPocketHistory(true);
+        request.setChargeAsManyAsPossible(true);
+        request.setUuid(uuid);
+
+        restBalanceMockMvc.perform(post("/api/balances/charging")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(request)))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.balanceId").value(balance.getId()))
+            .andExpect(jsonPath("$.amountAfter").value("0"))
+            .andExpect(jsonPath("$.amountBefore").value("60.0"))
+            .andExpect(jsonPath("$.amountDelta").value("60.0"))
+            .andExpect(jsonPath("$.operationId").value(uuid))
+            .andExpect(jsonPath("$.amountTotal").value("100.0"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].amountBefore").value("60.0"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].pocketLabel").value("LABEL1"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].amountDelta").value("60.0"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].amountAfter").value("0.0"));
+
+        ChargingBalanceRequest sameRequest = new ChargingBalanceRequest(balance.getId(), TEN);
+        sameRequest.setWithAffectedPocketHistory(true);
+        sameRequest.setChargeAsManyAsPossible(true);
+        sameRequest.setUuid(uuid);
+
+        restBalanceMockMvc.perform(post("/api/balances/charging")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(sameRequest)))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.balanceId").value(balance.getId()))
+            .andExpect(jsonPath("$.amountAfter").value("0"))
+            .andExpect(jsonPath("$.amountBefore").value("60.0"))
+            .andExpect(jsonPath("$.amountDelta").value("60.0"))
+            .andExpect(jsonPath("$.operationId").value(uuid))
+            .andExpect(jsonPath("$.amountTotal").value("100.0"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].amountBefore").value("60.0"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].pocketLabel").value("LABEL1"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].amountDelta").value("60.0"))
+            .andExpect(jsonPath("$.pocketChangeEvents.[0].amountAfter").value("0.0"));
     }
 
 }
