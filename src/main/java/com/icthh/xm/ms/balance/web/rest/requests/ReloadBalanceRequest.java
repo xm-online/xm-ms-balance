@@ -22,5 +22,6 @@ public class ReloadBalanceRequest {
     private Instant endDateTime;
     private Map<String, String> metadata;
     private String uuid;
+    private boolean reloadNegativePocket;
 
 }

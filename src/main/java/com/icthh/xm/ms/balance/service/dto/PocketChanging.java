@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @AllArgsConstructor
-public class PocketCharging {
+public class PocketChanging {
 
     private final Pocket pocket;
     @Getter

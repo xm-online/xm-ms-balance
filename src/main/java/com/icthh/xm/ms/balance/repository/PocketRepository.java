@@ -43,6 +43,12 @@ public interface PocketRepository
                                                                                          String metadataValue);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Pocket as p WHERE p.balance = :balance AND p.amount < 0 "
+         + " ORDER BY p.endDateTime ASC NULLS LAST, p.startDateTime ASC NULLS LAST")
+    Page<Pocket> findPocketForReloadingWithNegativeAmount(@Param("balance") Balance balance,
+                                                          Pageable pageable);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Pocket as p WHERE p.balance = :balance AND p.amount > 0 "
         + " AND ((p.startDateTime < :chargeDate) OR (p.startDateTime IS NULL))"
         + " AND ((p.endDateTime > :chargeDate) OR (p.endDateTime IS NULL))"
