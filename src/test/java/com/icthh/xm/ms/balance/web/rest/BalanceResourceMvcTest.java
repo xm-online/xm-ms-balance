@@ -90,13 +90,15 @@ public class BalanceResourceMvcTest {
         verify(balanceService).reload(refEq(createReloadBalanceRequest(endDateTime, startDateTime)));
     }
 
+
     private ReloadBalanceRequest createReloadBalanceRequest(Instant endDateTime, Instant startDateTime) {
         return new ReloadBalanceRequest()
             .setBalanceId(5L)
             .setAmount(new BigDecimal("50"))
             .setEndDateTime(endDateTime)
             .setStartDateTime(startDateTime)
-            .setLabel("label");
+            .setLabel("label")
+            .setReloadNegativePocket(true);
     }
 
     private BalanceChangeEventDto createBalanceChangeEventDto(OperationType operationType) {
@@ -113,7 +115,8 @@ public class BalanceResourceMvcTest {
             .setBalanceId(5L)
             .setAmount(new BigDecimal("50"))
             .setWithAffectedPocketHistory(true)
-            .setWithAffectedPocketHistory(true);
+            .setWithAffectedPocketHistory(true)
+            .setNegativePocketLabel("NEGATIVE_POCKET_LABEL");
     }
 
     @Test
@@ -172,7 +175,7 @@ public class BalanceResourceMvcTest {
 
     @Test
     @SneakyThrows
-    public void chargingBalanceWithAffectedPocketHistory() {
+    public void chargingBalanceWithAffectedPocketHistoryAndNegativePocketLabel() {
         ChargingBalanceRequest request = chargingBalanceRequest();
 
         doReturn(createBalanceChangeEventDto(OperationType.CHARGING)).when(balanceService).charging(request);

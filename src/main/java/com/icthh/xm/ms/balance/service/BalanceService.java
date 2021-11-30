@@ -159,9 +159,9 @@ public class BalanceService {
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
             PageRequest pageable = PageRequest.of(i, pocketCheckoutBatchSize);
-            Page<Pocket> pocketsPage = pocketRepository.findPocketForReloadingWithNegativeAmount(balance, pageable);
+            Page<Pocket> pocketsPage = pocketRepository.findPocketForReloadingWithNegativeOrderByDates(balance, pageable);
             List<Pocket> pockets = pocketsPage.getContent();
-            log.debug("Fetch pockets {} by {}", pockets, pageable);
+            log.debug("Fetch negative pockets for reload {} by {}", pockets, pageable);
 
             amountToCheckout = reloadNegativePockets(reloadRequest, balance, amountToCheckout, affectedPockets,
                     pocketsPage, changeEvent);
@@ -185,15 +185,20 @@ public class BalanceService {
             affectedPockets.add(new PocketChanging(pocket, amountToPocketCheckout));
 
             Pocket saved = pocketRepository.save(pocket);
-            changeEvent.addPocketChangeEvent(
-                    createPocketChangeEvent(saved, amountToPocketCheckout, pocketAmount));
+            changeEvent.addPocketChangeEvent(createPocketChangeEvent(saved, amountToPocketCheckout, pocketAmount));
 
-            log.info("Reload pocket id:{} label:{}, from {} -> {} | leftCheckoutAmount: {}",
+            log.info("Reload pocket id:{} label:{}, from {} -> {} | leftToReloadAmount: {}",
                     pocket.getId(), pocket.getLabel(), pocketAmount, pocket.getAmount(), amountToBalanceReload);
+
+            if (amountToBalanceReload.compareTo(ZERO) <= 0) {
+                log.info("Checkout pockets finished.");
+                break;
+            }
         }
 
         if (pockets.isLast() && amountToBalanceReload.compareTo(ZERO) > 0) {
             reloadPocket(reloadRequest, balance, changeEvent, amountToBalanceReload);
+            amountToBalanceReload = ZERO;
         }
 
         return amountToBalanceReload;
@@ -219,7 +224,7 @@ public class BalanceService {
             );
 
         Pocket savedPocket = pocketRepository.save(pocket);
-        PocketChangeEvent event = createPocketChangeEvent(savedPocket, reloadRequest.getAmount(), amountBefore);
+        PocketChangeEvent event = createPocketChangeEvent(savedPocket, amountToReload, amountBefore);
         changeEvent.addPocketChangeEvent(event);
         log.info("Pocket affected by reload {}", savedPocket);
     }
@@ -296,7 +301,7 @@ public class BalanceService {
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, chargingRequest.getAmount(),
             Metadata.of(chargingRequest.getMetadata()), applyDate, balance, true, CHARGING);
-        chargingPockets(balance, chargingRequest.getAmount(), changeEvent, applyDate, chargingRequest.isChargeAsManyAsPossible());
+        chargingPockets(balance, chargingRequest.getAmount(), changeEvent, applyDate, chargingRequest.isChargeAsManyAsPossible(), chargingRequest.getNegativePocketLabel());
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
         BalanceChangeEventDto dto = balanceChangeEventMapper.toDto(changeEvent);
@@ -440,16 +445,22 @@ public class BalanceService {
 
     private List<PocketChanging> chargingPockets(Balance balance, BigDecimal amount, BalanceChangeEvent changeEvent,
                                                  Instant chargeDateTime) {
-        return chargingPockets(balance, amount, changeEvent, chargeDateTime, false);
+        return chargingPockets(balance, amount, changeEvent, chargeDateTime, false, null);
     }
 
     private List<PocketChanging> chargingPockets(Balance balance, BigDecimal amount, BalanceChangeEvent changeEvent,
-                                                 Instant chargeDateTime, boolean isChargeAsManyAsPossible) {
+                                                 Instant chargeDateTime, boolean isChargeAsManyAsPossible, String negativePocketLabel) {
         BigDecimal amountToCheckout = amount;
         List<PocketChanging> affectedPockets = new ArrayList<>();
         Integer pocketCheckoutBatchSize = applicationProperties.getPocketChargingBatchSize();
         BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
+
         AllowNegative allowNegative = balanceTypeSpec.getAllowNegative();
+        if (StringUtils.isNotBlank(negativePocketLabel)){
+            allowNegative = new AllowNegative();
+            allowNegative.setLabel(negativePocketLabel);
+            allowNegative.setEnabled(balanceTypeSpec.getAllowNegative().isEnabled());
+        }
 
         for (int i = 0; amountToCheckout.compareTo(ZERO) > 0; i++) {
             PageRequest pageable = PageRequest.of(i, pocketCheckoutBatchSize);
@@ -459,7 +470,7 @@ public class BalanceService {
             log.debug("Fetch pockets {} by {}", pockets, pageable);
             assertNotEmpty(balance, amount, amountToCheckout, pockets, isChargeAsManyAsPossible);
 
-            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, balanceTypeSpec, balance);
+            amountToCheckout = chargingPockets(amountToCheckout, affectedPockets, pocketsPage, changeEvent, allowNegative, balance);
 
             if (isChargeAsManyAsPossible) {
                 amountToCheckout = handleAsManyAsPossibleCharging(amountToCheckout, pocketsPage.isLast(), changeEvent);
@@ -496,7 +507,7 @@ public class BalanceService {
     }
 
     private BigDecimal chargingPockets(BigDecimal amountToBalanceCheckout, List<PocketChanging> affectedPockets,
-                                       Page<Pocket> pockets, BalanceChangeEvent changeEvent, BalanceTypeSpec balanceSpec, Balance balance) {
+                                       Page<Pocket> pockets, BalanceChangeEvent changeEvent, AllowNegative allowNegative, Balance balance) {
 
         for (Pocket pocket : pockets) {
             BigDecimal pocketAmount = pocket.getAmount();
@@ -521,15 +532,14 @@ public class BalanceService {
             }
         }
 
-        amountToBalanceCheckout = handleNegativeCharging(amountToBalanceCheckout, balanceSpec, pockets.isLast(), balance,
+        amountToBalanceCheckout = handleNegativeCharging(amountToBalanceCheckout, allowNegative, pockets.isLast(), balance,
             affectedPockets, changeEvent);
 
         return amountToBalanceCheckout;
     }
 
-    private BigDecimal handleNegativeCharging(BigDecimal amountToBalanceCheckout, BalanceTypeSpec balanceTypeSpec, boolean isLastPocketPage,
+    private BigDecimal handleNegativeCharging(BigDecimal amountToBalanceCheckout, AllowNegative allowNegative, boolean isLastPocketPage,
                                               Balance balance, List<PocketChanging> affectedPockets, BalanceChangeEvent changeEvent) {
-        AllowNegative allowNegative = balanceTypeSpec.getAllowNegative();
         if (amountToBalanceCheckout.compareTo(ZERO) > 0 && isLastPocketPage && allowNegative.isEnabled()) {
             Pocket negativePocket = pocketRepository.findByLabelAndBalanceId(allowNegative.getLabel(),
                 balance.getId()).orElse(new Pocket()

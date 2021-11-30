@@ -25,6 +25,7 @@ public class ChargingBalanceRequest {
     private Instant applyDate;
     private boolean withAffectedPocketHistory;
     private boolean chargeAsManyAsPossible;
+    private String negativePocketLabel;
 
     public ChargingBalanceRequest(@NotNull Long balanceId, @NotNull @Min(0) BigDecimal amount) {
         this.balanceId = balanceId;
