@@ -1632,4 +1632,110 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
+
+    @Test
+    public void reloadWithNegativePocketAndNegativeAmount() {
+        expectedAuth();
+        deleteZeroPocketDisabled();
+        allowNegative();
+
+        Balance balance = createBalanceWithAmount(1L, "-25");
+        expectBalance(balance, "-25");
+
+        Map<String, String> metadata = of("dataKey", "dataValue");
+
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
+
+        when(pocketRepository.findPocketForReloadingWithNegativeOrderByDates(balance, PageRequest.of(0, 3)))
+            .thenReturn(new PageImpl<>(asList(
+                pocket("-10", "label1", 11L, metadata),
+                pocket("-10", "label2", 12L, metadata),
+                pocket("-5", "label3", 13L, metadata)
+            ), PageRequest.of(0, 3), 3));
+
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+        when(pocketRepository.save(refEq(pocket("0", "label1", 11L ,metadata))))
+            .thenReturn(pocket("0", "label1", 11L, metadata));
+        when(pocketRepository.save(refEq(pocket("0", "label2", 12L ,metadata))))
+            .thenReturn(pocket("0", "label2", 12L, metadata));
+
+        ReloadBalanceRequest request = reloadBalanceRequest(1L, "20", "l1", metadata);
+        request.setReloadNegativePocket(true);
+        balanceService.reload(request);
+
+        verify(pocketRepository).findPocketForReloadingWithNegativeOrderByDates(balance, PageRequest.of(0, 3));
+        verify(pocketRepository).save(refEq(pocket("0", "label1", 11L, metadata)));
+        verify(pocketRepository).save(refEq(pocket("0", "label2", 12L, metadata)));
+
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
+        verifyNoMoreInteractions(pocketRepository);
+        verify(metricService).updateMaxMetric(balance, MOCK_CURRENT_DATE);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
+        expectBalanceChangeEvents(
+            createBalanceEvent("20", 1L, RELOAD, metadata, "-5", "-25",
+                createPocketEvent("10", 11L, null, "label1", metadata, "0", "-10"),
+                createPocketEvent("10", 12L, null, "label2", metadata, "0", "-10"))
+        );
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test
+    public void reloadWithNegativePocketAndPositiveAmount() {
+        expectedAuth();
+        deleteZeroPocketDisabled();
+        allowNegative();
+
+        Balance balance = createBalanceWithAmount(1L, "-25");
+        expectBalance(balance, "-25");
+
+        Map<String, String> metadata = of("dataKey", "dataValue");
+
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
+
+        when(pocketRepository.findPocketForReloadingWithNegativeOrderByDates(balance, PageRequest.of(0, 3)))
+            .thenReturn(new PageImpl<>(asList(
+                pocket("-10", "label1", 11L, metadata),
+                pocket("-10", "label2", 12L, metadata),
+                pocket("-5", "label3", 13L, metadata)
+            ), PageRequest.of(0, 3), 3));
+
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+        when(pocketRepository.save(refEq(pocket("0", "label1", 11L ,metadata))))
+            .thenReturn(pocket("0", "label1", 11L, metadata));
+        when(pocketRepository.save(refEq(pocket("0", "label2", 12L ,metadata))))
+            .thenReturn(pocket("0", "label2", 12L, metadata));
+        when(pocketRepository.save(refEq(pocket("0", "label3", 13L ,metadata))))
+            .thenReturn(pocket("0", "label3", 13L, metadata));
+
+        Pocket pocket = pocket("0", "label4", 85L, metadata);
+        expectPocketForReload(balance, pocket, "label4", metadata, 85L);
+        Pocket toSave = pocket("10", "label4", 85L, metadata);
+        expectSavePocket(toSave, toSave);
+
+
+        ReloadBalanceRequest request = reloadBalanceRequest(1L, "35", "label4", metadata);
+        request.setReloadNegativePocket(true);
+        balanceService.reload(request);
+
+        verify(pocketRepository).findPocketForReloadingWithNegativeOrderByDates(balance, PageRequest.of(0, 3));
+        verify(pocketRepository).save(refEq(pocket("0", "label1", 11L, metadata)));
+        verify(pocketRepository).save(refEq(pocket("0", "label2", 12L, metadata)));
+        verify(pocketRepository).save(refEq(pocket("0", "label3", 13L, metadata)));
+        verify(pocketRepository).save(refEq(pocket("10", "label4", 85L, metadata)));
+
+
+        verifyFindPocketForReload(balance, "label4", metadata, 85L);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
+        verifyNoMoreInteractions(pocketRepository);
+        verify(metricService).updateMaxMetric(balance, MOCK_CURRENT_DATE);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
+        expectBalanceChangeEvents(
+            createBalanceEvent("35", 1L, RELOAD, metadata, "10", "-25",
+                createPocketEvent("10", 11L, null, "label1", metadata, "0", "-10"),
+                createPocketEvent("10", 12L, null, "label2", metadata, "0", "-10"),
+                createPocketEvent("5", 13L, null, "label3", metadata, "0", "-5"),
+                createPocketEvent("10", 85L, null, "label4", metadata, "10", "0"))
+        );
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
 }
