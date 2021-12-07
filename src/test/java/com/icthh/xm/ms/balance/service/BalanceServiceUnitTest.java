@@ -12,8 +12,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
@@ -239,6 +238,7 @@ public class BalanceServiceUnitTest {
             .amountAfter(new BigDecimal(amountAfter))
             .amountBefore(new BigDecimal(amountBefore))
             .amountTotal(new BigDecimal(amountDelta))
+            .last(true)
             .build();
     }
 
@@ -263,6 +263,7 @@ public class BalanceServiceUnitTest {
             .amountAfter(new BigDecimal(amountAfter))
             .amountBefore(new BigDecimal(amountBefore))
             .amountTotal(new BigDecimal(amountTotal))
+            .last(true)
             .build();
     }
 
@@ -313,8 +314,12 @@ public class BalanceServiceUnitTest {
         verify(metricService).updateMaxMetric(balance, MOCK_CURRENT_DATE);
         verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
 
-        expectBalanceChangeEvents(createBalanceEvent("50", 1L, RELOAD, startDateTime, Instant.parse("2021-11-11T00:00:00Z"), "50", "0", "50",
-            createPocketEvent("50", 492L, null, "label", "50", "0")));
+        BalanceChangeEvent balanceEvent = createBalanceEvent("50", 1L, CHARGING, Instant.parse("2021-11-11T00:00:00Z"), EPOCH, "50", "0", "50");
+        balanceEvent.setLast(false);
+        expectBalanceChangeEvents(
+            balanceEvent,
+            createBalanceEvent("50", 1L, RELOAD, startDateTime, Instant.parse("2021-11-11T00:00:00Z"), "50", "0", "50",
+                createPocketEvent("50", 492L, null, "label", "50", "0")));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
@@ -1738,4 +1743,47 @@ public class BalanceServiceUnitTest {
         );
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
+
+    @Test
+    public void setIsLastBalanceChangeEvent() {
+        expectedAuth();
+        deleteZeroPocketDisabled();
+
+        Balance balance = createBalanceWithAmount(1L, "600");
+        expectBalance(balance, "600");
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(100);
+        Page<Pocket> pockets = new PageImpl<>(List.of(pocket("600", "label1")));
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, MOCK_CURRENT_DATE, PageRequest.of(0, 100)))
+            .thenReturn(pockets);
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+        when(pocketRepository.save(refEq(pocket("500", "label1"))))
+            .thenReturn(pocket("500", "label1", 441L));
+
+        BalanceChangeEvent balanceEventForUpdate = createBalanceEvent("50", 1L, CHARGING, "600", "650",
+            createPocketEvent("50", 441L, null, "label1", "600", "650"));
+
+        when(balanceChangeEventRepository.findLastBalanceChangeEvent(balance.getId())).thenReturn(
+            Optional.of(balanceEventForUpdate));
+
+        balanceService.charging(
+            new ChargingBalanceRequest()
+                .setAmount(new BigDecimal("100"))
+                .setBalanceId(1L)
+        );
+
+        verify(pocketRepository).findPocketForChargingOrderByDates(balance, MOCK_CURRENT_DATE, PageRequest.of(0, 100));
+        verify(pocketRepository).save(refEq(pocket("500", "label1")));
+        verifyNoMoreInteractions(pocketRepository);
+        verifyNoMoreInteractions(metricService);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
+
+        BalanceChangeEvent balanceChangeEvent = createBalanceEvent("100", 1L, CHARGING, "500", "600",
+            createPocketEvent("100", 441L, null, "label1", "500", "600"));
+
+        expectBalanceChangeEvents(balanceEventForUpdate, balanceChangeEvent);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        assertTrue(balanceChangeEvent.getLast());
+        assertFalse(balanceEventForUpdate.getLast());
+    }
+
 }
