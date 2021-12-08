@@ -100,6 +100,10 @@ public class BalanceChangeEvent {
     @Column(name = "amount_total", precision = 10, scale = 2, nullable = false)
     private BigDecimal amountTotal;
 
+    @NotNull
+    @Column(name = "last", nullable = false)
+    private Boolean last;
+
     @Builder.Default
     @OneToMany(mappedBy = "transaction", cascade = ALL)
     private List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();

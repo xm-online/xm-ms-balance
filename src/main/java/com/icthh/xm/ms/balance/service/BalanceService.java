@@ -383,10 +383,16 @@ public class BalanceService {
                                                         OperationType transferTo) {
         BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(balance, operationDate).orElse(ZERO);
         BigDecimal amountAfterTransferTo = getAmountAfter(isSubtractAmount, amountBeforeTransferTo, amount);
-        Instant prevEntryDate = balanceChangeEventRepository
-            .findLastBalanceChangeEvent(balance.getId())
+        Optional<BalanceChangeEvent> lastBalanceChangeEvent = balanceChangeEventRepository
+            .findLastBalanceChangeEvent(balance.getId());
+        Instant prevEntryDate = lastBalanceChangeEvent
             .map(BalanceChangeEvent::getEntryDate)
             .orElse(Instant.EPOCH);
+
+        lastBalanceChangeEvent.ifPresent(balanceChangeEvent -> {
+            balanceChangeEvent.setLast(false);
+            balanceChangeEventRepository.save(balanceChangeEvent);
+        });
 
         BalanceChangeEvent event = new BalanceChangeEvent();
         event.setBalanceId(balance.getId());
@@ -405,6 +411,7 @@ public class BalanceService {
         event.setMetadata(metadata);
         event.setAmountAfter(amountAfterTransferTo);
         event.setAmountBefore(amountBeforeTransferTo);
+        event.setLast(true);
         return event;
     }
 
@@ -561,7 +568,7 @@ public class BalanceService {
             log.info("Checkout pocket id:{} label:{}, from {} -> {} | leftCheckoutAmount: {}",
                 saved.getId(), saved.getLabel(), pocketAmount, saved.getAmount(), amountToBalanceCheckout);
         }
-        return  amountToBalanceCheckout;
+        return amountToBalanceCheckout;
     }
 
     private void assertNotEmpty(Balance balance, BigDecimal amount, BigDecimal amountToCheckout, List<Pocket> pockets, boolean chargeAsManyAsPossible) {
