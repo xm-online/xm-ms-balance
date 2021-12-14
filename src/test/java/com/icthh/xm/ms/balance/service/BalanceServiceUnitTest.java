@@ -325,6 +325,38 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
+    @Test
+    public void operationDateAppliedWhenSpecified() {
+        expectedAuth();
+
+        Balance balance = createBalanceWithAmount(1L, "0");
+        Instant startDateTime = MOCK_CURRENT_DATE;
+        Instant operationDate = Instant.ofEpochSecond(1234536789);
+        when(pocketRepository.findPocketForReload("label", startDateTime, null, balance,
+                EMPTY_METADATA_VALUE)).thenReturn(empty());
+        Pocket assertionPocket = new Pocket().label("label").startDateTime(startDateTime)
+                .amount(new BigDecimal("50")).balance(balance);
+        Pocket savedPocket = new Pocket().label("label").startDateTime(startDateTime)
+                .amount(new BigDecimal("50")).balance(balance);
+        savedPocket.setId(492L);
+        when(pocketRepository.save(refEq(assertionPocket, "key"))).thenReturn(savedPocket);
+
+        when(balanceChangeEventRepository.findLastBalanceChangeEvent(balance.getId())).thenReturn(Optional.empty());
+
+        balanceService.reload(new ReloadBalanceRequest().setBalanceId(1L).setAmount(new BigDecimal("50"))
+                .setStartDateTime(startDateTime).setLabel("label").setOperationDate(operationDate));
+
+        verify(metricService).updateMaxMetric(balance, operationDate);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
+
+        BalanceChangeEvent balanceEvent = createBalanceEvent("50", 1L, RELOAD, operationDate, null, "50", "0", "50",
+                createPocketEvent("50", 492L, null, "label", "50", "0"));
+        balanceEvent.setLast(true);
+        expectBalanceChangeEvents(balanceEvent);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+
     @Test(expected = EntityNotFoundException.class)
     public void ifBalanceNotFound() {
         when(balanceRepository.findOneByIdForUpdate(5L)).thenReturn(Optional.empty());

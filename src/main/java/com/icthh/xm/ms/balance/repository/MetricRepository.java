@@ -7,6 +7,7 @@ import com.icthh.xm.ms.balance.domain.Metric;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface MetricRepository extends JpaRepository<Metric, Long>, ResourceRepository {
+public interface MetricRepository extends JpaRepository<Metric, Long>, JpaSpecificationExecutor<Metric>, ResourceRepository {
 
     Optional<Metric> findByTypeKeyAndBalance(String TypeKey, Balance balance);
 }
