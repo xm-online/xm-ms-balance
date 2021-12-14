@@ -3,6 +3,8 @@ package com.icthh.xm.ms.balance.service;
 import static java.math.BigDecimal.ZERO;
 import static java.util.UUID.randomUUID;
 
+import com.icthh.xm.commons.lep.LogicExtensionPoint;
+import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Metric;
@@ -18,6 +20,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Service Implementation for managing Metric.
  */
 @Service
+@LepService(group = "metric")
 @Transactional
 @RequiredArgsConstructor
 public class MetricService {
@@ -38,6 +44,7 @@ public class MetricService {
     private final MetricMapper metricMapper;
 
     @Transactional
+    @LogicExtensionPoint(value = "UpdateMaxMetric", resolver = BalanceTypeKeyResolver.class)
     public void updateMaxMetric(Balance balance, Instant applyDate) {
         Metric max = metricRepository.findByTypeKeyAndBalance(MAX_METRIC_TYPE_KEY, balance).orElse(new Metric()
             .key(randomUUID().toString()).typeKey(MAX_METRIC_TYPE_KEY).value("0").balance(balance));
@@ -70,6 +77,16 @@ public class MetricService {
         return permittedRepository.findAll(Metric.class, privilegeKey).stream()
             .map(metricMapper::toDto)
             .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    /**
+     * Get all the metrics.
+     *
+     * @return the list of entities
+     */
+    @Transactional(readOnly = true)
+    public Page<MetricDTO> findAll(Specification<Metric> spec, Pageable pageable) {
+        return metricRepository.findAll(spec, pageable).map(metricMapper::toDto);
     }
 
     /**

@@ -249,7 +249,7 @@ public class BalanceService {
     public BalanceChangeEventDto reload(ReloadBalanceRequest reloadRequest) {
         log.info("Start reload balance with request {}", reloadRequest);
         Balance balance = getBalanceForUpdate(reloadRequest.getBalanceId());
-        return reload(balance, reloadRequest);
+        return self.reload(balance, reloadRequest);
     }
 
     @Transactional
@@ -265,6 +265,7 @@ public class BalanceService {
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
 
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
+        operationDate = reloadRequest.getOperationDate() != null ? reloadRequest.getOperationDate() : operationDate;
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, reloadRequest.getAmount(),
             Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, RELOAD);
         if (reloadRequest.isReloadNegativePocket()) {
@@ -283,7 +284,7 @@ public class BalanceService {
     public BalanceChangeEventDto charging(ChargingBalanceRequest chargingRequest) {
         log.info("Start charging balance with request {}", chargingRequest);
         Balance balance = getBalanceForUpdate(chargingRequest.getBalanceId());
-        return charging(balance, chargingRequest);
+        return self.charging(balance, chargingRequest);
     }
 
     @Transactional

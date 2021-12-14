@@ -78,7 +78,8 @@ public class BalanceResourceMvcTest {
     public void testReloadBalance() {
         Instant endDateTime = now();
         Instant startDateTime = now();
-        ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(endDateTime, startDateTime);
+        Instant operationDate = now().plusSeconds(15);
+        ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(endDateTime, startDateTime, operationDate);
 
         doReturn(createBalanceChangeEventDto(OperationType.RELOAD)).when(balanceService).reload(reloadBalanceRequest);
 
@@ -87,16 +88,17 @@ public class BalanceResourceMvcTest {
             .content(TestUtil.convertObjectToJsonBytes(reloadBalanceRequest)))
             .andExpect(status().isOk());
 
-        verify(balanceService).reload(refEq(createReloadBalanceRequest(endDateTime, startDateTime)));
+        verify(balanceService).reload(refEq(createReloadBalanceRequest(endDateTime, startDateTime, operationDate)));
     }
 
 
-    private ReloadBalanceRequest createReloadBalanceRequest(Instant endDateTime, Instant startDateTime) {
+    private ReloadBalanceRequest createReloadBalanceRequest(Instant endDateTime, Instant startDateTime, Instant operationDate) {
         return new ReloadBalanceRequest()
             .setBalanceId(5L)
             .setAmount(new BigDecimal("50"))
             .setEndDateTime(endDateTime)
             .setStartDateTime(startDateTime)
+            .setOperationDate(operationDate)
             .setLabel("label")
             .setReloadNegativePocket(true);
     }
@@ -130,7 +132,7 @@ public class BalanceResourceMvcTest {
     private void expectValidationError(Consumer<ReloadBalanceRequest> task) throws Exception {
         Instant endDateTime = now();
         Instant startDateTime = now();
-        ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(endDateTime, startDateTime);
+        ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(endDateTime, startDateTime, now());
         task.accept(reloadBalanceRequest);
         mockMvc.perform(post("/api/balances/reload")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -142,7 +144,7 @@ public class BalanceResourceMvcTest {
     @Test
     @SneakyThrows
     public void notFoundResultCodeIfBalanceNotFound() {
-        ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(now(), now());
+        ReloadBalanceRequest reloadBalanceRequest = createReloadBalanceRequest(now(), now(), now());
 
         doThrow(new EntityNotFoundException("")).when(balanceService).reload(reloadBalanceRequest);
 

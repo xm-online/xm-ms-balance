@@ -18,6 +18,7 @@ public class ReloadBalanceRequest {
     private BigDecimal amount;
     @NotNull
     private String label;
+    private Instant operationDate;
     private Instant startDateTime;
     private Instant endDateTime;
     private Map<String, String> metadata;
