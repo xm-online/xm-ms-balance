@@ -1,0 +1,15 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="20211215000000" author="ssenko">
+        <createIndex tableName="balance_change_event" indexName="balance_change_event_operation_id_index">
+            <column name="operation_id"/>
+        </createIndex>
+        <createIndex tableName="pocket_change_event" indexName="pocket_change_event_transaction_id_index">
+            <column name="transaction_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
