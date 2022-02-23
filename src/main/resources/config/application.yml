@@ -180,7 +180,7 @@ application:
     pocket-charging-batch-size: 100
     lep:
         tenant-script-storage: XM_MS_CONFIG
-
+        full-recompile-on-lep-update: false
     specification-name: balancespec.yml
     specification-path-pattern: /config/tenants/{tenantName}/balance/${application.specification-name}
 

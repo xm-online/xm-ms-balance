@@ -45,6 +45,7 @@ public class ApplicationProperties {
     @Data
     public static class LepProperties {
         private String tenantScriptStorage;
+        private Boolean fullRecompileOnLepUpdate;
     }
 
 }
