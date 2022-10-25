@@ -79,7 +79,7 @@ public class LepContextCastIntTest {
         String prefix = "/config/tenants/RESINTTEST/balance/lep/service/";
         String key = prefix + "GetBalanceChangesByTypeAndDate$$around.groovy";
         String body = "import org.springframework.data.domain.PageImpl;\n" +
-                "import com.icthh.xm.ms.balance.config.LepContext;\nLepContext context = lepContext\n" +
+                "import com.icthh.xm.ms.balance.config.LepContext;\nLepContext context = lepContext as LepContext\n" +
                 "return new PageImpl([['context':context]])";
         leps.onRefresh(key, body);
         Page<?> result = balanceHistoryService.getBalanceChangesByTypeAndDate(null, null);
