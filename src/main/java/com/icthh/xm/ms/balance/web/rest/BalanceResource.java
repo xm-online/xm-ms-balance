@@ -12,6 +12,7 @@ import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.RevertBalanceOperationRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import com.icthh.xm.ms.balance.web.rest.util.PaginationUtil;
@@ -222,6 +223,15 @@ public class BalanceResource {
     public ResponseEntity<TransferDto> transferBalance(@Valid @RequestBody TransferBalanceRequest transferRequest) {
         TransferDto response = balanceService.transfer(transferRequest);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(response));
+    }
+
+    @PreAuthorize("hasPermission({'revertRequest': #revertRequest}, 'BALANCE.REVERT.OPERATION')")
+    @PostMapping("/balances/revert/operation")
+    @Timed
+    @PrivilegeDescription("Privilege to revert balance operation")
+    public ResponseEntity<BalanceChangeEventDto> revertBalanceOperation(@Valid @RequestBody RevertBalanceOperationRequest revertRequest) {
+        BalanceChangeEventDto balanceChangeEventDto = balanceService.revertBalanceOperation(revertRequest);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(balanceChangeEventDto));
     }
 
 }
