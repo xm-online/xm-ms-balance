@@ -34,6 +34,8 @@ public class BalanceDTO implements Serializable {
 
     private String createdBy;
 
+    private String status;
+
     public BalanceDTO amount(BigDecimal amount) {
         this.amount = amount;
         return this;
@@ -71,6 +73,7 @@ public class BalanceDTO implements Serializable {
             ", reserved=" + getReserved() +
             ", entityId=" + getEntityId() +
             ", createdBy='" + getCreatedBy() + "'" +
+            ", status='" + getStatus() + "'" +
             "}";
     }
 }

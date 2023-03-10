@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.service;
 
+import static com.icthh.xm.ms.balance.service.OperationType.CHANGE_STATUS;
 import static com.icthh.xm.ms.balance.service.OperationType.CHARGING;
 import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
@@ -8,7 +9,9 @@ import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
+import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
+import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
 import com.icthh.xm.commons.permission.annotation.FindWithPermission;
@@ -38,6 +41,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,8 +100,18 @@ public class BalanceService {
     @LogicExtensionPoint(value = "Save", resolver = BalanceDtoTypeKeyResolver.class)
     public BalanceDTO save(BalanceDTO balanceDTO) {
         Balance balance = balanceMapper.toEntity(balanceDTO);
+        assertStatus(balance.getStatus(), balance.getTypeKey());
         balance = balanceRepository.save(balance);
         return balanceMapper.toDto(balance);
+    }
+
+    private void assertStatus(String status, String typeKey) {
+        List<String> statuses = balanceSpecService.balanceStatusKeys(typeKey);
+
+        if (!statuses.isEmpty() && !statuses.contains(status)) {
+            throw new BusinessException(ErrorConstants.ERR_VALIDATION,
+                "Unsupported status [" + status + "] for type key: " + typeKey);
+        }
     }
 
     /**
@@ -610,5 +624,59 @@ public class BalanceService {
 
     private BigDecimal getAmountAfter(boolean isSubtractAmount, BigDecimal balanceAmount, BigDecimal deltaAmount) {
         return isSubtractAmount ? balanceAmount.subtract(deltaAmount) : balanceAmount.add(deltaAmount);
+    }
+
+    @Transactional
+    public BalanceDTO updateStatus(Long id, String status, Map<String, Object> context) {
+        log.info("Start update balance status: id: {}, status: {}, context: {}", id, status, context);
+        Balance balance = getBalanceForUpdate(id);
+        assertStatusTransition(status, balance);
+        return updateStatus(balance, status, context);
+    }
+
+    @LogicExtensionPoint(value = "ChangeStatus", resolver = BalanceTypeKeyResolver.class)
+    public BalanceDTO updateStatus(Balance balance, String status, Map<String, Object> context) {
+        BalanceChangeEvent changeEvent = createChangeStatusChangeEvent(balance, status);
+        log.info("Update balance status changeEvent: {}", changeEvent);
+        balanceChangeEventRepository.save(changeEvent);
+
+        balance.setStatus(status);
+        log.info("Update balance: {}", balance);
+        balance = balanceRepository.save(balance);
+
+        return balanceMapper.toDto(balance);
+    }
+
+    private void assertStatusTransition(String newStatus, Balance balance) {
+        String currentStatus = balance.getStatus();
+        String balanceTypeKey = balance.getTypeKey();
+
+        if (currentStatus == null) {
+            assertNullStatusTransition(newStatus, balanceTypeKey);
+            return;
+        }
+
+        Optional<List<NextSpec>> nextSpecs = balanceSpecService.nextSpecs(balanceTypeKey, currentStatus);
+        if (nextSpecs.isEmpty() || nextSpecs.get().stream().map(NextSpec::getStatusKey).noneMatch(newStatus::equals)) {
+            throw new StatusTransitionException(newStatus, currentStatus, balanceTypeKey);
+        }
+    }
+
+    private void assertNullStatusTransition(String newStatus, String balanceTypeKey) {
+        List<String> balanceStatusKeys = balanceSpecService.balanceStatusKeys(balanceTypeKey);
+        if(!balanceStatusKeys.contains(newStatus)){
+            throw new StatusTransitionException(newStatus, null, balanceTypeKey);
+        }
+    }
+
+    private BalanceChangeEvent createChangeStatusChangeEvent(Balance balance, String status) {
+        String operationUuid = UUID.randomUUID().toString();
+        Instant operationDate = now(clock);
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("change_status_from", balance.getStatus());
+        metadata.put("change_status_to", status);
+
+        return createBalanceChangeEvent(operationUuid, ZERO, Metadata.of(metadata), operationDate, balance,
+            false, CHANGE_STATUS);
     }
 }

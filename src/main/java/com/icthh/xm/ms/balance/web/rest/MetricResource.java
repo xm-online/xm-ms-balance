@@ -54,7 +54,7 @@ public class MetricResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new metricDTO, or with status 400 (Bad Request) if the metric has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PreAuthorize("hasPermission({'metric': #metric}, 'METRIC.CREATE')")
+    @PreAuthorize("hasPermission({'metric': #metricDTO}, 'METRIC.CREATE')")
     @PostMapping("/metrics")
     @Timed
     @PrivilegeDescription("Privilege to create a new metric")
@@ -78,7 +78,7 @@ public class MetricResource {
      * or with status 500 (Internal Server Error) if the metricDTO couldn't be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PreAuthorize("hasPermission({'id': #metric.id, 'newMetric': #metric}, 'metric', 'METRIC.UPDATE')")
+    @PreAuthorize("hasPermission({'id': #metricDTO.id, 'newMetric': #metricDTO}, 'metric', 'METRIC.UPDATE')")
     @PutMapping("/metrics")
     @Timed
     @PrivilegeDescription("Privilege to updates an existing metric")

@@ -40,6 +40,8 @@ public class BalanceCriteria implements Serializable {
 
     private StringFilter createdBy;
 
+    private StringFilter status;
+
     public BalanceCriteria() {
     }
 
@@ -53,6 +55,7 @@ public class BalanceCriteria implements Serializable {
             + (reserved != null ? "reserved=" + reserved + ", " : "")
             + (entityId != null ? "entityId=" + entityId + ", " : "")
             + (createdBy != null ? "createdBy=" + createdBy + ", " : "")
+            + (status != null ? "status=" + status + ", " : "")
             + "}";
     }
 

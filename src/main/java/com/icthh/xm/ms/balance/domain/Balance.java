@@ -96,6 +96,13 @@ public class Balance implements Serializable {
     private String createdBy;
 
     /**
+     * Balance status.
+     */
+    @ApiModelProperty(value = "Balance status.")
+    @Column(name = "status")
+    private String status;
+
+    /**
      * List of pockets owned by the balance. A null value indicates balances that cannot
      * have pockets because they are not configured in the specification. An empty list
      * indicates that are no pockets defined.
@@ -147,6 +154,11 @@ public class Balance implements Serializable {
 
     public Balance createdBy(String createdBy) {
         this.createdBy = createdBy;
+        return this;
+    }
+
+    public Balance status(String status) {
+        this.status = status;
         return this;
     }
 

@@ -9,17 +9,26 @@ import com.icthh.xm.lep.api.LepManager;
 import com.icthh.xm.ms.balance.BalanceApp;
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
 import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.Pocket;
+import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepositoryIntTest;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.BalanceQueryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.BalanceSpecService;
+import com.icthh.xm.ms.balance.service.OperationType;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
+import java.io.IOException;
+import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +59,7 @@ import static java.math.BigDecimal.TEN;
 import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -88,9 +98,13 @@ public class BalanceResourceIntTest {
     private static final Long UPDATED_ENTITY_ID = 2L;
 
     private static final String DEFAULT_CREATED_BY = "AAAAAAAAAA";
+    private static final String DEFAULT_STATUS = "ACTIVE";
     private static final String UPDATED_CREATED_BY = "BBBBBBBBBB";
 
     private static final BigDecimal AMOUNT = new BigDecimal("55.0");
+    private static final String BALANCE_TYPE_KEY = "BALANCE";
+    private static final String RELOAD_DEFAULT_VALUE = "200";
+    private static final String RELOAD = "reload";
 
     @Autowired
     private BalanceRepository balanceRepository;
@@ -121,6 +135,9 @@ public class BalanceResourceIntTest {
 
     @Autowired
     private PocketRepository pocketRepository;
+
+    @Autowired
+    private BalanceChangeEventRepository balanceChangeEventRepository;
 
     @Autowired
     private LepManager lepManager;
@@ -154,7 +171,7 @@ public class BalanceResourceIntTest {
     }
 
     @Before
-    public void setup() {
+    public void setup() throws IOException {
         MockitoAnnotations.initMocks(this);
         final BalanceResource balanceResource = new BalanceResource(balanceService, balanceQueryService);
         this.restBalanceMockMvc = MockMvcBuilders.standaloneSetup(balanceResource)
@@ -162,6 +179,8 @@ public class BalanceResourceIntTest {
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
+        String balanceSpec = new String(BalanceRepositoryIntTest.class.getResourceAsStream("/config/balancespec.yml").readAllBytes());
+        balanceSpecService.onRefresh("/config/tenants/RESINTTEST/balance/balancespec.yml", balanceSpec);
     }
 
     /**
@@ -178,7 +197,8 @@ public class BalanceResourceIntTest {
             .amount(DEFAULT_AMOUNT)
             .reserved(DEFAULT_RESERVED)
             .entityId(DEFAULT_ENTITY_ID)
-            .createdBy(DEFAULT_CREATED_BY);
+            .createdBy(DEFAULT_CREATED_BY)
+            .status("active");
         return balance;
     }
 
@@ -211,6 +231,43 @@ public class BalanceResourceIntTest {
         assertThat(testBalance.getReserved()).isEqualTo(DEFAULT_RESERVED);
         assertThat(testBalance.getEntityId()).isEqualTo(DEFAULT_ENTITY_ID);
         assertThat(testBalance.getCreatedBy()).isEqualTo(DEFAULT_CREATED_BY);
+        assertThat(testBalance.getStatus()).isEqualTo(DEFAULT_STATUS);
+    }
+
+    @Test
+    @Transactional
+    public void createBalanceWithoutStatus() throws Exception {
+        int databaseSizeBeforeCreate = balanceRepository.findAll().size();
+
+        // Create the Balance
+        BalanceDTO balanceDTO = balanceMapper.toDto(balance);
+        balanceDTO.setStatus(null);
+        restBalanceMockMvc.perform(post("/api/balances")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(balanceDTO)))
+            .andExpect(status().isCreated());
+
+        // Validate the Balance in the database
+        List<Balance> balanceList = balanceRepository.findAll();
+        assertThat(balanceList).hasSize(databaseSizeBeforeCreate + 1);
+        Balance testBalance = balanceList.get(balanceList.size() - 1);
+        log.info("{}", testBalance);
+        assertThat(testBalance.getStatus()).isNull();
+    }
+
+    @Test
+    @Transactional
+    public void createBalanceWitUnsupportedStatus() throws Exception {
+        // Create the Balance
+        BalanceDTO balanceDTO = balanceMapper.toDto(balance);
+        balanceDTO.setStatus("TEST");
+        balanceDTO.setTypeKey("BALANCE");
+        restBalanceMockMvc.perform(post("/api/balances")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(balanceDTO)))
+            .andExpect(status().isBadRequest())
+            .andExpect(result -> assertEquals("Unsupported status [TEST] for type key: BALANCE",
+                result.getResolvedException().getMessage()));
     }
 
     @Test
@@ -879,7 +936,7 @@ public class BalanceResourceIntTest {
         // Initialize the database
         Balance balance = new Balance()
             .key(DEFAULT_KEY)
-            .typeKey("BALANCE")
+            .typeKey(BALANCE_TYPE_KEY)
             .measureKey("UNIT")
             .amount(DEFAULT_AMOUNT)
             .reserved(DEFAULT_RESERVED)
@@ -890,9 +947,6 @@ public class BalanceResourceIntTest {
             .endDateTime(now().plusSeconds(500)).label("LABEL1").key("KEY");
         balanceRepository.saveAndFlush(balance);
         pocketRepository.saveAndFlush(pocket);
-
-        String balanceSpec = new String(BalanceRepositoryIntTest.class.getResourceAsStream("/config/balancespec.yml").readAllBytes());
-        balanceSpecService.onRefresh("/config/tenants/RESINTTEST/balance/balancespec.yml", balanceSpec);
 
         String uuid = UUID.randomUUID().toString();
         ChargingBalanceRequest request = new ChargingBalanceRequest(balance.getId(), chargingAmount);
@@ -938,4 +992,126 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.pocketChangeEvents.[0].amountAfter").value("0.0"));
     }
 
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void changeBalanceStatusWhenTransitionAllowed() throws Exception {
+        Balance balance = new Balance()
+            .key(DEFAULT_KEY)
+            .typeKey(BALANCE_TYPE_KEY)
+            .measureKey("UNIT")
+            .reserved(DEFAULT_RESERVED)
+            .entityId(DEFAULT_ENTITY_ID)
+            .createdBy(DEFAULT_CREATED_BY)
+            .status(DEFAULT_STATUS);
+
+        balance = balanceRepository.saveAndFlush(balance);
+        assertThat(balance.getStatus()).isEqualTo(DEFAULT_STATUS);
+
+        ReloadBalanceRequest reloadBalanceRequest = buildReloadBalanceRequest(balance);
+        balanceService.reload(reloadBalanceRequest);
+
+        restBalanceMockMvc.perform(put("/api/balances/{id}/statuses/{status}", balance.getId(), "blocked")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(new HashMap<>())))
+            .andExpect(status().isOk());
+
+        List<Balance> balanceList = balanceRepository.findAll();
+        Balance testBalance = balanceList.get(balanceList.size() - 1);
+        log.info("{}", testBalance);
+        assertThat(testBalance.getStatus()).isEqualTo("BLOCKED");
+
+        List<BalanceChangeEvent> changeEvents = balanceChangeEventRepository.findAll();
+        log.info("changeEvents: {}", changeEvents);
+        BalanceChangeEvent testChangeEvents = changeEvents.get(changeEvents.size() - 1);
+
+        assertThat(testChangeEvents.getMetadata().getMetadata()).isEqualTo(expectedMetadataMap());
+        assertThat(testChangeEvents.getOperationType()).isEqualTo(OperationType.CHANGE_STATUS);
+        assertThat(testChangeEvents.getBalanceId()).isEqualTo(balance.getId());
+        assertThat(testChangeEvents.getBalanceKey()).isEqualTo(DEFAULT_KEY);
+        assertThat(testChangeEvents.getBalanceTypeKey()).isEqualTo(BALANCE_TYPE_KEY);
+        BigDecimal reloadDefault = new BigDecimal(RELOAD_DEFAULT_VALUE).setScale(2, RoundingMode.HALF_UP);
+        assertThat(testChangeEvents.getAmountBefore()).isEqualTo(reloadDefault);
+        assertThat(testChangeEvents.getAmountAfter()).isEqualTo(reloadDefault);
+        assertThat(testChangeEvents.getAmountDelta()).isEqualTo(BigDecimal.ZERO);
+        assertThat(testChangeEvents.getAmountTotal()).isEqualTo(BigDecimal.ZERO);
+    }
+
+    @NotNull
+    private static ReloadBalanceRequest buildReloadBalanceRequest(Balance balance) {
+        ReloadBalanceRequest reloadBalanceRequest = new ReloadBalanceRequest();
+        reloadBalanceRequest.setBalanceId(balance.getId());
+        reloadBalanceRequest.setAmount(new BigDecimal(RELOAD_DEFAULT_VALUE));
+        Map<String, String> reloadMetadata = new HashMap<>();
+        reloadMetadata.put(RELOAD, RELOAD_DEFAULT_VALUE);
+        reloadBalanceRequest.setMetadata(reloadMetadata);
+        reloadBalanceRequest.setLabel(RELOAD);
+        return reloadBalanceRequest;
+    }
+
+    private Map<String, String> expectedMetadataMap() {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("change_status_from", "ACTIVE");
+        metadata.put("change_status_to", "BLOCKED");
+        return metadata;
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void changeBalanceStatusWhenTransitionNotAllowed() throws Exception {
+        Balance balance = new Balance()
+            .key(DEFAULT_KEY)
+            .typeKey(BALANCE_TYPE_KEY)
+            .measureKey("UNIT")
+            .amount(DEFAULT_AMOUNT)
+            .reserved(DEFAULT_RESERVED)
+            .entityId(DEFAULT_ENTITY_ID)
+            .createdBy(DEFAULT_CREATED_BY)
+            .status(DEFAULT_STATUS);
+
+        balance = balanceRepository.saveAndFlush(balance);
+        assertThat(balance.getStatus()).isEqualTo(DEFAULT_STATUS);
+
+        restBalanceMockMvc.perform(put("/api/balances/{id}/statuses/{status}", balance.getId(), "closed")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(new HashMap<>())))
+            .andExpect(status().isBadRequest())
+            .andExpect(result -> assertEquals("Type key: BALANCE can not go from [ACTIVE] to [CLOSED]",
+                result.getResolvedException().getMessage()));
+
+        List<Balance> balanceList = balanceRepository.findAll();
+        Balance testBalance = balanceList.get(balanceList.size() - 1);
+        log.info("{}", testBalance);
+        assertThat(testBalance.getStatus()).isEqualTo(DEFAULT_STATUS);
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void changeBalanceStatusWhenCurrentBalanceStatusIsNull() throws Exception {
+        Balance balance = new Balance()
+            .key(DEFAULT_KEY)
+            .typeKey(BALANCE_TYPE_KEY)
+            .measureKey("UNIT")
+            .reserved(DEFAULT_RESERVED)
+            .entityId(DEFAULT_ENTITY_ID)
+            .createdBy(DEFAULT_CREATED_BY);
+
+        balance = balanceRepository.saveAndFlush(balance);
+        assertThat(balance.getStatus()).isNull();
+
+        ReloadBalanceRequest reloadBalanceRequest = buildReloadBalanceRequest(balance);
+        balanceService.reload(reloadBalanceRequest);
+
+        restBalanceMockMvc.perform(put("/api/balances/{id}/statuses/{status}", balance.getId(), "active")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(new HashMap<>())))
+            .andExpect(status().isOk());
+
+        List<Balance> balanceList = balanceRepository.findAll();
+        Balance testBalance = balanceList.get(balanceList.size() - 1);
+        log.info("{}", testBalance);
+        assertThat(testBalance.getStatus()).isEqualTo("ACTIVE");
+    }
 }
