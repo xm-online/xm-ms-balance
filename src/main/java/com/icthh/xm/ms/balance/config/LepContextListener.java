@@ -10,10 +10,11 @@ import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.PocketService;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@RequiredArgsConstructor
+@Component
 public class LepContextListener extends SpringLepProcessingApplicationListener {
 
     private static final String COMMONS = "commons";
@@ -31,6 +32,17 @@ public class LepContextListener extends SpringLepProcessingApplicationListener {
     private final BalanceHistoryService balanceHistoryService;
     private final MetricService metricService;
     private final RestTemplate restTemplate;
+
+    public LepContextListener(CommonsService commonsService, BalanceService balanceService, PocketService pocketService,
+                              BalanceHistoryService balanceHistoryService, MetricService metricService,
+                              @Qualifier("loadBalancedRestTemplate") RestTemplate restTemplate) {
+        this.commonsService = commonsService;
+        this.balanceService = balanceService;
+        this.pocketService = pocketService;
+        this.balanceHistoryService = balanceHistoryService;
+        this.metricService = metricService;
+        this.restTemplate = restTemplate;
+    }
 
     @Override
     protected void bindExecutionContext(ScopedContext executionContext) {

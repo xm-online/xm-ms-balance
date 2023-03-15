@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @see MetricResource
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {BalanceApp.class, SecurityBeanOverrideConfiguration.class})
+@SpringBootTest(classes = { SecurityBeanOverrideConfiguration.class, BalanceApp.class})
 public class MetricResourceIntTest {
 
     private static final String DEFAULT_KEY = "AAAAAAAAAA";

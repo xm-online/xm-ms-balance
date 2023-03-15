@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
-    BalanceApp.class,
     SecurityBeanOverrideConfiguration.class,
+    BalanceApp.class,
     LogstashIntTest.class
 })
 @Configuration
