@@ -630,12 +630,12 @@ public class BalanceService {
     public BalanceDTO updateStatus(Long id, String status, Map<String, Object> context) {
         log.info("Start update balance status: id: {}, status: {}, context: {}", id, status, context);
         Balance balance = getBalanceForUpdate(id);
-        assertStatusTransition(status, balance);
         return updateStatus(balance, status, context);
     }
 
     @LogicExtensionPoint(value = "ChangeStatus", resolver = BalanceTypeKeyResolver.class)
     public BalanceDTO updateStatus(Balance balance, String status, Map<String, Object> context) {
+        assertStatusTransition(status, balance);
         BalanceChangeEvent changeEvent = createChangeStatusChangeEvent(balance, status);
         log.info("Update balance status changeEvent: {}", changeEvent);
         balanceChangeEventRepository.save(changeEvent);
