@@ -630,9 +630,10 @@ public class BalanceService {
     public BalanceDTO updateStatus(Long id, String status, Map<String, Object> context) {
         log.info("Start update balance status: id: {}, status: {}, context: {}", id, status, context);
         Balance balance = getBalanceForUpdate(id);
-        return updateStatus(balance, status, context);
+        return self.updateStatus(balance, status, context);
     }
 
+    @Transactional
     @LogicExtensionPoint(value = "ChangeStatus", resolver = BalanceTypeKeyResolver.class)
     public BalanceDTO updateStatus(Balance balance, String status, Map<String, Object> context) {
         assertStatusTransition(status, balance);
