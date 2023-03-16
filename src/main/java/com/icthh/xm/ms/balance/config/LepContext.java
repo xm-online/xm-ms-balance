@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
+import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.lep.BaseProceedingLep;
 import com.icthh.xm.commons.lep.spring.LepThreadHelper;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
@@ -31,6 +32,7 @@ public class LepContext {
         public PocketService pocketService;
         public BalanceHistoryService balanceHistoryService;
         public MetricService metricService;
+        public TenantConfigService tenantConfigService;
     }
 
 
