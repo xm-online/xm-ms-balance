@@ -20,9 +20,14 @@ import com.icthh.xm.commons.permission.repository.PermittedRepository;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
-import com.icthh.xm.ms.balance.domain.*;
+import com.icthh.xm.ms.balance.domain.Balance;
+import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.BalanceSpec.AllowNegative;
 import com.icthh.xm.ms.balance.domain.BalanceSpec.BalanceTypeSpec;
+import com.icthh.xm.ms.balance.domain.Metadata;
+import com.icthh.xm.ms.balance.domain.NextSpec;
+import com.icthh.xm.ms.balance.domain.Pocket;
+import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
@@ -106,7 +111,7 @@ public class BalanceService {
     }
 
     private void assertStatus(String status, String typeKey) {
-        List<String> statuses = balanceSpecService.balanceStatusKeys(typeKey);
+        List<String> statuses = balanceSpecService.getBalanceStatusKeys(typeKey);
 
         if (!statuses.isEmpty() && !statuses.contains(status)) {
             throw new BusinessException(ErrorConstants.ERR_VALIDATION,
@@ -657,15 +662,15 @@ public class BalanceService {
             return;
         }
 
-        Optional<List<NextSpec>> nextSpecs = balanceSpecService.nextSpecs(balanceTypeKey, currentStatus);
+        Optional<List<NextSpec>> nextSpecs = balanceSpecService.getNextStatusSpecs(balanceTypeKey, currentStatus);
         if (nextSpecs.isEmpty() || nextSpecs.get().stream().map(NextSpec::getStatusKey).noneMatch(newStatus::equals)) {
             throw new StatusTransitionException(newStatus, currentStatus, balanceTypeKey);
         }
     }
 
     private void assertNullStatusTransition(String newStatus, String balanceTypeKey) {
-        List<String> balanceStatusKeys = balanceSpecService.balanceStatusKeys(balanceTypeKey);
-        if(!balanceStatusKeys.contains(newStatus)){
+        List<String> balanceStatusKeys = balanceSpecService.getBalanceStatusKeys(balanceTypeKey);
+        if (!balanceStatusKeys.contains(newStatus)) {
             throw new StatusTransitionException(newStatus, null, balanceTypeKey);
         }
     }
@@ -674,8 +679,8 @@ public class BalanceService {
         String operationUuid = UUID.randomUUID().toString();
         Instant operationDate = now(clock);
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("change_status_from", balance.getStatus());
-        metadata.put("change_status_to", status);
+        metadata.put(MetadataConstants.CHANGE_STATUS_FROM, balance.getStatus());
+        metadata.put(MetadataConstants.CHANGE_STATUS_TO, status);
 
         return createBalanceChangeEvent(operationUuid, ZERO, Metadata.of(metadata), operationDate, balance,
             false, CHANGE_STATUS);

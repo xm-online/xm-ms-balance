@@ -15,15 +15,15 @@ public class BalanceSpec {
 
     @Data
     public static class BalanceTypeSpec {
-        private static final List<StatusSpec> EMPTY_STATUSES = emptyList();
         private String key;
         private Map<String, String> name;
         private boolean isWithPockets;
         private boolean removeZeroPockets = false;
         private AllowNegative allowNegative = new AllowNegative();
         private List<StatusSpec> statuses;
+
         public List<StatusSpec> getStatuses() {
-            return requireNonNullElse(statuses, EMPTY_STATUSES);
+            return requireNonNullElse(statuses, emptyList());
         }
     }
 

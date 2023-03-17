@@ -98,14 +98,15 @@ public class BalanceSpecService implements RefreshableConfiguration {
     public BalanceSpec.BalanceTypeSpec getBalanceSpec(String typeKey) {
         return getTypeSpecs().getOrDefault(typeKey, NULL_OBJECT);
     }
-    public List<String> balanceStatusKeys(String balanceTypeKey) {
+
+    public List<String> getBalanceStatusKeys(String balanceTypeKey) {
         List<StatusSpec> statuses = getBalanceSpec(balanceTypeKey).getStatuses();
         return statuses.stream()
             .map(StatusSpec::getKey)
             .collect(Collectors.toList());
     }
 
-    public Optional<List<NextSpec>> nextSpecs(String balanceTypeKey, String statusKey) {
+    public Optional<List<NextSpec>> getNextStatusSpecs(String balanceTypeKey, String statusKey) {
         List<StatusSpec> statuses = getBalanceSpec(balanceTypeKey).getStatuses();
         return statuses.stream()
             .filter(s -> s.getKey().equals(statusKey))

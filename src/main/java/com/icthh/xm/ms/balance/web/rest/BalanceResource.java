@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+
 /**
  * REST controller for managing Balance.
  */
@@ -105,7 +106,7 @@ public class BalanceResource {
     }
 
     /**
-     * PUT  /balances : Updates an existing balance status.
+     * PUT  /balances/:id/statuses/:status: Updates an existing balance status.
      *
      * @param id the id of the balance to update
      * @param status the status of the balance to update
@@ -121,7 +122,7 @@ public class BalanceResource {
     @PrivilegeDescription("Privilege to updates an existing balance")
     public ResponseEntity<BalanceDTO> updateBalanceStatus(@PathVariable Long id,
                                                           @PathVariable String status,
-                                                          @RequestBody(required = false) Map<String, Object> context){
+                                                          @RequestBody(required = false) Map<String, Object> context) {
         BalanceDTO balanceDTO = balanceService.updateStatus(id, status.toUpperCase(), context);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, id.toString()))
