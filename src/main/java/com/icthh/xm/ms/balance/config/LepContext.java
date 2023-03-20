@@ -10,7 +10,7 @@ import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.PocketService;
-import java.util.Map;
+import org.springframework.web.client.RestTemplate;
 
 public class LepContext {
 
@@ -24,7 +24,7 @@ public class LepContext {
 
     public LepServiceFactory lepServices;
     public LepServices services;
-    public Map<String, Object> templates;
+    public LepTemplates templates;
 
     public static class LepServices {
         public Object xmTenantLifeCycle; // do not user this field
@@ -35,6 +35,8 @@ public class LepContext {
         public TenantConfigService tenantConfigService;
     }
 
-
+    public static class LepTemplates{
+        public RestTemplate rest;
+    }
 }
 
