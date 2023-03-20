@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
+import com.icthh.xm.commons.config.client.service.TenantConfigService;
 import com.icthh.xm.commons.lep.BaseProceedingLep;
 import com.icthh.xm.commons.lep.spring.LepThreadHelper;
 import com.icthh.xm.commons.lep.spring.lepservice.LepServiceFactory;
@@ -9,6 +10,7 @@ import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.PocketService;
+import org.springframework.web.client.RestTemplate;
 
 public class LepContext {
 
@@ -22,6 +24,7 @@ public class LepContext {
 
     public LepServiceFactory lepServices;
     public LepServices services;
+    public LepTemplates templates;
 
     public static class LepServices {
         public Object xmTenantLifeCycle; // do not user this field
@@ -29,8 +32,11 @@ public class LepContext {
         public PocketService pocketService;
         public BalanceHistoryService balanceHistoryService;
         public MetricService metricService;
+        public TenantConfigService tenantConfigService;
     }
 
-
+    public static class LepTemplates{
+        public RestTemplate rest;
+    }
 }
 

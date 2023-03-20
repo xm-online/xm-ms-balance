@@ -25,6 +25,7 @@
     <include file="config/liquibase/changelog/20211207000000_add_is_last.xml" relativeToChangelogFile="false" />
     <include file="config/liquibase/changelog/20211214000000_add_metric_index.xml" relativeToChangelogFile="false" />
     <include file="config/liquibase/changelog/20211215000000_add_operation_id_index.xml" relativeToChangelogFile="false" />
+    <include file="config/liquibase/changelog/20230310083200_added_column_status_Balance.xml" relativeToChangelogFile="false" />
 
 </databaseChangeLog>
 

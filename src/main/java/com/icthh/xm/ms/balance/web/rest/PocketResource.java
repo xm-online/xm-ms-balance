@@ -54,7 +54,7 @@ public class PocketResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new pocketDTO, or with status 400 (Bad Request) if the pocket has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PreAuthorize("hasPermission({'pocket': #pocket}, 'POCKET.CREATE')")
+    @PreAuthorize("hasPermission({'pocket': #pocketDTO}, 'POCKET.CREATE')")
     @PostMapping("/pockets")
     @Timed
     @PrivilegeDescription("Privilege to create a new pocket")
@@ -78,7 +78,7 @@ public class PocketResource {
      * or with status 500 (Internal Server Error) if the pocketDTO couldn't be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PreAuthorize("hasPermission({'id': #pocket.id, 'newPocket': #pocket}, 'pocket', 'POCKET.UPDATE')")
+    @PreAuthorize("hasPermission({'id': #pocketDTO.id, 'newPocket': #pocketDTO}, 'pocket', 'POCKET.UPDATE')")
     @PutMapping("/pockets")
     @Timed
     @PrivilegeDescription("Privilege to updates an existing pocket")

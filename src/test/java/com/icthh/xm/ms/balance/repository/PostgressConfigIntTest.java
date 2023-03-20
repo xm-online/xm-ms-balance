@@ -41,7 +41,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {BalanceApp.class, SecurityBeanOverrideConfiguration.class})
+@SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, BalanceApp.class})
 @ContextConfiguration(initializers = {com.icthh.xm.ms.balance.repository.PostgressConfigIntTest.Initializer.class})
 @ActiveProfiles("pg-test")
 public class PostgressConfigIntTest {

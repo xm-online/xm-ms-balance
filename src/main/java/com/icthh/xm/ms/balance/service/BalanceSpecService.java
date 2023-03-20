@@ -12,9 +12,14 @@ import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
 import com.icthh.xm.ms.balance.domain.BalanceSpec;
 
+import com.icthh.xm.ms.balance.domain.NextSpec;
+import com.icthh.xm.ms.balance.domain.StatusSpec;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -92,5 +97,20 @@ public class BalanceSpecService implements RefreshableConfiguration {
 
     public BalanceSpec.BalanceTypeSpec getBalanceSpec(String typeKey) {
         return getTypeSpecs().getOrDefault(typeKey, NULL_OBJECT);
+    }
+
+    public List<String> getBalanceStatusKeys(String balanceTypeKey) {
+        List<StatusSpec> statuses = getBalanceSpec(balanceTypeKey).getStatuses();
+        return statuses.stream()
+            .map(StatusSpec::getKey)
+            .collect(Collectors.toList());
+    }
+
+    public Optional<List<NextSpec>> getNextStatusSpecs(String balanceTypeKey, String statusKey) {
+        List<StatusSpec> statuses = getBalanceSpec(balanceTypeKey).getStatuses();
+        return statuses.stream()
+            .filter(s -> s.getKey().equals(statusKey))
+            .findFirst()
+            .map(StatusSpec::getNext);
     }
 }

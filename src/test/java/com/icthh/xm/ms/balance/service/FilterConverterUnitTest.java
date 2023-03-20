@@ -27,16 +27,17 @@ import static org.junit.Assert.assertTrue;
 public class FilterConverterUnitTest {
 
     @Test
-    public void testTwoExpressions() {
+    public void testThreeExpressions() {
         BalanceCriteria criteria = new BalanceCriteria();
         criteria.setId((LongFilter) new LongFilter().setEquals(42L));
         criteria.setAmount((BigDecimalFilter) new BigDecimalFilter().setEquals(BigDecimal.ONE));
+        criteria.setStatus((StringFilter) new StringFilter().setEquals("ACTIVE"));
         QueryPart queryPart = createQueryPart(criteria);
 
-        assertEquals("amount = :amount and id = :id", queryPart.getQuery().toString());
+        assertEquals("amount = :amount and id = :id and status = :status", queryPart.getQuery().toString());
         assertEquals(42L, queryPart.getParams().get("id"));
         assertEquals(BigDecimal.ONE, queryPart.getParams().get("amount"));
-
+        assertEquals("ACTIVE", queryPart.getParams().get("status"));
     }
 
     @Test

@@ -31,7 +31,7 @@ import static org.junit.Assert.assertTrue;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {BalanceApp.class, SecurityBeanOverrideConfiguration.class})
+@SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, BalanceApp.class})
 @Transactional
 public class LepContextCastIntTest {
 

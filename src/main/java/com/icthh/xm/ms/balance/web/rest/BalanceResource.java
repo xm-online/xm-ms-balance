@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.validation.Valid;
 
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+
 /**
  * REST controller for managing Balance.
  */
@@ -65,7 +67,7 @@ public class BalanceResource {
      * @return the ResponseEntity with status 201 (Created) and with body the new balanceDTO, or with status 400 (Bad Request) if the balance has already an ID
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PreAuthorize("hasPermission({'balance': #balance}, 'BALANCE.CREATE')")
+    @PreAuthorize("hasPermission({'balance': #balanceDTO}, 'BALANCE.CREATE')")
     @PostMapping("/balances")
     @Timed
     @PrivilegeDescription("Privilege to create a new balance")
@@ -89,7 +91,7 @@ public class BalanceResource {
      * or with status 500 (Internal Server Error) if the balanceDTO couldn't be updated
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PreAuthorize("hasPermission({'id': #balance.id, 'newBalance': #balance}, 'balance', 'BALANCE.UPDATE')")
+    @PreAuthorize("hasPermission({'id': #balanceDTO.id, 'newBalance': #balanceDTO}, 'balance', 'BALANCE.UPDATE')")
     @PutMapping("/balances")
     @Timed
     @PrivilegeDescription("Privilege to updates an existing balance")
@@ -101,6 +103,30 @@ public class BalanceResource {
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, balanceDTO.getId().toString()))
             .body(result);
+    }
+
+    /**
+     * PUT  /balances/:id/statuses/:status: Updates an existing balance status.
+     *
+     * @param id the id of the balance to update
+     * @param status the status of the balance to update
+     * @param context the context Map
+     * @return the ResponseEntity with status 200 (OK) and with body the updated balanceDTO,
+     * or with status 400 (Bad Request) if the status is not valid,
+     * or with status 404 (Not Found) if balance not found by id
+     * or with status 500 (Internal Server Error) if the balance couldn't be updated
+     */
+    @PreAuthorize("hasPermission({'id': #id, 'status': #status, 'context': #context}, 'balance', 'BALANCE.STATUS')")
+    @PutMapping("/balances/{id}/statuses/{status}")
+    @Timed
+    @PrivilegeDescription("Privilege to updates an existing balance")
+    public ResponseEntity<BalanceDTO> updateBalanceStatus(@PathVariable Long id,
+                                                          @PathVariable String status,
+                                                          @RequestBody(required = false) Map<String, Object> context) {
+        BalanceDTO balanceDTO = balanceService.updateStatus(id, status.toUpperCase(), context);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, id.toString()))
+            .body(balanceDTO);
     }
 
     /**

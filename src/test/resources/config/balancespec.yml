@@ -12,3 +12,11 @@ types:
       removeZeroPockets: true
       entityTypeKey:
         - WALLET
+      statuses:
+        - key: ACTIVE
+          name: { "en": "Active" }
+          next:
+            - statusKey: LIMITED
+              name: { "en": "Limited" }
+            - statusKey: BLOCKED
+              name: { "en": "Blocked" }
