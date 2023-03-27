@@ -118,4 +118,11 @@ public class ExceptionTranslatorIntTest {
             .andExpect(jsonPath("$.error_description").value("Internal server error, please try later"));
     }
 
+    @Test
+    public void testBusinessNotFoundException() throws Exception {
+        mockMvc.perform(get("/test/balance-not-found"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("error.balance.not.found"))
+            .andExpect(jsonPath("$.error_description").value("Balance not found"));
+    }
 }

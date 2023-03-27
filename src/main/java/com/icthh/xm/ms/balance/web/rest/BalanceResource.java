@@ -160,6 +160,29 @@ public class BalanceResource {
     }
 
     /**
+     * GET  /balances/:id/info : get the "id" balance.
+     *
+     * @param id     the id of the balance to retrieve info
+     * @param fields comma-separated fields to provide in response
+     * @param params comma-separated parameters("paramName=paramValue") to provide in response
+     * @return the ResponseEntity with status 200 (OK) and with body the balance info map,
+     * or with status 400 (Bad Request) if the fields or parameters not valid,
+     * or with status 404 (Not Found) if balance not found by id
+     * or with status 500 (Internal Server Error) if the balance info couldn't be generated
+     */
+    @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'BALANCE.INFO')")
+    @GetMapping("/balances/{id}/info")
+    @Timed
+    @PrivilegeDescription("Privilege to get the balance info")
+    public ResponseEntity<Map<String, Object>> getBalanceInfo(@PathVariable Long id,
+                                                              @RequestParam(required = false) String fields,
+                                                              @RequestParam(required = false) String params) {
+
+        Map<String, Object> info = balanceService.getBalanceInfo(id, fields, params);
+        return ResponseUtil.wrapOrNotFound(Optional.ofNullable(info));
+    }
+
+    /**
      * DELETE  /balances/:id : delete the "id" balance.
      *
      * @param id the id of the balanceDTO to delete

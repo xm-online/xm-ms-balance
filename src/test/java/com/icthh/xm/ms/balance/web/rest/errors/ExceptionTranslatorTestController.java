@@ -1,6 +1,7 @@
 package com.icthh.xm.ms.balance.web.rest.errors;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -71,6 +72,11 @@ public class ExceptionTranslatorTestController {
     @GetMapping("/test/internal-server-error")
     public void internalServerError() {
         throw new RuntimeException();
+    }
+
+    @GetMapping("/test/balance-not-found")
+    public void businessNotFoundException() {
+        throw new BusinessNotFoundException("error.balance.not.found", "Balance not found");
     }
 
     public static class TestDTO {
