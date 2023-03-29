@@ -713,7 +713,7 @@ public class BalanceService {
 
     @LogicExtensionPoint(value = "ExtendBalanceInfo", resolver = BalanceFieldKeyResolver.class)
     public Object extendBalanceInfo(BalanceDTO balanceDTO, String field, Map<String, String>  params) {
-        log.error("No logic for field: {}", field);
+        log.warn("No logic for field: {}", field);
         return null;
     }
 
