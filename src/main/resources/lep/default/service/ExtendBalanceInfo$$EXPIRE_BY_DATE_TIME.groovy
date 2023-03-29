@@ -13,16 +13,16 @@ import java.time.Instant
 
 import static java.time.Instant.now
 
-return new ExpireByDate(lepContext as LepContext).execute()
+return new ExpireByDateTime(lepContext as LepContext).execute()
 
 @Slf4j
-class ExpireByDate {
+class ExpireByDateTime {
 
     private LepContext lepContext
     private PocketQueryService pocketQueryService
     private Clock clock = Clock.systemDefaultZone()
 
-    ExpireByDate(LepContext lepContext) {
+    ExpireByDateTime(LepContext lepContext) {
         this.lepContext = lepContext
         this.pocketQueryService = lepContext.services.pocketQueryService
     }
@@ -30,11 +30,11 @@ class ExpireByDate {
     def execute() {
         BalanceDTO balanceDTO = lepContext.inArgs.balanceDTO
         Map<String, String> params = lepContext.inArgs.params
-        log.debug("ExpireByDate: execute: balanceDTO: {}, params: {}", balanceDTO, params)
+        log.debug("execute: balanceDTO: {}, params: {}", balanceDTO, params)
 
         Instant expireByDateTime
         try {
-            expireByDateTime = Instant.parse(params?.find { it.key == "expireByDateTime" }?.value)
+            expireByDateTime = Instant.parse(params?.get("expireByDateTime"))
             log.debug("ExpiredByDate: execute: expireByDateTime: {}", expireByDateTime)
         } catch (Exception e) {
             log.error("expireByDateTime parsing failure, {}", e)

@@ -1148,7 +1148,7 @@ public class BalanceResourceIntTest {
         balanceService.charging(chargingBalanceRequest);
 
         LinkedMultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
-        requestParams.add("fields", "activeAmount,spentAmount,futureAmount,expiredAmount,expireByDate");
+        requestParams.add("fields", "activeAmount,spentAmount,futureAmount,expiredAmount,expireByDateTime");
         requestParams.add("params", "expireByDateTime=" + Instant.now().plus(20, ChronoUnit.DAYS).toString() +
             ",testParameter=testValue");
 
@@ -1162,7 +1162,7 @@ public class BalanceResourceIntTest {
             .andExpect(jsonPath("$.futureAmount").value(300))
             .andExpect(jsonPath("$.spentAmount").value(120))
             .andExpect(jsonPath("$.expiredAmount").value(175))
-            .andExpect(jsonPath("$.expireByDate").value(300))
+            .andExpect(jsonPath("$.expireByDateTime").value(300))
             .andReturn();
     }
 
@@ -1171,8 +1171,9 @@ public class BalanceResourceIntTest {
     @Transactional
     public void getBalanceInfoNotFoundResponse() throws Exception {
         LinkedMultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
-        requestParams.add("fields", "active_amount,future_amount,spent_amount,expire_amount,expire_by_date");
-        requestParams.add("params", "2023-03-27T08:56:46");
+        requestParams.add("fields", "activeAmount,spentAmount,futureAmount,expiredAmount,expireByDateTime");
+        requestParams.add("params", "expireByDateTime=" + Instant.now().plus(20, ChronoUnit.DAYS).toString() +
+            ",testParameter=testValue");
 
         restBalanceMockMvc.perform(get("/api/balances/{id}/info", "9001")
                 .params(requestParams)

@@ -21,7 +21,7 @@ class SpentAmount {
 
     def execute() {
         BalanceDTO balanceDTO = lepContext.inArgs.balanceDTO
-        log.debug("SpentAmount: execute: balanceDTO: {}", balanceDTO)
+        log.debug("execute: balanceDTO: {}", balanceDTO)
 
         Page<BalanceChangeEvent> changeEvents = balanceHistoryService.findBalanceChanges(
                 "BALANCE-CHARGING",

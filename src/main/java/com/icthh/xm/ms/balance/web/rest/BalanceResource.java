@@ -160,7 +160,7 @@ public class BalanceResource {
     }
 
     /**
-     * GET  /balances/:id/info : get the "id" balance.
+     * GET  /balances/:id/info : get info about balance.
      *
      * @param id     the id of the balance to retrieve info
      * @param fields comma-separated fields to provide in response

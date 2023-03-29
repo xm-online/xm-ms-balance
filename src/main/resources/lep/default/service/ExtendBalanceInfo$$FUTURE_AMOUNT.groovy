@@ -27,7 +27,7 @@ class FutureAmount {
 
     def execute() {
         BalanceDTO balanceDTO = lepContext.inArgs.balanceDTO
-        log.debug("FutureAmount: execute: balanceDTO: {}", balanceDTO)
+        log.debug("execute: balanceDTO: {}", balanceDTO)
 
         LongFilter balanceIdFilter = new LongFilter()
         balanceIdFilter.setEquals(balanceDTO.getId())

@@ -27,7 +27,7 @@ class ExpiredAmount {
 
     def execute() {
         BalanceDTO balanceDTO = lepContext.inArgs.balanceDTO
-        log.debug("ExpiredAmount: execute: balanceDTO: {}", balanceDTO)
+        log.debug("execute: balanceDTO: {}", balanceDTO)
 
         LongFilter balanceIdFilter = new LongFilter()
         balanceIdFilter.setEquals(balanceDTO.getId())

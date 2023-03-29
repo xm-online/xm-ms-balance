@@ -23,7 +23,7 @@ class BalanceCharging extends QueryService {
 
     def execute() {
         Long balanceId = lepContext.inArgs.params?.balanceId
-        log.debug("BalanceCharging: execute: balanceId: {}", balanceId)
+        log.debug("execute: balanceId: {}", balanceId)
 
         FilterMapper filterMapper = new FilterMapper()
 

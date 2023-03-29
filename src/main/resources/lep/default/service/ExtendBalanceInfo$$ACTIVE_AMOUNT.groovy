@@ -15,7 +15,7 @@ class ActiveAmount {
 
     def execute() {
         BalanceDTO balanceDTO = lepContext.inArgs.balanceDTO
-        log.debug("ActiveAmount: execute: balanceDTO: {}", balanceDTO)
+        log.debug("execute: balanceDTO: {}", balanceDTO)
 
         return balanceDTO.getAmount()
     }
