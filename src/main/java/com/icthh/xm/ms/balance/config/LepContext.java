@@ -9,6 +9,7 @@ import com.icthh.xm.commons.tenant.TenantContext;
 import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.MetricService;
+import com.icthh.xm.ms.balance.service.PocketQueryService;
 import com.icthh.xm.ms.balance.service.PocketService;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,10 +34,10 @@ public class LepContext {
         public BalanceHistoryService balanceHistoryService;
         public MetricService metricService;
         public TenantConfigService tenantConfigService;
+        public PocketQueryService pocketQueryService;
     }
 
     public static class LepTemplates{
         public RestTemplate rest;
     }
 }
-

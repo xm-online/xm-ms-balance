@@ -25,6 +25,7 @@ import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import java.io.IOException;
 import java.math.RoundingMode;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.util.LinkedMultiValueMap;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
 import static com.icthh.xm.commons.lep.XmLepScriptConstants.BINDING_KEY_AUTH_CONTEXT;
@@ -105,6 +107,10 @@ public class BalanceResourceIntTest {
     private static final String BALANCE_TYPE_KEY = "BALANCE";
     private static final String RELOAD_DEFAULT_VALUE = "200";
     private static final String RELOAD = "reload";
+    private static final String CHARGE = "charge";
+    private static final String CHARGE_DEFAULT_VALUE = "60";
+    private static final String RELOAD_FUTURE_DEFAULT_VALUE = "300";
+    private static final String RELOAD_EXPIRED_DEFAULT_VALUE = "175";
 
     @Autowired
     private BalanceRepository balanceRepository;
@@ -1113,5 +1119,105 @@ public class BalanceResourceIntTest {
         Balance testBalance = balanceList.get(balanceList.size() - 1);
         log.info("{}", testBalance);
         assertThat(testBalance.getStatus()).isEqualTo("ACTIVE");
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getBalanceInfoSuccessResponse() throws Exception {
+        Balance balance = new Balance()
+            .key(DEFAULT_KEY)
+            .typeKey(BALANCE_TYPE_KEY)
+            .measureKey("UNIT")
+            .reserved(DEFAULT_RESERVED)
+            .entityId(DEFAULT_ENTITY_ID)
+            .createdBy(DEFAULT_CREATED_BY);
+
+        balance = balanceRepository.saveAndFlush(balance);
+        assertThat(balance.getStatus()).isNull();
+
+        ReloadBalanceRequest reloadBalanceRequest = buildReloadBalanceRequest(balance);
+        balanceService.reload(reloadBalanceRequest);
+        balanceService.reload(reloadBalanceRequest);
+        ReloadBalanceRequest reloadFutureBalanceRequest = buildFutureReloadBalanceRequest(balance);
+        balanceService.reload(reloadFutureBalanceRequest);
+        ReloadBalanceRequest reloadExpiredBalanceRequest = buildExpiredReloadBalanceRequest(balance);
+        balanceService.reload(reloadExpiredBalanceRequest);
+        ChargingBalanceRequest chargingBalanceRequest = buildChargeBalanceRequest(balance);
+        balanceService.charging(chargingBalanceRequest);
+        balanceService.charging(chargingBalanceRequest);
+
+        LinkedMultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("fields", "activeAmount,spentAmount,futureAmount,expiredAmount,expireByDateTime");
+        requestParams.add("params", "expireByDateTime=" + Instant.now().plus(20, ChronoUnit.DAYS).toString() +
+            ",testParameter=testValue");
+
+        restBalanceMockMvc.perform(get("/api/balances/{id}/info", balance.getId())
+                .params(requestParams)
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(new HashMap<>())))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(balance.getId()))
+            .andExpect(jsonPath("$.activeAmount").value(280))
+            .andExpect(jsonPath("$.futureAmount").value(300))
+            .andExpect(jsonPath("$.spentAmount").value(120))
+            .andExpect(jsonPath("$.expiredAmount").value(175))
+            .andExpect(jsonPath("$.expireByDateTime").value(300))
+            .andReturn();
+    }
+
+    @Test
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    @Transactional
+    public void getBalanceInfoNotFoundResponse() throws Exception {
+        LinkedMultiValueMap<String, String> requestParams = new LinkedMultiValueMap<>();
+        requestParams.add("fields", "activeAmount,spentAmount,futureAmount,expiredAmount,expireByDateTime");
+        requestParams.add("params", "expireByDateTime=" + Instant.now().plus(20, ChronoUnit.DAYS).toString() +
+            ",testParameter=testValue");
+
+        restBalanceMockMvc.perform(get("/api/balances/{id}/info", "9001")
+                .params(requestParams)
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(new HashMap<>())))
+            .andExpect(status().isNotFound());
+    }
+
+    @NotNull
+    private static ReloadBalanceRequest buildFutureReloadBalanceRequest(Balance balance) {
+        ReloadBalanceRequest reloadBalanceRequest = new ReloadBalanceRequest();
+        reloadBalanceRequest.setBalanceId(balance.getId());
+        reloadBalanceRequest.setAmount(new BigDecimal(RELOAD_FUTURE_DEFAULT_VALUE));
+        Map<String, String> reloadMetadata = new HashMap<>();
+        reloadMetadata.put(RELOAD, RELOAD_FUTURE_DEFAULT_VALUE);
+        reloadBalanceRequest.setMetadata(reloadMetadata);
+        reloadBalanceRequest.setLabel(RELOAD);
+        reloadBalanceRequest.setStartDateTime(Instant.now().plus(3, ChronoUnit.DAYS));
+        reloadBalanceRequest.setEndDateTime(Instant.now().plus(10, ChronoUnit.DAYS));
+        return reloadBalanceRequest;
+    }
+
+    @NotNull
+    private static ReloadBalanceRequest buildExpiredReloadBalanceRequest(Balance balance) {
+        ReloadBalanceRequest reloadBalanceRequest = new ReloadBalanceRequest();
+        reloadBalanceRequest.setBalanceId(balance.getId());
+        reloadBalanceRequest.setAmount(new BigDecimal(RELOAD_EXPIRED_DEFAULT_VALUE));
+        Map<String, String> reloadMetadata = new HashMap<>();
+        reloadMetadata.put(RELOAD, RELOAD_EXPIRED_DEFAULT_VALUE);
+        reloadBalanceRequest.setMetadata(reloadMetadata);
+        reloadBalanceRequest.setLabel(RELOAD);
+        reloadBalanceRequest.setStartDateTime(Instant.now().plus(-4, ChronoUnit.DAYS));
+        reloadBalanceRequest.setEndDateTime(Instant.now().plus(-3, ChronoUnit.DAYS));
+        return reloadBalanceRequest;
+    }
+
+    @NotNull
+    private static ChargingBalanceRequest buildChargeBalanceRequest(Balance balance) {
+        ChargingBalanceRequest chargingBalanceRequest = new ChargingBalanceRequest();
+        chargingBalanceRequest.setBalanceId(balance.getId());
+        chargingBalanceRequest.setAmount(new BigDecimal(CHARGE_DEFAULT_VALUE));
+        Map<String, String> reloadMetadata = new HashMap<>();
+        reloadMetadata.put(CHARGE, CHARGE_DEFAULT_VALUE);
+        chargingBalanceRequest.setMetadata(reloadMetadata);
+        return chargingBalanceRequest;
     }
 }

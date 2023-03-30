@@ -7,9 +7,11 @@ import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
+import static java.util.Optional.ofNullable;
 import static java.util.UUID.randomUUID;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
+import com.icthh.xm.commons.exceptions.BusinessNotFoundException;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
@@ -49,9 +51,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -684,5 +689,48 @@ public class BalanceService {
 
         return createBalanceChangeEvent(operationUuid, ZERO, Metadata.of(metadata), operationDate, balance,
             false, CHANGE_STATUS);
+    }
+
+    public Map<String, Object> getBalanceInfo(Long id, String fields, String params) {
+        BalanceDTO balanceDTO = findOne(id, null);
+        if (balanceDTO == null) {
+            throw new BusinessNotFoundException("error.balance.not.found", "Balance not found");
+        }
+        List<String> fieldList = splitToList(fields);
+        Map<String, String> paramMap = splitToMap(params);
+
+        Map<String, Object> info = new HashMap<>();
+        info.put("id", balanceDTO.getId());
+        for (String field : fieldList) {
+            Object extension = self.extendBalanceInfo(balanceDTO, field, paramMap);
+            ofNullable(extension).ifPresent(
+                ext -> info.put(field, ext)
+            );
+        }
+
+        return info;
+    }
+
+    @LogicExtensionPoint(value = "ExtendBalanceInfo", resolver = BalanceFieldKeyResolver.class)
+    public Object extendBalanceInfo(BalanceDTO balanceDTO, String field, Map<String, String>  params) {
+        log.warn("No logic for field: {}", field);
+        return null;
+    }
+
+    private List<String> splitToList(String fields) {
+        String splitRegex = "\\s*,\\s*";
+        fields = Objects.requireNonNullElse(fields, "");
+
+        return Stream.of(fields.split(splitRegex))
+            .collect(Collectors.toList());
+    }
+
+    private Map<String, String> splitToMap(String params) {
+        String splitRegex = "\\s*,\\s*";
+        params = Objects.requireNonNullElse(params, "");
+
+        return Stream.of(params.split(splitRegex))
+            .map(parameter -> parameter.split("=", 2))
+            .collect(Collectors.toMap(p -> p[0], p -> p.length>1 ? p[1] : ""));
     }
 }
