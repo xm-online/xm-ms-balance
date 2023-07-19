@@ -43,6 +43,8 @@ import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.service.dto.TransferDto.TransferDtoBuilder;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapperImpl;
+import com.icthh.xm.ms.balance.service.mapper.PocketChangeEventMapper;
+import com.icthh.xm.ms.balance.service.mapper.PocketChangeEventMapperImpl;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
@@ -92,6 +94,9 @@ public class BalanceServiceUnitTest {
     private BalanceChangeEventRepository balanceChangeEventRepository;
     @Mock
     private BalanceSpecService balanceSpecService;
+    @Spy
+    private PocketChangeEventMapper pocketChangeEventMapper = new PocketChangeEventMapperImpl();
+    @InjectMocks
     @Spy
     private BalanceChangeEventMapper balanceChangeEventMapper = new BalanceChangeEventMapperImpl();
 
