@@ -1,8 +1,5 @@
 package com.icthh.xm.ms.balance.domain;
 
-import static javax.persistence.CascadeType.ALL;
-import static javax.persistence.EnumType.STRING;
-
 import com.icthh.xm.ms.balance.service.OperationType;
 
 import java.math.BigDecimal;
@@ -27,6 +24,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.EnumType.STRING;
 
 @Entity
 @Table(name = "balance_change_event")

@@ -8,11 +8,11 @@ import org.mapstruct.Mapping;
 /**
  * Mapper for the entity BalanceChangeEvent and its DTO BalanceChangeEventDto.
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {PocketChangeEventMapper.class})
 public interface BalanceChangeEventMapper extends EntityMapper<BalanceChangeEventDto, BalanceChangeEvent> {
     @Override
     @Mapping(target = "metadata", source = "metadata.metadata" )
-    @Mapping(target = "pocketChangeEvents", source = "pocketChangeEvents", ignore = true )
+    @Mapping(target = "pocketChangeEvents", source = "pocketChangeEvents" )
     BalanceChangeEventDto toDto(BalanceChangeEvent entity);
 
     @Mapping(target = "metadata.metadata", source = "metadata" )

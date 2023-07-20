@@ -5,6 +5,9 @@ import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.service.BalanceHistoryService;
+import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
+import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
+import com.icthh.xm.ms.balance.service.dto.BalanceHistoryCriteria;
 import com.icthh.xm.ms.balance.web.rest.requests.HistoryRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TemplateParamsHolder;
 import com.icthh.xm.ms.balance.web.rest.util.PaginationUtil;
@@ -40,6 +43,18 @@ public class BalanceHistoryResource {
     public ResponseEntity<List<BalanceChangeEvent>> searchBalanceHistory(HistoryRequest request,
                                                                          Pageable pageable) {
         Page<BalanceChangeEvent> page = balanceHistoryService.getBalanceChangesByTypeAndDate(request, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/balances/history");
+        return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
+    }
+
+
+    @PreAuthorize("hasPermission({'criteria': #criteria}, 'BALANCE_HISTORY.CRITERIA')")
+    @GetMapping("/v2/balances/history")
+    @Timed
+    @PrivilegeDescription("Privilege to search balance history by criteria")
+    public ResponseEntity<List<BalanceChangeEventDto>> searchBalanceHistoryByCriteria(BalanceHistoryCriteria criteria,
+                                                                                      Pageable pageable) {
+        Page<BalanceChangeEventDto> page = balanceHistoryService.getBalanceChangesByCriteria(criteria, pageable, null);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/balances/history");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
