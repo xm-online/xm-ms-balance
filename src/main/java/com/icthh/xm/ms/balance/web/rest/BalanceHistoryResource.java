@@ -55,7 +55,7 @@ public class BalanceHistoryResource {
     public ResponseEntity<List<BalanceChangeEventDto>> searchBalanceHistoryByCriteria(BalanceHistoryCriteria criteria,
                                                                                       Pageable pageable) {
         Page<BalanceChangeEventDto> page = balanceHistoryService.getBalanceChangesByCriteria(criteria, pageable, null);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/balances/history");
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/v2/balances/history");
         return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 

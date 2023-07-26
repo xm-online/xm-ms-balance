@@ -3,6 +3,7 @@ package com.icthh.xm.ms.balance.service;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.lep.LogicExtensionPoint;
 import com.icthh.xm.commons.lep.spring.LepService;
+import com.icthh.xm.commons.permission.annotation.FindWithPermission;
 import com.icthh.xm.commons.permission.repository.CriteriaPermittedRepository;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
@@ -51,7 +52,7 @@ public class BalanceHistoryService {
         return balanceChangeEventRepository.findAll(self.balanceChangesSearchTemplate(templateName, params), pageable);
     }
 
-
+    @FindWithPermission("BALANCE_HISTORY.CRITERIA")
     public Page<BalanceChangeEventDto> getBalanceChangesByCriteria(BalanceHistoryCriteria criteria, Pageable pageable, String privilegeKey) {
         if (criteria.getOperationType() != null) {
             FilterUtils.remapEnumFilter(criteria.getOperationType(), OperationType.class);
