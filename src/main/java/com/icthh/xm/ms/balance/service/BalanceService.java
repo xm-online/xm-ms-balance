@@ -3,8 +3,13 @@ package com.icthh.xm.ms.balance.service;
 import static com.icthh.xm.ms.balance.service.OperationType.CHANGE_STATUS;
 import static com.icthh.xm.ms.balance.service.OperationType.CHARGING;
 import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
+import static com.icthh.xm.ms.balance.service.OperationType.REVERT_CHARGING;
+import static com.icthh.xm.ms.balance.service.OperationType.REVERT_RELOAD;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
+import static com.icthh.xm.ms.balance.service.RevertReloadMode.AS_MANY_AS_POSSIBLE_FROM_BALANCE;
+import static com.icthh.xm.ms.balance.service.RevertReloadMode.AS_MANY_AS_POSSIBLE_FROM_POCKETS;
+import static com.icthh.xm.ms.balance.service.RevertReloadMode.DEFAULT;
 import static java.math.BigDecimal.ZERO;
 import static java.time.Instant.now;
 import static java.util.Optional.ofNullable;
@@ -35,6 +40,7 @@ import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.PocketRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
+import com.icthh.xm.ms.balance.service.dto.PocketChangeEventDto;
 import com.icthh.xm.ms.balance.service.dto.PocketChanging;
 import com.icthh.xm.ms.balance.service.dto.TransferDto;
 import com.icthh.xm.ms.balance.service.mapper.BalanceChangeEventMapper;
@@ -42,6 +48,7 @@ import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
 import com.icthh.xm.ms.balance.service.mapper.PocketChangeEventMapper;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.RevertBalanceOperationRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 
 import java.math.BigDecimal;
@@ -57,6 +64,7 @@ import java.util.UUID;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -188,7 +196,7 @@ public class BalanceService {
             log.debug("Fetch negative pockets for reload {} by {}", pockets, pageable);
 
             amountToCheckout = reloadNegativePockets(reloadRequest, balance, amountToCheckout, affectedPockets,
-                    pocketsPage, changeEvent);
+                pocketsPage, changeEvent);
         }
         return affectedPockets;
     }
@@ -212,7 +220,7 @@ public class BalanceService {
             changeEvent.addPocketChangeEvent(createPocketChangeEvent(saved, amountToPocketCheckout, pocketAmount));
 
             log.info("Reload pocket id:{} label:{}, from {} -> {} | leftToReloadAmount: {}",
-                    pocket.getId(), pocket.getLabel(), pocketAmount, pocket.getAmount(), amountToBalanceReload);
+                pocket.getId(), pocket.getLabel(), pocketAmount, pocket.getAmount(), amountToBalanceReload);
 
             if (amountToBalanceReload.compareTo(ZERO) <= 0) {
                 log.info("Checkout pockets finished.");
@@ -267,6 +275,243 @@ public class BalanceService {
             log.info("Pocket for reload not found. New pocket will be created");
         }
         return pocket;
+    }
+
+    @Transactional
+    public BalanceChangeEventDto revertBalanceOperation(RevertBalanceOperationRequest revertRequest) {
+        log.info("Start revert balance operation with request {}", revertRequest);
+        Balance balance = getBalanceForUpdate(revertRequest.getBalanceId());
+        return self.revertBalanceOperation(balance, revertRequest);
+    }
+
+    @Transactional
+    @LogicExtensionPoint(value = "Revert", resolver = BalanceTypeKeyResolver.class)
+    public BalanceChangeEventDto revertBalanceOperation(Balance balance, RevertBalanceOperationRequest revertRequest) {
+        Optional<BalanceChangeEventDto> existingRevertOperation = findExistBalanceChangeEventDto(revertRequest.getUuid(), false);
+        if (existingRevertOperation.isPresent()) {
+            return existingRevertOperation.get();
+        }
+
+        String uuidToRevert = revertRequest.getUuidToRevert();
+        log.info("Start revert balance operation with UUID: {}", uuidToRevert);
+
+        BalanceChangeEventDto operationToRevert = findExistBalanceChangeEventDto(uuidToRevert, true)
+            .orElseThrow(() -> {
+                log.error("Not found balance change event with UUID: {}", uuidToRevert);
+                return new EntityNotFoundException("Balance change event with UUID " + uuidToRevert + " not found");
+            });
+
+        assertRevertOperationNotPerformed(uuidToRevert);
+
+        OperationType previousOperationType = operationToRevert.getOperationType();
+        log.info("Operation type to revert: {}", previousOperationType);
+
+        if (previousOperationType.equals(RELOAD)) {
+            return revertReloadOperation(balance, revertRequest, operationToRevert);
+        } else if (previousOperationType.equals(CHARGING)) {
+            return revertChargingOperation(balance, revertRequest, operationToRevert);
+        } else {
+            log.error("Revert of {} operation type is not supported", operationToRevert.getOperationType());
+            throw new BusinessException("error.revert.operation.type.not.supported", "Revert operation type not supported");
+        }
+    }
+
+    private BalanceChangeEventDto revertReloadOperation(Balance balance,
+                                                        RevertBalanceOperationRequest revertRequest,
+                                                        BalanceChangeEventDto reloadOperationToRevert) {
+        String operationUuid = StringUtils.isNotBlank(revertRequest.getUuid())
+            ? revertRequest.getUuid()
+            : UUID.randomUUID().toString();
+
+        BalanceChangeEvent changeEvent = createBalanceChangeEvent(
+            operationUuid,
+            reloadOperationToRevert.getAmountTotal(),
+            Metadata.of(revertRequest.getMetadata()),
+            now(clock),
+            balance,
+            true,
+            REVERT_RELOAD
+        );
+        changeEvent.setRevertOperationId(revertRequest.getUuidToRevert());
+
+
+        RevertReloadMode revertReloadMode = revertRequest.getRevertReloadMode();
+        log.info("Revert reload mode: {}", revertReloadMode);
+
+        if (revertReloadMode.equals(DEFAULT) || revertReloadMode.equals(AS_MANY_AS_POSSIBLE_FROM_POCKETS)) {
+            revertReloadByMode(revertReloadMode, reloadOperationToRevert.getPocketChangeEvents(), changeEvent);
+        } else if (revertReloadMode.equals(AS_MANY_AS_POSSIBLE_FROM_BALANCE)) {
+            revertReloadByAsManyAsPossibleFromBalance(balance, reloadOperationToRevert.getPocketChangeEvents(), changeEvent);
+        } else {
+            log.error("Could not perform operation, unknown revert reload mode: {}", revertReloadMode);
+            throw new BusinessException("error.revert.reload.mode.unknown", "Unknown revert reload mode");
+        }
+
+        changeEvent = balanceChangeEventRepository.save(changeEvent);
+
+        return balanceChangeEventMapper.toDto(changeEvent);
+    }
+
+    private List<PocketChanging> revertReloadByMode(RevertReloadMode revertReloadMode,
+                                                    List<PocketChangeEventDto> pocketChangeEventDtoList,
+                                                    BalanceChangeEvent changeEvent) {
+        List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();
+        List<PocketChanging> pocketChangingList = new ArrayList<>();
+
+        for (PocketChangeEventDto pocketChangeEventDto : pocketChangeEventDtoList) {
+            Pocket pocket = getPocketForUpdate(pocketChangeEventDto.getPocketId());
+
+            BigDecimal amountBefore = pocket.getAmount();
+            BigDecimal amountToProvide = pocketChangeEventDto.getAmountDelta();
+
+            boolean isChargingToNegativeRemainder = amountBefore.subtract(amountToProvide).compareTo(ZERO) < 0;
+
+            if (revertReloadMode.equals(DEFAULT) && isChargingToNegativeRemainder) {
+                log.error("Could not revert reload, not enough amount in pocket");
+                throw new BusinessException("error.revert.reload.insufficient.pocket.amount", "Operation provide negative remainder");
+            } else if (revertReloadMode.equals(AS_MANY_AS_POSSIBLE_FROM_POCKETS) && isChargingToNegativeRemainder) {
+                pocket.setAmount(ZERO);
+                amountToProvide = amountBefore;
+            } else {
+                pocket.subtractAmount(amountToProvide);
+            }
+
+            Pocket savedPocket = pocketRepository.save(pocket);
+            PocketChangeEvent pocketChangeEvent = createPocketChangeEvent(savedPocket, amountToProvide, amountBefore);
+
+            pocketChangeEvents.add(pocketChangeEvent);
+            pocketChangingList.add(new PocketChanging(savedPocket, pocketChangeEvent.getAmountDelta()));
+        }
+
+        if (revertReloadMode.equals(AS_MANY_AS_POSSIBLE_FROM_POCKETS)) {
+            BigDecimal amountDelta = pocketChangeEvents.stream()
+                .map(PocketChangeEvent::getAmountDelta)
+                .reduce(ZERO, BigDecimal::add);
+
+            changeEvent.setAmountDelta(amountDelta);
+            changeEvent.setAmountAfter(changeEvent.getAmountBefore().subtract(amountDelta));
+        }
+
+        changeEvent.addPocketChangeEvents(pocketChangeEvents);
+        return pocketChangingList;
+    }
+
+    private List<PocketChanging> revertReloadByAsManyAsPossibleFromBalance(Balance balance,
+                                                                           List<PocketChangeEventDto> pocketChangeEventDtoList,
+                                                                           BalanceChangeEvent changeEvent) {
+        List<PocketChanging> pocketChangingList = revertReloadByMode(AS_MANY_AS_POSSIBLE_FROM_POCKETS, pocketChangeEventDtoList, changeEvent);
+
+        if (changeEvent.getAmountTotal().compareTo(changeEvent.getAmountDelta()) > 0) {
+            BigDecimal amountToChargeFromBalance = changeEvent.getAmountTotal().subtract(changeEvent.getAmountDelta());
+            pocketChangingList.addAll(
+                chargingPockets(balance, amountToChargeFromBalance, changeEvent, now(clock), true, null)
+            );
+
+            BigDecimal amountDelta = pocketChangingList.stream()
+                .map(PocketChanging::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+            changeEvent.setAmountDelta(amountDelta);
+            changeEvent.setAmountAfter(changeEvent.getAmountBefore().subtract(amountDelta));
+        }
+
+        return pocketChangingList;
+    }
+
+    private BalanceChangeEventDto revertChargingOperation(Balance balance,
+                                                          RevertBalanceOperationRequest revertRequest,
+                                                          BalanceChangeEventDto chargingOperationToRevert) {
+        String operationUuid = StringUtils.isNotBlank(revertRequest.getUuid())
+            ? revertRequest.getUuid()
+            : UUID.randomUUID().toString();
+
+        BalanceChangeEvent changeEvent = createBalanceChangeEvent(
+            operationUuid,
+            chargingOperationToRevert.getAmountTotal(),
+            Metadata.of(revertRequest.getMetadata()),
+            now(clock),
+            balance,
+            false,
+            REVERT_CHARGING
+        );
+        changeEvent.setRevertOperationId(revertRequest.getUuidToRevert());
+
+        boolean isNeedToReturnAmountToNewPocket = isNeedToReturnAmountToNewPocket(revertRequest.getStartDateTime(), revertRequest.getEndDateTime());
+        log.info("Is need to return amount to new pocket: {}", isNeedToReturnAmountToNewPocket);
+        if (isNeedToReturnAmountToNewPocket) {
+            return revertToNewPocket(balance, revertRequest, chargingOperationToRevert, changeEvent);
+        } else {
+            return revertToOldPockets(chargingOperationToRevert, changeEvent);
+        }
+    }
+
+    private BalanceChangeEventDto revertToNewPocket(Balance balance,
+                                                    RevertBalanceOperationRequest revertRequest,
+                                                    BalanceChangeEventDto chargingOperationToRevert,
+                                                    BalanceChangeEvent changeEvent) {
+        Pocket pocket = new Pocket()
+            .key(randomUUID().toString())
+            .balance(balance)
+            .amount(chargingOperationToRevert.getAmountDelta())
+            .endDateTime(revertRequest.getEndDateTime())
+            .startDateTime(revertRequest.getStartDateTime())
+            .label(revertRequest.getLabel())
+            .metadata(Metadata.of(revertRequest.getMetadata()));
+
+        Pocket savedPocket = pocketRepository.save(pocket);
+        PocketChangeEvent event = createPocketChangeEvent(savedPocket, chargingOperationToRevert.getAmountDelta(), ZERO);
+
+        changeEvent.addPocketChangeEvent(event);
+
+        changeEvent = balanceChangeEventRepository.save(changeEvent);
+
+        return balanceChangeEventMapper.toDto(changeEvent);
+    }
+
+    private BalanceChangeEventDto revertToOldPockets(BalanceChangeEventDto chargingOperationToRevert,
+                                                     BalanceChangeEvent changeEvent) {
+        Map<Long, Pocket> pocketIdToPocketMap = new HashMap<>();
+
+        for (PocketChangeEventDto pocketChangeEventDto : chargingOperationToRevert.getPocketChangeEvents()) {
+            Pocket pocket = getPocketForUpdate(pocketChangeEventDto.getPocketId());
+            pocketIdToPocketMap.put(pocket.getId(), pocket);
+        }
+        for (PocketChangeEventDto pocketChangeEventDto : chargingOperationToRevert.getPocketChangeEvents()) {
+            Pocket pocket = pocketIdToPocketMap.get(pocketChangeEventDto.getPocketId());
+
+            BigDecimal amountBefore = pocket.getAmount();
+            BigDecimal amountToProvide = pocketChangeEventDto.getAmountDelta();
+
+            pocket.addAmount(amountToProvide);
+
+            Pocket savedPocket = pocketRepository.save(pocket);
+            PocketChangeEvent event = createPocketChangeEvent(savedPocket, amountToProvide, amountBefore);
+            changeEvent.addPocketChangeEvent(event);
+        }
+
+        changeEvent = balanceChangeEventRepository.save(changeEvent);
+
+        return balanceChangeEventMapper.toDto(changeEvent);
+    }
+
+    private void assertRevertOperationNotPerformed(String uuidToRevert) {
+        boolean isRevertOperationAlreadyPerformed = balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert);
+        if (isRevertOperationAlreadyPerformed) {
+            log.error("Revert operation for UUID: {} - already performed", uuidToRevert);
+            throw new BusinessException("error.revert.operation.already.performed", "Revert operation already performed");
+        }
+    }
+
+    private Pocket getPocketForUpdate(Long pocketId) {
+        return pocketRepository.findOneByIdForUpdate(pocketId)
+            .orElseThrow(() -> {
+                log.error("Not found pocket with id: {}", pocketId);
+                return new EntityNotFoundException("Pocket with id " + pocketId + " not found");
+            });
+    }
+
+    private boolean isNeedToReturnAmountToNewPocket(Instant startDateTime, Instant endDateTime) {
+        return startDateTime != null && endDateTime != null;
     }
 
     @Transactional
@@ -330,10 +575,15 @@ public class BalanceService {
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
         BalanceChangeEventDto dto = balanceChangeEventMapper.toDto(changeEvent);
-        if (chargingRequest.isWithAffectedPocketHistory()){
+        if (chargingRequest.isWithAffectedPocketHistory()) {
             dto.setPocketChangeEvents(pocketChangeEventMapper.toDto(changeEvent.getPocketChangeEvents()));
         }
         return dto;
+    }
+
+    private Optional<BalanceChangeEventDto> findExistBalanceChangeEventDto(String operationUuid, boolean withAffectedPocketHistory) {
+        List<BalanceChangeEvent> existBalanceChangeEvents = getBalanceChangeEventsByOperationId(operationUuid);
+        return Optional.ofNullable(returnExistBalanceChangeEventDto(existBalanceChangeEvents, withAffectedPocketHistory));
     }
 
     private List<BalanceChangeEvent> getBalanceChangeEventsByOperationId(String operationUuid) {
@@ -488,7 +738,7 @@ public class BalanceService {
         BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
 
         AllowNegative allowNegative = balanceTypeSpec.getAllowNegative();
-        if (StringUtils.isNotBlank(negativePocketLabel)){
+        if (StringUtils.isNotBlank(negativePocketLabel)) {
             allowNegative = new AllowNegative();
             allowNegative.setLabel(negativePocketLabel);
             allowNegative.setEnabled(balanceTypeSpec.getAllowNegative().isEnabled());
@@ -517,7 +767,7 @@ public class BalanceService {
     }
 
     private BigDecimal handleAsManyAsPossibleCharging(BigDecimal amountToCheckout, boolean isLastPocketPage,
-                                                       BalanceChangeEvent changeEvent) {
+                                                      BalanceChangeEvent changeEvent) {
         if (amountToCheckout.compareTo(ZERO) > 0 && isLastPocketPage) {
             BigDecimal chargedAmount = changeEvent.getAmountTotal().subtract(amountToCheckout);
             changeEvent.setAmountDelta(chargedAmount);
@@ -613,7 +863,7 @@ public class BalanceService {
         }
     }
 
-    private void assertIsEnoughMoney(Balance balance, BigDecimal currentAmount, boolean chargeAsManyAsPossible){
+    private void assertIsEnoughMoney(Balance balance, BigDecimal currentAmount, boolean chargeAsManyAsPossible) {
         BalanceTypeSpec balanceTypeSpec = balanceSpecService.getBalanceSpec(balance.getTypeKey());
         if (!chargeAsManyAsPossible && !balanceTypeSpec.getAllowNegative().isEnabled()) {
             throw new NoEnoughMoneyException(balance.getId(), currentAmount);
@@ -712,7 +962,7 @@ public class BalanceService {
     }
 
     @LogicExtensionPoint(value = "ExtendBalanceInfo", resolver = BalanceFieldKeyResolver.class)
-    public Object extendBalanceInfo(BalanceDTO balanceDTO, String field, Map<String, String>  params) {
+    public Object extendBalanceInfo(BalanceDTO balanceDTO, String field, Map<String, String> params) {
         log.warn("No logic for field: {}", field);
         return null;
     }
@@ -731,6 +981,6 @@ public class BalanceService {
 
         return Stream.of(params.split(splitRegex))
             .map(parameter -> parameter.split("=", 2))
-            .collect(Collectors.toMap(p -> p[0], p -> p.length>1 ? p[1] : ""));
+            .collect(Collectors.toMap(p -> p[0], p -> p.length > 1 ? p[1] : ""));
     }
 }

@@ -27,6 +27,7 @@ import lombok.ToString;
 
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.EnumType.STRING;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Entity
 @Table(name = "balance_change_event")
@@ -104,6 +105,9 @@ public class BalanceChangeEvent {
     @Column(name = "last", nullable = false)
     private Boolean last;
 
+    @Column(name = "revert_operation_id", nullable = false)
+    private String revertOperationId;
+
     @Builder.Default
     @OneToMany(mappedBy = "transaction", cascade = ALL)
     private List<PocketChangeEvent> pocketChangeEvents = new ArrayList<>();
@@ -111,5 +115,14 @@ public class BalanceChangeEvent {
     public void addPocketChangeEvent(PocketChangeEvent event) {
         event.setTransaction(this);
         pocketChangeEvents.add(event);
+    }
+
+    public void addPocketChangeEvents(List<PocketChangeEvent> events) {
+        if (!isEmpty(events)) {
+            events.forEach(event -> {
+                event.setTransaction(this);
+                pocketChangeEvents.add(event);
+            });
+        }
     }
 }
