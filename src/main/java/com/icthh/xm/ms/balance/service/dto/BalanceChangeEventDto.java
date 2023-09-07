@@ -33,5 +33,6 @@ public class BalanceChangeEventDto {
     private BigDecimal amountBefore;
     private BigDecimal amountAfter;
     private Boolean last;
+    private String revertOperationId;
     private List<PocketChangeEventDto> pocketChangeEvents;
 }

@@ -2,8 +2,11 @@ package com.icthh.xm.ms.balance.service;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static com.icthh.xm.ms.balance.service.BalanceService.NEGATIVE_POCKET_LABEL;
+import static com.icthh.xm.ms.balance.service.OperationType.CHANGE_STATUS;
 import static com.icthh.xm.ms.balance.service.OperationType.CHARGING;
 import static com.icthh.xm.ms.balance.service.OperationType.RELOAD;
+import static com.icthh.xm.ms.balance.service.OperationType.REVERT_CHARGING;
+import static com.icthh.xm.ms.balance.service.OperationType.REVERT_RELOAD;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_FROM;
 import static com.icthh.xm.ms.balance.service.OperationType.TRANSFER_TO;
 import static com.icthh.xm.ms.balance.utils.TestReflectionUtils.setClock;
@@ -16,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
@@ -24,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.EntityNotFoundException;
 import com.icthh.xm.commons.security.XmAuthenticationContext;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
@@ -47,10 +52,12 @@ import com.icthh.xm.ms.balance.service.mapper.PocketChangeEventMapper;
 import com.icthh.xm.ms.balance.service.mapper.PocketChangeEventMapperImpl;
 import com.icthh.xm.ms.balance.web.rest.requests.ChargingBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.ReloadBalanceRequest;
+import com.icthh.xm.ms.balance.web.rest.requests.RevertBalanceOperationRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -295,6 +302,7 @@ public class BalanceServiceUnitTest {
             amountAfter, amountBefore, amountTotal, pocketChangeEvents);
     }
 
+    // todo reload
     @Test
     public void ifPocketNotExistsNewPocketCreated() {
         expectedAuth();
@@ -338,24 +346,24 @@ public class BalanceServiceUnitTest {
         Instant startDateTime = MOCK_CURRENT_DATE;
         Instant operationDate = Instant.ofEpochSecond(1234536789);
         when(pocketRepository.findPocketForReload("label", startDateTime, null, balance,
-                EMPTY_METADATA_VALUE)).thenReturn(empty());
+            EMPTY_METADATA_VALUE)).thenReturn(empty());
         Pocket assertionPocket = new Pocket().label("label").startDateTime(startDateTime)
-                .amount(new BigDecimal("50")).balance(balance);
+            .amount(new BigDecimal("50")).balance(balance);
         Pocket savedPocket = new Pocket().label("label").startDateTime(startDateTime)
-                .amount(new BigDecimal("50")).balance(balance);
+            .amount(new BigDecimal("50")).balance(balance);
         savedPocket.setId(492L);
         when(pocketRepository.save(refEq(assertionPocket, "key"))).thenReturn(savedPocket);
 
         when(balanceChangeEventRepository.findLastBalanceChangeEvent(balance.getId())).thenReturn(Optional.empty());
 
         balanceService.reload(new ReloadBalanceRequest().setBalanceId(1L).setAmount(new BigDecimal("50"))
-                .setStartDateTime(startDateTime).setLabel("label").setOperationDate(operationDate));
+            .setStartDateTime(startDateTime).setLabel("label").setOperationDate(operationDate));
 
         verify(metricService).updateMaxMetric(balance, operationDate);
         verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());
 
         BalanceChangeEvent balanceEvent = createBalanceEvent("50", 1L, RELOAD, operationDate, null, "50", "0", "50",
-                createPocketEvent("50", 492L, null, "label", "50", "0"));
+            createPocketEvent("50", 492L, null, "label", "50", "0"));
         balanceEvent.setLast(true);
         expectBalanceChangeEvents(balanceEvent);
         verifyNoMoreInteractions(balanceChangeEventRepository);
@@ -1698,9 +1706,9 @@ public class BalanceServiceUnitTest {
             ), PageRequest.of(0, 3), 3));
 
         setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
-        when(pocketRepository.save(refEq(pocket("0", "label1", 11L ,metadata))))
+        when(pocketRepository.save(refEq(pocket("0", "label1", 11L, metadata))))
             .thenReturn(pocket("0", "label1", 11L, metadata));
-        when(pocketRepository.save(refEq(pocket("0", "label2", 12L ,metadata))))
+        when(pocketRepository.save(refEq(pocket("0", "label2", 12L, metadata))))
             .thenReturn(pocket("0", "label2", 12L, metadata));
 
         ReloadBalanceRequest request = reloadBalanceRequest(1L, "20", "l1", metadata);
@@ -1744,11 +1752,11 @@ public class BalanceServiceUnitTest {
             ), PageRequest.of(0, 3), 3));
 
         setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
-        when(pocketRepository.save(refEq(pocket("0", "label1", 11L ,metadata))))
+        when(pocketRepository.save(refEq(pocket("0", "label1", 11L, metadata))))
             .thenReturn(pocket("0", "label1", 11L, metadata));
-        when(pocketRepository.save(refEq(pocket("0", "label2", 12L ,metadata))))
+        when(pocketRepository.save(refEq(pocket("0", "label2", 12L, metadata))))
             .thenReturn(pocket("0", "label2", 12L, metadata));
-        when(pocketRepository.save(refEq(pocket("0", "label3", 13L ,metadata))))
+        when(pocketRepository.save(refEq(pocket("0", "label3", 13L, metadata))))
             .thenReturn(pocket("0", "label3", 13L, metadata));
 
         Pocket pocket = pocket("0", "label4", 85L, metadata);
@@ -1823,6 +1831,576 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
         assertTrue(balanceChangeEvent.getLast());
         assertFalse(balanceEventForUpdate.getLast());
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void shouldThrowExceptionWhenBalanceNotFound() {
+        when(balanceRepository.findOneByIdForUpdate(5L)).thenReturn(Optional.empty());
+        balanceService.revertBalanceOperation(new RevertBalanceOperationRequest().setBalanceId(5L));
+        verify(balanceRepository).findOneByIdForUpdate(5L);
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test
+    public void shouldSuccessWhenReturnDuplicateOperation() {
+        long balanceId = 123456789;
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        String duplicateUuid = UUID.randomUUID().toString();
+        revertBalanceOperationRequest.setUuid(duplicateUuid);
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", 1L, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(duplicateUuid);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(duplicateUuid))
+            .thenReturn(List.of(existBalanceChangeEvent));
+
+        BalanceChangeEventDto expectedEvent = balanceChangeEventMapper.toDto(existBalanceChangeEvent);
+        BalanceChangeEventDto actualEvent = balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        assertEquals(expectedEvent, actualEvent);
+        verify(balanceRepository).findOneByIdForUpdate(123456789L);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(duplicateUuid);
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void shouldThrowExceptionWhenEventToRevertNotFound() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(currentUuid))
+            .thenReturn(emptyList());
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(emptyList());
+
+        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceRepository).findOneByIdForUpdate(123456789L);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void shouldThrowExceptionWhenRevertOperationAlreadyProvided() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(currentUuid))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(true);
+
+        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceRepository).findOneByIdForUpdate(123456789L);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void shouldThrowExceptionWhenRevertOperationTypeNotSupported() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(currentUuid))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, CHANGE_STATUS, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+
+        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceRepository).findOneByIdForUpdate(123456789L);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void shouldThrowExceptionWhenRevertReloadOperationModeDefaultAndPocketNotFound() {
+        expectedAuth();
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(currentUuid))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        existBalanceChangeEvent.setPocketChangeEvents(List.of(
+            createPocketEvent("90", 123L, "key", "label", "90", "0")
+        ));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+        when(pocketRepository.findOneByIdForUpdate(123L)).thenReturn(Optional.empty());
+
+        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceRepository).findOneByIdForUpdate(123456789L);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verify(pocketRepository).findOneByIdForUpdate(123L);
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        verifyNoMoreInteractions(pocketRepository);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void shouldThrowExceptionWhenRevertReloadModeExceptionAndChargeToNegativeRemainder() {
+        expectedAuth();
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+        revertBalanceOperationRequest.setRevertReloadMode(RevertReloadMode.DEFAULT);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(currentUuid))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        existBalanceChangeEvent.setPocketChangeEvents(List.of(
+            createPocketEvent("90", 123L, "key", "label", "90", "0")
+        ));
+
+        Pocket pocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("30"));
+        pocket.setId(123L);
+
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+        when(pocketRepository.findOneByIdForUpdate(123L)).thenReturn(of(pocket));
+
+        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceRepository).findOneByIdForUpdate(123456789L);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verify(pocketRepository).findOneByIdForUpdate(123L);
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        verifyNoMoreInteractions(pocketRepository);
+    }
+
+    @Test
+    public void shouldSuccessWhenRevertReloadAsManyAsPossibleFromPocketsAndChargeToNegativeRemainder() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+        long pocketId = 12345L;
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+        revertBalanceOperationRequest.setRevertReloadMode(RevertReloadMode.AS_MANY_AS_POSSIBLE_FROM_POCKETS);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(revertBalanceOperationRequest.getUuid()))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        existBalanceChangeEvent.setPocketChangeEvents(List.of(
+            createPocketEvent("90", pocketId, "key", "label", "90", "0")
+        ));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+
+        Balance balance = createBalance(balanceId);
+        expectedAuth();
+        when(balanceRepository.findBalanceAmount(balance, MOCK_CURRENT_DATE)).thenReturn(of(new BigDecimal(30)));
+
+
+        Pocket pocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("30"));
+        pocket.setId(pocketId);
+        when(pocketRepository.findOneByIdForUpdate(pocketId)).thenReturn(of(pocket));
+        when(pocketRepository.save(refEq(pocket))).thenReturn(pocket);
+
+        buildExpectedBalanceChangeEvent(
+            new BigDecimal(30), REVERT_RELOAD, currentUuid, new BigDecimal(30),
+            new BigDecimal(0), balanceId, new BigDecimal(90), uuidToRevert);
+
+        BalanceChangeEventDto result = balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceChangeEventRepository).save(
+            argThat(balanceChangeEvent -> balanceChangeEvent.getAmountDelta().compareTo(result.getAmountDelta()) == 0
+                && balanceChangeEvent.getOperationType().equals(result.getOperationType())
+                && balanceChangeEvent.getOperationId().equals(result.getOperationId())
+                && balanceChangeEvent.getAmountBefore().compareTo(result.getAmountBefore()) == 0
+                && balanceChangeEvent.getAmountAfter().compareTo(result.getAmountAfter()) == 0
+                && balanceChangeEvent.getBalanceId().equals(result.getBalanceId())
+                && balanceChangeEvent.getAmountTotal().compareTo(result.getAmountTotal()) == 0
+                && balanceChangeEvent.getRevertOperationId().equals(result.getRevertOperationId()))
+        );
+        verify(balanceRepository).findOneByIdForUpdate(balanceId);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balanceId);
+        verify(balanceRepository).findBalanceAmount(balance, MOCK_CURRENT_DATE);
+        verify(pocketRepository).findOneByIdForUpdate(pocketId);
+        verify(pocketRepository).save(refEq(pocket));
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        verifyNoMoreInteractions(pocketRepository);
+    }
+
+    @Test
+    public void shouldSuccessWhenRevertReloadAsManyAsPossibleFromPocketsAndChargeToZero() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+        long pocketId = 12345L;
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+        revertBalanceOperationRequest.setRevertReloadMode(RevertReloadMode.AS_MANY_AS_POSSIBLE_FROM_POCKETS);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(revertBalanceOperationRequest.getUuid()))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        existBalanceChangeEvent.setPocketChangeEvents(List.of(
+            createPocketEvent("90", pocketId, "key", "label", "90", "0")
+        ));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+
+        Balance balance = createBalance(balanceId);
+        expectedAuth();
+        when(balanceRepository.findBalanceAmount(balance, MOCK_CURRENT_DATE)).thenReturn(of(new BigDecimal(100)));
+
+        Pocket pocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("90"));
+        pocket.setId(pocketId);
+        when(pocketRepository.findOneByIdForUpdate(pocketId)).thenReturn(of(pocket));
+        when(pocketRepository.save(refEq(pocket))).thenReturn(pocket);
+
+        buildExpectedBalanceChangeEvent(
+            new BigDecimal(90), REVERT_RELOAD, currentUuid, new BigDecimal(100),
+            new BigDecimal(10), balanceId, new BigDecimal(90), uuidToRevert);
+
+        BalanceChangeEventDto result = balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceChangeEventRepository).save(
+            argThat(balanceChangeEvent -> balanceChangeEvent.getAmountDelta().compareTo(result.getAmountDelta()) == 0
+                && balanceChangeEvent.getOperationType().equals(result.getOperationType())
+                && balanceChangeEvent.getOperationId().equals(result.getOperationId())
+                && balanceChangeEvent.getAmountBefore().compareTo(result.getAmountBefore()) == 0
+                && balanceChangeEvent.getAmountAfter().compareTo(result.getAmountAfter()) == 0
+                && balanceChangeEvent.getBalanceId().equals(result.getBalanceId())
+                && balanceChangeEvent.getAmountTotal().compareTo(result.getAmountTotal()) == 0
+                && balanceChangeEvent.getRevertOperationId().equals(result.getRevertOperationId()))
+        );
+        verify(balanceRepository).findOneByIdForUpdate(balanceId);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balanceId);
+        verify(balanceRepository).findBalanceAmount(balance, MOCK_CURRENT_DATE);
+        verify(pocketRepository).findOneByIdForUpdate(pocketId);
+        verify(pocketRepository).save(refEq(pocket));
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        verifyNoMoreInteractions(pocketRepository);
+    }
+
+    @Test
+    public void shouldSuccessWhenRevertReloadAsManyAsPossibleFromBalance() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+        long pocketId = 12345L;
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+        revertBalanceOperationRequest.setRevertReloadMode(RevertReloadMode.AS_MANY_AS_POSSIBLE_FROM_BALANCE);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(revertBalanceOperationRequest.getUuid()))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, RELOAD, "100", "10");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        existBalanceChangeEvent.setPocketChangeEvents(List.of(
+            createPocketEvent("90", pocketId, "key", "label", "90", "0")
+        ));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+
+        Balance balance = createBalance(balanceId);
+        expectedAuth();
+        when(balanceRepository.findBalanceAmount(balance, MOCK_CURRENT_DATE)).thenReturn(of(new BigDecimal(20)));
+
+        Pocket pocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("10"));
+        pocket.setId(pocketId);
+        when(pocketRepository.findOneByIdForUpdate(pocketId)).thenReturn(of(pocket));
+        when(pocketRepository.save(refEq(pocket))).thenReturn(pocket);
+
+        when(applicationProperties.getPocketChargingBatchSize()).thenReturn(3);
+        Pocket balancePocket = pocket("10", "label2");
+        when(pocketRepository.findPocketForChargingOrderByDates(balance, MOCK_CURRENT_DATE, PageRequest.of(0, 3)))
+            .thenReturn(new PageImpl<>(asList(balancePocket)));
+        when(pocketRepository.save(refEq(balancePocket))).thenReturn(balancePocket);
+
+        buildExpectedBalanceChangeEvent(
+            new BigDecimal(20), REVERT_RELOAD, currentUuid, new BigDecimal(20),
+            new BigDecimal(0), balanceId, new BigDecimal(90), uuidToRevert);
+
+        BalanceChangeEventDto result = balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceChangeEventRepository).save(
+            argThat(balanceChangeEvent -> balanceChangeEvent.getAmountDelta().compareTo(result.getAmountDelta()) == 0
+                && balanceChangeEvent.getOperationType().equals(result.getOperationType())
+                && balanceChangeEvent.getOperationId().equals(result.getOperationId())
+                && balanceChangeEvent.getAmountBefore().compareTo(result.getAmountBefore()) == 0
+                && balanceChangeEvent.getAmountAfter().compareTo(result.getAmountAfter()) == 0
+                && balanceChangeEvent.getBalanceId().equals(result.getBalanceId())
+                && balanceChangeEvent.getAmountTotal().compareTo(result.getAmountTotal()) == 0
+                && balanceChangeEvent.getRevertOperationId().equals(result.getRevertOperationId()))
+        );
+        verify(balanceRepository).findOneByIdForUpdate(balanceId);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balanceId);
+        verify(balanceRepository).findBalanceAmount(balance, MOCK_CURRENT_DATE);
+        verify(pocketRepository).findOneByIdForUpdate(pocketId);
+        verify(pocketRepository).save(refEq(pocket));
+        verify(pocketRepository).findPocketForChargingOrderByDates(balance, MOCK_CURRENT_DATE, PageRequest.of(0, 3));
+        verify(pocketRepository).save(refEq(balancePocket));
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        verifyNoMoreInteractions(pocketRepository);
+    }
+
+    @Test
+    public void shouldSuccessWhenRevertChargingAndReturnAmountToNewPocket() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+        Instant startDateTime = Instant.now();
+        Instant endDateTime = Instant.now().plus(30, ChronoUnit.DAYS);
+        String label = "label";
+        long pocketId = 12345L;
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+        revertBalanceOperationRequest.setStartDateTime(startDateTime);
+        revertBalanceOperationRequest.setEndDateTime(endDateTime);
+        revertBalanceOperationRequest.setLabel(label);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(revertBalanceOperationRequest.getUuid()))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, CHARGING, "10", "100");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        existBalanceChangeEvent.setPocketChangeEvents(List.of(
+            createPocketEvent("90", pocketId, "key", "label", "10", "100")
+        ));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+
+        Balance balance = createBalance(balanceId);
+        expectedAuth();
+        when(balanceRepository.findBalanceAmount(balance, MOCK_CURRENT_DATE)).thenReturn(of(new BigDecimal(10)));
+
+        Pocket pocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("90"));
+        pocket.setId(pocketId);
+        when(pocketRepository.save(argThat(savePocket -> savePocket.getAmount().compareTo(new BigDecimal(90)) == 0))).thenReturn(pocket);
+
+        buildExpectedBalanceChangeEvent(
+            new BigDecimal(90), REVERT_CHARGING, currentUuid, new BigDecimal(10),
+            new BigDecimal(100), balanceId, new BigDecimal(90), uuidToRevert);
+
+        BalanceChangeEventDto result = balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceChangeEventRepository).save(
+            argThat(balanceChangeEvent -> balanceChangeEvent.getAmountDelta().compareTo(result.getAmountDelta()) == 0
+                && balanceChangeEvent.getOperationType().equals(result.getOperationType())
+                && balanceChangeEvent.getOperationId().equals(result.getOperationId())
+                && balanceChangeEvent.getAmountBefore().compareTo(result.getAmountBefore()) == 0
+                && balanceChangeEvent.getAmountAfter().compareTo(result.getAmountAfter()) == 0
+                && balanceChangeEvent.getBalanceId().equals(result.getBalanceId())
+                && balanceChangeEvent.getAmountTotal().compareTo(result.getAmountTotal()) == 0
+                && balanceChangeEvent.getRevertOperationId().equals(result.getRevertOperationId()))
+        );
+        verify(balanceRepository).findOneByIdForUpdate(balanceId);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balanceId);
+        verify(balanceRepository).findBalanceAmount(balance, MOCK_CURRENT_DATE);
+        verify(pocketRepository).save(argThat(savePocket -> savePocket.getAmount().compareTo(new BigDecimal(90)) == 0));
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        verifyNoMoreInteractions(pocketRepository);
+    }
+
+    @Test
+    public void shouldSuccessWhenRevertChargingAndReturnAmountToOldPockets() {
+        long balanceId = 123456789;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+        String label = "label";
+        long pocketId = 12345L;
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+        revertBalanceOperationRequest.setLabel(label);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(revertBalanceOperationRequest.getUuid()))
+            .thenReturn(emptyList());
+
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, CHARGING, "10", "100");
+        existBalanceChangeEvent.setOperationId(uuidToRevert);
+        existBalanceChangeEvent.setPocketChangeEvents(List.of(
+            createPocketEvent("90", pocketId, "key", "label", "10", "100")
+        ));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(existBalanceChangeEvent));
+        when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
+            .thenReturn(false);
+
+        Balance balance = createBalance(balanceId);
+        expectedAuth();
+        when(balanceRepository.findBalanceAmount(balance, MOCK_CURRENT_DATE)).thenReturn(of(new BigDecimal(10)));
+
+        Pocket pocket = new Pocket().key("ASSERTION_KEY").label("label").amount(new BigDecimal("10"));
+        pocket.setId(pocketId);
+        when(pocketRepository.findOneByIdForUpdate(pocketId)).thenReturn(of(pocket));
+        when(pocketRepository.save(refEq(pocket))).thenReturn(pocket);
+
+        buildExpectedBalanceChangeEvent(
+            new BigDecimal(90), REVERT_CHARGING, currentUuid, new BigDecimal(10),
+            new BigDecimal(100), balanceId, new BigDecimal(90), uuidToRevert);
+
+        BalanceChangeEventDto result = balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+
+        verify(balanceChangeEventRepository).save(
+            argThat(balanceChangeEvent -> balanceChangeEvent.getAmountDelta().compareTo(result.getAmountDelta()) == 0
+                && balanceChangeEvent.getOperationType().equals(result.getOperationType())
+                && balanceChangeEvent.getOperationId().equals(result.getOperationId())
+                && balanceChangeEvent.getAmountBefore().compareTo(result.getAmountBefore()) == 0
+                && balanceChangeEvent.getAmountAfter().compareTo(result.getAmountAfter()) == 0
+                && balanceChangeEvent.getBalanceId().equals(result.getBalanceId())
+                && balanceChangeEvent.getAmountTotal().compareTo(result.getAmountTotal()) == 0
+                && balanceChangeEvent.getRevertOperationId().equals(result.getRevertOperationId()))
+        );
+        verify(balanceRepository).findOneByIdForUpdate(balanceId);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
+        verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
+        verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balanceId);
+        verify(balanceRepository).findBalanceAmount(balance, MOCK_CURRENT_DATE);
+        verify(pocketRepository).findOneByIdForUpdate(pocketId);
+        verify(pocketRepository).save(refEq(pocket));
+        verifyNoMoreInteractions(balanceRepository);
+        verifyNoMoreInteractions(balanceChangeEventRepository);
+        verifyNoMoreInteractions(pocketRepository);
+    }
+
+    private BalanceChangeEvent buildExpectedBalanceChangeEvent(BigDecimal amountDelta, OperationType operationType, String currentUuid,
+                                                               BigDecimal amountBefore, BigDecimal amountAfter, Long balanceId,
+                                                               BigDecimal amountTotal, String uuidToRevert) {
+        BalanceChangeEvent expectedBalanceChangeEvent = BalanceChangeEvent.builder()
+            .amountDelta(amountDelta)
+            .operationType(operationType)
+            .operationId(currentUuid)
+            .amountBefore(amountBefore)
+            .amountAfter(amountAfter)
+            .balanceId(balanceId)
+            .amountTotal(amountTotal)
+            .revertOperationId(uuidToRevert)
+            .build();
+        when(balanceChangeEventRepository.save(argThat(balanceChangeEvent -> balanceChangeEvent.getAmountDelta().compareTo(amountDelta) == 0
+            && balanceChangeEvent.getOperationType().equals(operationType)
+            && balanceChangeEvent.getOperationId().equals(currentUuid)
+            && balanceChangeEvent.getAmountBefore().compareTo(amountBefore) == 0
+            && balanceChangeEvent.getAmountAfter().compareTo(amountAfter) == 0
+            && balanceChangeEvent.getBalanceId().equals(balanceId)
+            && balanceChangeEvent.getAmountTotal().compareTo(amountTotal) == 0
+            && balanceChangeEvent.getRevertOperationId().equals(uuidToRevert)))).thenReturn(expectedBalanceChangeEvent);
+
+        return expectedBalanceChangeEvent;
     }
 
 }

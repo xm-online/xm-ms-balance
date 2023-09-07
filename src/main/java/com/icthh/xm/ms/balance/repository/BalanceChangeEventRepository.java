@@ -50,4 +50,6 @@ public interface BalanceChangeEventRepository
 
     @Query("SELECT e FROM BalanceChangeEvent e WHERE e.entryDate = (SELECT MAX(e1.entryDate) from BalanceChangeEvent e1 WHERE e1.balanceId = :balanceId) AND e.balanceId = :balanceId")
     Optional<BalanceChangeEvent> findLastBalanceChangeEvent(@Param("balanceId") Long balanceId);
+
+    boolean existsByRevertOperationId(String revertOperationId);
 }
