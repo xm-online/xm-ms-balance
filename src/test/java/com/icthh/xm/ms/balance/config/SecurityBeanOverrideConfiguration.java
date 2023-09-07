@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
+import com.icthh.xm.commons.lep.spring.LepUpdateMode;
 import org.springframework.cloud.client.loadbalancer.RestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,5 +32,11 @@ public class SecurityBeanOverrideConfiguration {
     @Primary
     public RestTemplate loadBalancedRestTemplate(RestTemplateCustomizer customizer) {
         return null;
+    }
+
+    @Bean
+    @Primary
+    public LepUpdateMode lepUpdateMode() {
+        return LepUpdateMode.SYNCHRONOUS;
     }
 }

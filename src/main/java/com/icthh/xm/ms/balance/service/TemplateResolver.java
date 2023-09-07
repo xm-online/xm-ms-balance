@@ -1,21 +1,15 @@
 package com.icthh.xm.ms.balance.service;
 
-import com.icthh.xm.lep.api.LepManagerService;
+import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepMethod;
-import com.icthh.xm.lep.api.commons.SeparatorSegmentedLepKey;
 import org.springframework.stereotype.Component;
 
-@Component
-public class TemplateResolver extends AppendLepKeyResolver {
+import java.util.List;
 
+@Component
+public class TemplateResolver implements LepKeyResolver {
     @Override
-    protected String[] getAppendSegments(SeparatorSegmentedLepKey baseKey,
-                                         LepMethod method,
-                                         LepManagerService managerService) {
-        String templateName = getRequiredStrParam(method, "templateName");
-        String translatedBalanceTypeKey = translateToLepConvention(templateName);
-        return new String[]{
-            translatedBalanceTypeKey
-        };
+    public List<String> segments(LepMethod method) {
+        return List.of(method.getParameter("templateName", String.class));
     }
 }
