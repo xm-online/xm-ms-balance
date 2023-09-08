@@ -9,11 +9,13 @@ import com.icthh.xm.ms.balance.service.BalanceService;
 import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.PocketQueryService;
 import com.icthh.xm.ms.balance.service.PocketService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Component
+@RequiredArgsConstructor
 public class BalanceLepContextFactory implements LepContextFactory {
 
     private final BalanceService balanceService;
@@ -21,21 +23,9 @@ public class BalanceLepContextFactory implements LepContextFactory {
     private final PocketQueryService pocketQueryService;
     private final BalanceHistoryService balanceHistoryService;
     private final MetricService metricService;
+    @Qualifier("loadBalancedRestTemplate")
     private final RestTemplate restTemplate;
     private final TenantConfigService tenantConfigService;
-
-    public BalanceLepContextFactory(BalanceService balanceService, PocketService pocketService,
-                              PocketQueryService pocketQueryService, BalanceHistoryService balanceHistoryService,
-                              MetricService metricService, @Qualifier("loadBalancedRestTemplate") RestTemplate restTemplate,
-                              TenantConfigService tenantConfigService) {
-        this.balanceService = balanceService;
-        this.pocketService = pocketService;
-        this.pocketQueryService = pocketQueryService;
-        this.balanceHistoryService = balanceHistoryService;
-        this.metricService = metricService;
-        this.restTemplate = restTemplate;
-        this.tenantConfigService = tenantConfigService;
-    }
 
     @Override
     public BaseLepContext buildLepContext(LepMethod lepMethod) {
