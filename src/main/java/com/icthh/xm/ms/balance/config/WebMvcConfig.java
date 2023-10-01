@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
+import com.icthh.xm.commons.lep.spring.web.LepInterceptor;
 import com.icthh.xm.commons.web.spring.TenantInterceptor;
 import com.icthh.xm.commons.web.spring.TenantVerifyInterceptor;
 import com.icthh.xm.commons.web.spring.XmLoggingInterceptor;
@@ -21,20 +22,24 @@ public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
 
     private final ApplicationProperties applicationProperties;
     private final TenantVerifyInterceptor tenantVerifyInterceptor;
+    private final LepInterceptor lepInterceptor;
 
     public WebMvcConfig(
         TenantInterceptor tenantInterceptor,
         XmLoggingInterceptor xmLoggingInterceptor,
         ApplicationProperties applicationProperties,
-        TenantVerifyInterceptor tenantVerifyInterceptor) {
+        TenantVerifyInterceptor tenantVerifyInterceptor,
+        LepInterceptor lepInterceptor) {
         super(tenantInterceptor, xmLoggingInterceptor);
         this.applicationProperties = applicationProperties;
         this.tenantVerifyInterceptor = tenantVerifyInterceptor;
+        this.lepInterceptor = lepInterceptor;
     }
 
     @Override
     protected void xmAddInterceptors(InterceptorRegistry registry) {
         registerTenantInterceptorWithIgnorePathPattern(registry, tenantVerifyInterceptor);
+        registerTenantInterceptorWithIgnorePathPattern(registry, lepInterceptor);
     }
 
     @Override
