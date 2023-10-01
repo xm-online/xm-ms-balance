@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_CONTEXT;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
@@ -85,6 +86,8 @@ public class LepContextCastIntTest {
         Page<?> result = balanceHistoryService.getBalanceChangesByTypeAndDate(null, null);
         List<Map<String, Object>> content = (List<Map<String, Object>>) result.getContent();
         assertTrue(content.get(0).get("context") instanceof LepContext);
+        LepContext context = (LepContext) content.get(0).get("context");
+        assertNotNull(context.getTraceService());
         leps.onRefresh(key, null);
     }
 
