@@ -31,6 +31,8 @@ public class BalanceHistoryCriteria implements Serializable {
 
     private InstantFilter operationDate;
 
+    private InstantFilter entryDate;
+
     public BalanceHistoryCriteria() {
     }
 
@@ -44,6 +46,7 @@ public class BalanceHistoryCriteria implements Serializable {
             ", amountDelta=" + amountDelta +
             ", amountTotal=" + amountTotal +
             ", operationDate=" + operationDate +
+            ", entryDate=" + entryDate +
             '}';
     }
 }

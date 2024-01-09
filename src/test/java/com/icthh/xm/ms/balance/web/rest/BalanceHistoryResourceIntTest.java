@@ -2,7 +2,6 @@ package com.icthh.xm.ms.balance.web.rest;
 
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
-import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
@@ -12,7 +11,6 @@ import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.repository.BalanceChangeEventRepository;
-import com.icthh.xm.ms.balance.repository.PocketChangeEventRepository;
 import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.OperationType;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +40,7 @@ import static com.icthh.xm.commons.lep.XmLepConstants.THREAD_CONTEXT_KEY_TENANT_
 import static com.icthh.xm.commons.lep.XmLepScriptConstants.BINDING_KEY_AUTH_CONTEXT;
 import static com.icthh.xm.ms.balance.web.rest.TestUtil.createFormattingConversionService;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -60,6 +59,7 @@ public class BalanceHistoryResourceIntTest {
     private static final String DEFAULT_TYPE_KEY = "AAAAAAAAAA";
     private static final BigDecimal DEFAULT_AMOUNT = new BigDecimal(1);
     private static final Long DEFAULT_ENTITY_ID = 1L;
+    public static final String ENTRY_DATE = "2023-12-25T10:15:30Z";
 
     private MockMvc restBalanceHistoryMockMvc;
 
@@ -175,7 +175,7 @@ public class BalanceHistoryResourceIntTest {
         balanceChangeEvent.setAmountDelta(DEFAULT_AMOUNT);
         balanceChangeEvent.setAmountTotal(DEFAULT_AMOUNT);
         balanceChangeEvent.setOperationType(OperationType.RELOAD);
-        balanceChangeEvent.setEntryDate(Instant.now());
+        balanceChangeEvent.setEntryDate(Instant.parse(ENTRY_DATE));
         balanceChangeEvent.setOperationDate(Instant.now());
         balanceChangeEvent.setOperationId("STUB");
         balanceChangeEvent.setExecutedByUserKey("STUB");
@@ -225,6 +225,24 @@ public class BalanceHistoryResourceIntTest {
             .andExpect(jsonPath("$.[*].operationType").value(hasItem(OperationType.RELOAD.toString())))
             .andExpect(jsonPath("$.[*].amountAfter").value(Matchers.hasItem(DEFAULT_AMOUNT.intValue())))
             .andExpect(jsonPath("$.[*].amountTotal").value(Matchers.hasItem(DEFAULT_AMOUNT.intValue())))
+            .andDo(print());
+
+        restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&entryDate.lessThan=2023-12-25T10:16:30Z"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].balanceKey").value(hasItem(DEFAULT_KEY)))
+            .andExpect(jsonPath("$.[*].balanceTypeKey").value(hasItem(DEFAULT_TYPE_KEY)))
+            .andExpect(jsonPath("$.[*].balanceId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
+            .andExpect(jsonPath("$.[*].operationType").value(hasItem(OperationType.RELOAD.toString())))
+            .andExpect(jsonPath("$.[*].amountAfter").value(Matchers.hasItem(DEFAULT_AMOUNT.intValue())))
+            .andExpect(jsonPath("$.[*].amountTotal").value(Matchers.hasItem(DEFAULT_AMOUNT.intValue())))
+            .andExpect(jsonPath("$.[*].entryDate").value(Matchers.hasItem(ENTRY_DATE)))
+            .andDo(print());
+
+        restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&entryDate.greaterThan=2023-12-25T10:15:30Z"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].balanceKey").value(not(hasItem(DEFAULT_KEY))))
             .andDo(print());
     }
 
