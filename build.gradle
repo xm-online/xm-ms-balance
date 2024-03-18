@@ -330,6 +330,10 @@ dependencies {
     implementation "com.icthh.xm.commons:xm-commons-logging-web:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-metric:${xm_commons_version}"
 
+    implementation "io.undertow:undertow-core:${undertow_version}"
+    implementation "io.undertow:undertow-servlet:${undertow_version}"
+    implementation "io.undertow:undertow-websockets-jsr:${undertow_version}"
+
     testCompileOnly "org.projectlombok:lombok:${lombok_version}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombok_version}"
     liquibaseRuntime "com.h2database:h2"
