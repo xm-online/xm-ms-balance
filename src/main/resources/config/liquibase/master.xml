@@ -28,5 +28,7 @@
     <include file="config/liquibase/changelog/20230310083200_added_column_status_Balance.xml" relativeToChangelogFile="false" />
     <include file="config/liquibase/changelog/20230807000000_add_column_revertOperationId_BalanceChangeEvent.xml" relativeToChangelogFile="false" />
 
+    <includeAll path="config/liquibase/changelog/extended/"/>
+
 </databaseChangeLog>
 
