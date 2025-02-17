@@ -1,7 +1,8 @@
 
 pluginManagement {
      plugins {
-          id 'org.springframework.boot' version "${spring_boot_version}"
+         id 'org.ajoberstar.grgit' version "${grgit_plugin_version}"
+         id 'org.springframework.boot' version "${spring_boot_version}"
           id 'com.google.cloud.tools.jib' version "${jib_plugin_version}"
           id 'com.gorylenko.gradle-git-properties' version "${git_properties_plugin_version}"
           id 'org.liquibase.gradle' version "${liquibase_plugin_version}"
