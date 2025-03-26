@@ -119,6 +119,7 @@ public class BalanceServiceUnitTest {
     private void expectedAuth() {
         XmAuthenticationContext auth = mock(XmAuthenticationContext.class);
         when(auth.getUserKey()).thenReturn(Optional.of("requiredUserKey"));
+        when(auth.getRequiredLogin()).thenReturn("requiredLogin");
         when(authContextHolder.getContext()).thenReturn(auth);
     }
 
@@ -244,6 +245,7 @@ public class BalanceServiceUnitTest {
             .amountDelta(new BigDecimal(amountDelta))
             .balanceId(balanceId)
             .executedByUserKey("requiredUserKey")
+            .executedBy("requiredLogin")
             .operationType(operationType)
             .operationDate(MOCK_CURRENT_DATE)
             .prevEntryDate(EPOCH)
@@ -269,6 +271,7 @@ public class BalanceServiceUnitTest {
             .amountDelta(new BigDecimal(amountDelta))
             .balanceId(balanceId)
             .executedByUserKey("requiredUserKey")
+            .executedBy("requiredLogin")
             .operationType(operationType)
             .operationDate(operationDate)
             .prevEntryDate(prevEntryDate)
@@ -323,7 +326,7 @@ public class BalanceServiceUnitTest {
         ));
 
         balanceService.reload(new ReloadBalanceRequest().setBalanceId(1L).setAmount(new BigDecimal("50"))
-            .setStartDateTime(startDateTime).setLabel("label"));
+            .setStartDateTime(startDateTime).setLabel("label").setExecutedBy("requiredLogin"));
 
         verify(pocketRepository).save(refEq(assertionPocket, "key"));
         verify(metricService).updateMaxMetric(balance, MOCK_CURRENT_DATE);
@@ -357,7 +360,8 @@ public class BalanceServiceUnitTest {
         when(balanceChangeEventRepository.findLastBalanceChangeEvent(balance.getId())).thenReturn(Optional.empty());
 
         balanceService.reload(new ReloadBalanceRequest().setBalanceId(1L).setAmount(new BigDecimal("50"))
-            .setStartDateTime(startDateTime).setLabel("label").setOperationDate(operationDate));
+            .setStartDateTime(startDateTime).setLabel("label").setOperationDate(operationDate)
+            .setExecutedBy("requiredLogin"));
 
         verify(metricService).updateMaxMetric(balance, operationDate);
         verify(balanceChangeEventRepository).findLastBalanceChangeEvent(balance.getId());

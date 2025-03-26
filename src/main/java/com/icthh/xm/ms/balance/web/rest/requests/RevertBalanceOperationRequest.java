@@ -26,5 +26,6 @@ public class RevertBalanceOperationRequest {
     private Instant startDateTime;
     private Instant endDateTime;
     private String label;
+    private String executedBy;
 
 }

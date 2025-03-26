@@ -62,6 +62,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -329,6 +330,7 @@ public class BalanceService {
             Metadata.of(revertRequest.getMetadata()),
             now(clock),
             balance,
+            revertRequest.getExecutedBy(),
             true,
             REVERT_RELOAD
         );
@@ -431,6 +433,7 @@ public class BalanceService {
             Metadata.of(revertRequest.getMetadata()),
             now(clock),
             balance,
+            revertRequest.getExecutedBy(),
             false,
             REVERT_CHARGING
         );
@@ -536,7 +539,8 @@ public class BalanceService {
         Instant operationDate = reloadRequest.getStartDateTime() != null ? reloadRequest.getStartDateTime() : now(clock);
         operationDate = reloadRequest.getOperationDate() != null ? reloadRequest.getOperationDate() : operationDate;
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, reloadRequest.getAmount(),
-            Metadata.of(reloadRequest.getMetadata()), operationDate, balance, false, RELOAD);
+            Metadata.of(reloadRequest.getMetadata()), operationDate, balance, reloadRequest.getExecutedBy(),
+            false, RELOAD);
         if (reloadRequest.isReloadNegativePocket()) {
             reloadPocketWithNegativePockets(reloadRequest, balance, reloadRequest.getAmount(), changeEvent);
         } else {
@@ -570,7 +574,8 @@ public class BalanceService {
         }
         operationUuid = StringUtils.isNotBlank(operationUuid) ? operationUuid : UUID.randomUUID().toString();
         BalanceChangeEvent changeEvent = createBalanceChangeEvent(operationUuid, chargingRequest.getAmount(),
-            Metadata.of(chargingRequest.getMetadata()), applyDate, balance, true, CHARGING);
+            Metadata.of(chargingRequest.getMetadata()), applyDate, balance, chargingRequest.getExecutedBy(),
+            true, CHARGING);
         chargingPockets(balance, chargingRequest.getAmount(), changeEvent, applyDate, chargingRequest.isChargeAsManyAsPossible(), chargingRequest.getNegativePocketLabel());
         changeEvent = balanceChangeEventRepository.save(changeEvent);
 
@@ -635,11 +640,13 @@ public class BalanceService {
 
         assertBalanceAmount(sourceBalance, amount, applyDate);
 
-        BalanceChangeEvent eventFrom = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, sourceBalance, true, TRANSFER_FROM);
+        BalanceChangeEvent eventFrom = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate,
+            sourceBalance, transferRequest.getExecutedBy(), true, TRANSFER_FROM);
         List<PocketChanging> pockets = chargingPockets(sourceBalance, amount, eventFrom, applyDate);
 
         Balance targetBalance = getBalanceForUpdate(targetBalanceId);
-        BalanceChangeEvent eventTo = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, targetBalance, false, TRANSFER_TO);
+        BalanceChangeEvent eventTo = createBalanceChangeEvent(operationUuid, amount, metadata, applyDate, targetBalance,
+            transferRequest.getExecutedBy(), false, TRANSFER_TO);
         pockets.stream().map(pocketCharging -> toReloadRequest(pocketCharging, targetBalanceId, metadata))
             .forEach(reloadRequest -> reloadPocket(reloadRequest, targetBalance, eventTo, reloadRequest.getAmount()));
 
@@ -654,7 +661,8 @@ public class BalanceService {
     }
 
     private BalanceChangeEvent createBalanceChangeEvent(String operationUuid, BigDecimal amount, Metadata metadata,
-                                                        Instant operationDate, Balance balance, boolean isSubtractAmount,
+                                                        Instant operationDate, Balance balance,
+                                                        String executedBy, boolean isSubtractAmount,
                                                         OperationType transferTo) {
         BigDecimal amountBeforeTransferTo = balanceRepository.findBalanceAmount(balance, operationDate).orElse(ZERO);
         BigDecimal amountAfterTransferTo = getAmountAfter(isSubtractAmount, amountBeforeTransferTo, amount);
@@ -676,6 +684,7 @@ public class BalanceService {
         event.setBalanceEntityId(balance.getEntityId());
         XmAuthenticationContext context = authContextHolder.getContext();
         event.setExecutedByUserKey(context.getUserKey().orElse(context.getRequiredLogin()));
+        event.setExecutedBy(ofNullable(executedBy).orElse(context.getRequiredLogin()));
         event.setOperationType(transferTo);
         event.setAmountDelta(amount);
         event.setAmountTotal(amount);
@@ -938,7 +947,7 @@ public class BalanceService {
         metadata.put(MetadataConstants.CHANGE_STATUS_TO, status);
 
         return createBalanceChangeEvent(operationUuid, ZERO, Metadata.of(metadata), operationDate, balance,
-            false, CHANGE_STATUS);
+            null, false, CHANGE_STATUS);
     }
 
     public Map<String, Object> getBalanceInfo(Long id, String fields, String params) {
