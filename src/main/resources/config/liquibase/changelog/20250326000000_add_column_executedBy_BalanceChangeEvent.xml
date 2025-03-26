@@ -6,9 +6,7 @@
     <changeSet id="20250326000000" author="rternovyi">
 
         <addColumn tableName="balance_change_event">
-            <column name="executed_by" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="executed_by" type="varchar(255)"/>
         </addColumn>
 
     </changeSet>
