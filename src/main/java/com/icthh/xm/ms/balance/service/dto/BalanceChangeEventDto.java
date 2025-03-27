@@ -22,6 +22,7 @@ public class BalanceChangeEventDto {
     private String balanceKey;
     private String balanceTypeKey;
     private String executedByUserKey;
+    private String executedBy;
     private OperationType operationType;
     private String operationId;
     private Instant operationDate;
