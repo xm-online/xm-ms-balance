@@ -23,5 +23,6 @@ public class TransferBalanceRequest {
     private Map<String, String> metadata;
     private String uuid;
     private Instant applyDate;
+    private String executedBy;
 
 }

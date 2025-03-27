@@ -68,6 +68,9 @@ public class BalanceChangeEvent {
     @Column(name = "executed_by_user_key", nullable = false)
     private String executedByUserKey;
 
+    @Column(name = "executed_by")
+    private String executedBy;
+
     @NotNull
     @Column(name = "operation_id", nullable = false)
     private String operationId;

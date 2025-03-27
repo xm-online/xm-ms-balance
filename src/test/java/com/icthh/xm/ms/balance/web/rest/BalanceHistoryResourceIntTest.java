@@ -134,6 +134,7 @@ public class BalanceHistoryResourceIntTest {
         balanceChangeEvent.setOperationDate(Instant.now());
         balanceChangeEvent.setOperationId("STUB");
         balanceChangeEvent.setExecutedByUserKey("STUB");
+        balanceChangeEvent.setExecutedBy("OPERATOR_LOGIN");
         balanceChangeEvent.setLast(true);
 
 
@@ -179,6 +180,7 @@ public class BalanceHistoryResourceIntTest {
         balanceChangeEvent.setOperationDate(Instant.now());
         balanceChangeEvent.setOperationId("STUB");
         balanceChangeEvent.setExecutedByUserKey("STUB");
+        balanceChangeEvent.setExecutedBy("OPERATOR_LOGIN");
         balanceChangeEvent.setLast(true);
 
         balanceChangeEventRepository.saveAndFlush(balanceChangeEvent);
