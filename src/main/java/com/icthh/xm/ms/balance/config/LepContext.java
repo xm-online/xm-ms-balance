@@ -12,6 +12,7 @@ import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.PocketQueryService;
 import com.icthh.xm.ms.balance.service.PocketService;
 import org.springframework.web.client.RestTemplate;
+import com.icthh.xm.commons.logging.trace.TraceService;
 
 public class LepContext {
 
@@ -22,6 +23,8 @@ public class LepContext {
     public XmAuthenticationContext authContext;
     public TenantContext tenantContext;
     public Object methodResult;
+
+    public TraceService traceService;
 
     public LepServiceFactory lepServices;
     public LepServices services;
