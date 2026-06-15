@@ -4,9 +4,9 @@ import static com.icthh.xm.ms.balance.config.jsonb.CustomPostgreSQL82Dialect.JSO
 import static com.icthh.xm.ms.balance.config.jsonb.CustomPostgreSQL82Dialect.JSON_FIELD_TEXT;
 
 import java.util.Map;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass

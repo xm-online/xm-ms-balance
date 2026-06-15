@@ -21,7 +21,7 @@ import com.icthh.xm.ms.balance.domain.Pocket;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Expression;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;

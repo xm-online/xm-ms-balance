@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew compileJava --console=plain)",
+      "Bash(./gradlew tasks *)",
+      "Bash(./gradlew help *)",
+      "Bash(./gradlew compileJava)"
+    ]
+  }
+}

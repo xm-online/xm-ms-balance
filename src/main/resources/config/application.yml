@@ -13,29 +13,24 @@
 # Full reference is available at:
 # http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
 # ===================================================================
-
-feign:
-    hystrix:
-        enabled: true
-#    client:
-#        config:
-#            default:
-#                connectTimeout: 5000
-#                readTimeout: 5000
-
-# See https://github.com/Netflix/Hystrix/wiki/Configuration
-hystrix:
-    command:
-        default:
-            execution:
-                isolation:
-                    strategy: SEMAPHORE
-# See https://github.com/spring-cloud/spring-cloud-netflix/issues/1330
-#                    thread:
-#                        timeoutInMilliseconds: 10000
-    shareSecurityContext: true
-
 management:
+    opentelemetry:
+        tracing:
+            export:
+                otlp:
+                    endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4317}
+    tracing:
+        export:
+            enabled: ${MANAGEMENT_TRACING_EXPORT_ENABLED:false}
+        propagation:
+            type: w3c
+        sampling:
+            probability: 1.0
+    otlp:
+        metrics:
+            export:
+                enabled: ${MANAGEMENT_OTLP_METRICS_EXPORT_ENABLED:false}
+                url: ${OTEL_EXPORTER_OTLP_HTTP_BASE_URL:http://localhost:4318}/v1/metrics
     endpoints:
         web:
             base-path: /management
@@ -86,8 +81,8 @@ spring:
         hibernate:
             ddl-auto: none
             naming:
-                physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-                implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+                physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+                implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
         properties:
             # see org.hibernate.cfg.AvailableSettings.PREFER_GENERATOR_NAME_AS_DEFAULT_SEQUENCE_NAME
             hibernate.model.generator_name_as_sequence_name: false

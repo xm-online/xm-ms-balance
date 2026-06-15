@@ -4,8 +4,8 @@ import com.icthh.xm.ms.balance.service.dto.BalanceDTO
 import com.icthh.xm.ms.balance.service.dto.PocketCriteria
 import com.icthh.xm.ms.balance.service.dto.PocketDTO
 import groovy.util.logging.Slf4j
-import io.github.jhipster.service.filter.InstantFilter
-import io.github.jhipster.service.filter.LongFilter
+import tech.jhipster.service.filter.InstantFilter
+import tech.jhipster.service.filter.LongFilter
 
 import java.time.Clock
 

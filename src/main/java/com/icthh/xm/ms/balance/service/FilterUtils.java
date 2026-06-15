@@ -1,10 +1,10 @@
 package com.icthh.xm.ms.balance.service;
 
-import io.github.jhipster.service.filter.Filter;
 import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
 import java.util.List;
+import tech.jhipster.service.filter.Filter;
 
 /**
  * Utility class to cast  <code>Filter.class</code> fields string value to specified enum type.

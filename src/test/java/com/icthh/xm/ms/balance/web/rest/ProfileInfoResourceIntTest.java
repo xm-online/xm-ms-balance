@@ -2,7 +2,7 @@ package com.icthh.xm.ms.balance.web.rest;
 
 import com.icthh.xm.ms.balance.BalanceApp;
 import com.icthh.xm.ms.balance.config.SecurityBeanOverrideConfiguration;
-import io.github.jhipster.config.JHipsterProperties;
+import tech.jhipster.config.JHipsterProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

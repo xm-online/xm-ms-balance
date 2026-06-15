@@ -1,8 +1,8 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.annotation.JsonInclude;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.core.JacksonException;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
@@ -10,7 +10,6 @@ import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
@@ -33,15 +32,13 @@ public class TestUtil {
      * @param object
      *            the object to convert
      * @return the JSON byte array
-     * @throws IOException
+     * @throws JacksonException
      */
     public static byte[] convertObjectToJsonBytes(Object object)
-            throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-        JavaTimeModule module = new JavaTimeModule();
-        mapper.registerModule(module);
+            throws JacksonException {
+        JsonMapper mapper = JsonMapper.builder()
+            .serializationInclusion(JsonInclude.Include.NON_NULL)
+            .build();
 
         return mapper.writeValueAsBytes(object);
     }

@@ -1,17 +1,16 @@
 package com.icthh.xm.ms.balance.domain;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 import com.icthh.xm.ms.balance.config.jsonb.Jsonb;
 import com.icthh.xm.ms.balance.domain.converter.MapToStringConverter;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Embeddable;
-import javax.persistence.Transient;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -25,9 +24,9 @@ import static java.util.Collections.unmodifiableMap;
 @NoArgsConstructor
 public class Metadata implements Serializable {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper()
-        .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
-        .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
+    private static final JsonMapper objectMapper = JsonMapper.builder()
+        .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .build();
 
     @Transient
     private Map<String, String> metadata = null;

@@ -4,7 +4,7 @@ import com.icthh.xm.ms.balance.service.RevertReloadMode;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.Map;
 

@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
 import com.icthh.xm.commons.i18n.spring.service.LocalizationMessageService;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;

@@ -1,7 +1,7 @@
 package com.icthh.xm.ms.balance.service.dto;
 
 import com.icthh.xm.ms.balance.service.OperationType;
-import io.github.jhipster.service.filter.*;
+import tech.jhipster.service.filter.*;
 import lombok.Getter;
 import lombok.Setter;
 

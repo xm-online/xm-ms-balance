@@ -8,7 +8,7 @@ import com.icthh.xm.ms.balance.repository.PocketRepository;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

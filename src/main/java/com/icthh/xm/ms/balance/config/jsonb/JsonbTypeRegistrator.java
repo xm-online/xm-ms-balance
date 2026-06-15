@@ -15,7 +15,7 @@ import org.hibernate.boot.internal.MetadataImpl;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.boot.spi.SessionFactoryBuilderFactory;
 import org.hibernate.boot.spi.SessionFactoryBuilderImplementor;
-import org.hibernate.dialect.PostgreSQL81Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
 import org.hibernate.mapping.Component;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.SimpleValue;
@@ -32,10 +32,10 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
     @Override
     public SessionFactoryBuilder getSessionFactoryBuilder(final MetadataImplementor metadata, final SessionFactoryBuilderImplementor defaultBuilder) {
         MetadataImpl metadataImpl = (MetadataImpl) metadata;
-        if (metadataImpl.getDatabase().getDialect() instanceof PostgreSQL81Dialect) {
+        if (metadataImpl.getDatabase().getDialect() instanceof PostgreSQLDialect) {
             log.info("Run on {} dialect. Metadata will be processed. And field marker as @Jsonb will be replaced to jsonb type.",
                      metadataImpl.getDatabase().getDialect());
-            metadataImpl.getEntityBindings().forEach(mapping -> updateEntityMapping(metadataImpl, mapping.getDeclaredPropertyIterator(), mapping.getMappedClass()));
+            metadataImpl.getEntityBindings().forEach(mapping -> updateEntityMapping(metadataImpl, mapping.getDeclaredProperties().iterator(), mapping.getMappedClass()));
         } else {
             log.info("Run on {} dialect. Metadata will not be processed", metadataImpl.getDatabase().getDialect());
         }
@@ -48,7 +48,7 @@ public class JsonbTypeRegistrator implements SessionFactoryBuilderFactory {
             Class<?> fieldType = getField(persistentClass, property).getType();
             if (property.getValue() instanceof Component) {
                 Component component = (Component) property.getValue();
-                updateEntityMapping(metadata, component.getPropertyIterator(), fieldType);
+                updateEntityMapping(metadata, component.getProperties().iterator(), fieldType);
             } else if (property.getValue() instanceof SimpleValue && isJsonb(persistentClass, property)) {
                 updateMappingTypeToJsonb(metadata, property, fieldType.getCanonicalName());
             }

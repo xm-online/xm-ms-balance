@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
-import io.github.jhipster.config.JHipsterConstants;
+import tech.jhipster.config.JHipsterConstants;
 
 import java.util.HashMap;
 import java.util.Map;

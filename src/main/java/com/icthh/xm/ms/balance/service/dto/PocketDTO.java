@@ -2,7 +2,7 @@ package com.icthh.xm.ms.balance.service.dto;
 
 
 import java.util.Map;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;

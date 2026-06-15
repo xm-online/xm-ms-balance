@@ -1,32 +1,23 @@
 package com.icthh.xm.ms.balance.config;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.servlet.InstrumentedFilter;
-import com.codahale.metrics.servlets.MetricsServlet;
-import io.github.jhipster.config.JHipsterConstants;
-import io.github.jhipster.config.JHipsterProperties;
-import io.github.jhipster.config.h2.H2ConfigurationHelper;
-import io.undertow.UndertowOptions;
 
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.FilterRegistration;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRegistration;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.server.MimeMappings;
-import org.springframework.boot.web.server.WebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
+import org.springframework.boot.web.server.servlet.ConfigurableServletWebServerFactory;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
-import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -34,6 +25,10 @@ import org.springframework.http.MediaType;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import tech.jhipster.config.JHipsterProperties;
+import org.springframework.boot.web.server.WebServerFactory;
+
+
 
 /**
  * Configuration of web application with Servlet 3.0 APIs.
@@ -60,9 +55,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         EnumSet<DispatcherType> disps = EnumSet.of(DispatcherType.REQUEST,
             DispatcherType.FORWARD, DispatcherType.ASYNC);
         initMetrics(servletContext, disps);
-        if (env.acceptsProfiles(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT)) {
-            initH2Console(servletContext);
-        }
+
         log.info("Web application fully configured");
     }
 
@@ -72,18 +65,6 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
     @Override
     public void customize(WebServerFactory server) {
         setMimeMappings(server);
-
-        /*
-         * Enable HTTP/2 for Undertow - https://twitter.com/ankinson/status/829256167700492288
-         * HTTP/2 requires HTTPS, so HTTP requests will fallback to HTTP/1.1.
-         * See the JHipsterProperties class and your application-*.yml configuration files
-         * for more information.
-         */
-        if (serverProperties.getHttp2().isEnabled() && server instanceof UndertowServletWebServerFactory) {
-            ((UndertowServletWebServerFactory) server)
-                .addBuilderCustomizers(builder ->
-                    builder.setServerOption(UndertowOptions.ENABLE_HTTP2, true));
-        }
     }
 
     private void setMimeMappings(WebServerFactory server) {
@@ -137,14 +118,6 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
             source.registerCorsConfiguration("/v2/api-docs", config);
         }
         return new CorsFilter(source);
-    }
-
-    /**
-     * Initializes H2 console.
-     */
-    private void initH2Console(ServletContext servletContext) {
-        log.debug("Initialize H2 console");
-        H2ConfigurationHelper.initH2Console(servletContext);
     }
 
     @Autowired(required = false)

@@ -248,13 +248,13 @@
     <rule ref="rulesets/java/unusedcode.xml/UnusedPrivateMethod">
         <properties>
             <property name="violationSuppressXPath" value=".[
-                ../../Annotation/NormalAnnotation[Name[@Image='AssertTrue'] and count(//ImportDeclaration/Name[@Image='javax.validation.constraints.AssertTrue']) = 1]
+                ../../Annotation/NormalAnnotation[Name[@Image='AssertTrue'] and count(//ImportDeclaration/Name[@Image='jakarta.validation.constraints.AssertTrue']) = 1]
                 or
-                ../../Annotation/MarkerAnnotation[Name[@Image='PrePersist'] and count(//ImportDeclaration/Name[@Image='javax.persistence.PrePersist']) = 1]
+                ../../Annotation/MarkerAnnotation[Name[@Image='PrePersist'] and count(//ImportDeclaration/Name[@Image='jakarta.persistence.PrePersist']) = 1]
                 or
-                ../../Annotation/MarkerAnnotation[Name[@Image='PreUpdate'] and count(//ImportDeclaration/Name[@Image='javax.persistence.PreUpdate']) = 1]
+                ../../Annotation/MarkerAnnotation[Name[@Image='PreUpdate'] and count(//ImportDeclaration/Name[@Image='jakarta.persistence.PreUpdate']) = 1]
                 or
-                ../../Annotation/MarkerAnnotation[Name[@Image='PostLoad'] and count(//ImportDeclaration/Name[@Image='javax.persistence.PostLoad']) = 1]
+                ../../Annotation/MarkerAnnotation[Name[@Image='PostLoad'] and count(//ImportDeclaration/Name[@Image='jakarta.persistence.PostLoad']) = 1]
             ]"/>
         </properties>
     </rule>

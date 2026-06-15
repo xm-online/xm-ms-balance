@@ -19,6 +19,15 @@ logging:
         io.github.jhipster: DEBUG
         com.icthh.xm.ms.balance: DEBUG
 
+management:
+    tracing:
+        export:
+            enabled: false
+    otlp:
+        metrics:
+            export:
+                enabled: false
+
 spring:
     profiles:
         active: dev
@@ -52,7 +61,7 @@ spring:
         console:
             enabled: false
     jpa:
-        database-platform: io.github.jhipster.domain.util.FixedH2Dialect
+        database-platform: tech.jhipster.domain.util.FixedH2Dialect
         database: H2
         show-sql: true
         properties:
@@ -67,6 +76,8 @@ spring:
             #hibernate.cache.hazelcast.use_lite_member: true
     kafka:
         bootstrap-servers: localhost:9092
+        template:
+            observation-enabled: true
     mail:
         host: localhost
         port: 25

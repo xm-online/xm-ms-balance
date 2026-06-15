@@ -9,7 +9,7 @@ import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import com.icthh.xm.ms.balance.service.mapper.BalanceMapper;
-import io.github.jhipster.service.QueryService;
+import tech.jhipster.service.QueryService;
 
 import java.math.BigDecimal;
 import java.util.List;
