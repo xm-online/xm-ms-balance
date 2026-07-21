@@ -1,6 +1,7 @@
 package com.icthh.xm.ms.balance.web.rest;
 
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
+import com.icthh.xm.ms.balance.web.rest.errors.ResponseStatusExceptionTranslator;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
 import com.icthh.xm.ms.balance.BalanceApp;
@@ -99,6 +100,9 @@ public class PocketResourceIntTest {
     private ExceptionTranslator exceptionTranslator;
 
     @Autowired
+    private ResponseStatusExceptionTranslator responseStatusExceptionTranslator;
+
+    @Autowired
     private EntityManager em;
 
     @Autowired
@@ -119,7 +123,7 @@ public class PocketResourceIntTest {
         final PocketResource pocketResource = new PocketResource(pocketService, pocketQueryService);
         this.restPocketMockMvc = MockMvcBuilders.standaloneSetup(pocketResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
+            .setControllerAdvice(exceptionTranslator, responseStatusExceptionTranslator)
             .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
     }

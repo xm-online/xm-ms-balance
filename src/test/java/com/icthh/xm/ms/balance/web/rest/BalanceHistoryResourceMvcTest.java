@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -89,6 +90,9 @@ public class BalanceHistoryResourceMvcTest {
 
     @BeforeEach
     public void setup() {
+        // @MockitoBean is handled by Spring, but plain Mockito annotations such as @Captor are not:
+        // Spring Boot used to initialise them through the @MockBean support that was removed in 4.x.
+        MockitoAnnotations.openMocks(this);
 
         // Setup MockMVC to use our Spring Configuration
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();

@@ -4,6 +4,11 @@
 <configuration scan="true">
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
+    <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <appender-ref ref="CONSOLE"/>
+    </appender>
+
     <logger name="com.icthh.xm.ms.balance" level="INFO"/>
 
     <logger name="io.github.jhipster" level="WARN"/>
@@ -42,6 +47,7 @@
 
     <root level="WARN">
         <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_LOGSTASH"/>
     </root>
 
 </configuration>

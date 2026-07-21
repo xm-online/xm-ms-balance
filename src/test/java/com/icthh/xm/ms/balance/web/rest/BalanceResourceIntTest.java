@@ -1,6 +1,7 @@
 package com.icthh.xm.ms.balance.web.rest;
 
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
+import com.icthh.xm.ms.balance.web.rest.errors.ResponseStatusExceptionTranslator;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -135,6 +136,9 @@ public class BalanceResourceIntTest {
     private ExceptionTranslator exceptionTranslator;
 
     @Autowired
+    private ResponseStatusExceptionTranslator responseStatusExceptionTranslator;
+
+    @Autowired
     private EntityManager em;
 
     @Autowired
@@ -183,7 +187,7 @@ public class BalanceResourceIntTest {
         final BalanceResource balanceResource = new BalanceResource(balanceService, balanceQueryService);
         this.restBalanceMockMvc = MockMvcBuilders.standaloneSetup(balanceResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
+            .setControllerAdvice(exceptionTranslator, responseStatusExceptionTranslator)
             .setConversionService(createFormattingConversionService())
             .setMessageConverters(jacksonMessageConverter).build();
         String balanceSpec = new String(BalanceRepositoryIntTest.class.getResourceAsStream("/config/balancespec.yml").readAllBytes());
@@ -661,10 +665,10 @@ public class BalanceResourceIntTest {
         balanceRepository.saveAndFlush(balance);
 
         // Get all the balanceList where entityId greater than or equals to DEFAULT_ENTITY_ID
-        defaultBalanceShouldBeFound("entityId.greaterOrEqualThan=" + DEFAULT_ENTITY_ID);
+        defaultBalanceShouldBeFound("entityId.greaterThanOrEqual=" + DEFAULT_ENTITY_ID);
 
         // Get all the balanceList where entityId greater than or equals to UPDATED_ENTITY_ID
-        defaultBalanceShouldNotBeFound("entityId.greaterOrEqualThan=" + UPDATED_ENTITY_ID);
+        defaultBalanceShouldNotBeFound("entityId.greaterThanOrEqual=" + UPDATED_ENTITY_ID);
     }
 
     @Test

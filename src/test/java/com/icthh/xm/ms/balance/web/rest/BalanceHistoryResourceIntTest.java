@@ -107,7 +107,7 @@ public class BalanceHistoryResourceIntTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         final BalanceHistoryResource balanceHistoryResource = new BalanceHistoryResource(balanceHistoryService);
         this.restBalanceHistoryMockMvc = MockMvcBuilders.standaloneSetup(balanceHistoryResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
@@ -123,7 +123,6 @@ public class BalanceHistoryResourceIntTest {
     public void getAllBalance() throws Exception {
 
         BalanceChangeEvent balanceChangeEvent = new BalanceChangeEvent();
-        balanceChangeEvent.setId(DEFAULT_ENTITY_ID);
         balanceChangeEvent.setBalanceEntityId(DEFAULT_ENTITY_ID);
         balanceChangeEvent.setBalanceId(DEFAULT_ENTITY_ID);
         balanceChangeEvent.setBalanceKey(DEFAULT_KEY);

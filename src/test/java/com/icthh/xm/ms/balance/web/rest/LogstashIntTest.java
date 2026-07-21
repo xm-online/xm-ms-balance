@@ -34,8 +34,7 @@ public class LogstashIntTest {
     @Test
     public void testLogstashAppender() {
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        Appender<ILoggingEvent> appender = context.getLogger("ROOT").getAppender("ASYNC_LOGSTASH");
-        assertThat(appender).isInstanceOf(AsyncAppender.class);
+        assertThat(context.getLogger("ROOT").getAppender("ASYNC_LOGSTASH")).isInstanceOf(AsyncAppender.class);
     }
 
 }
