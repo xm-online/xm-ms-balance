@@ -16,6 +16,11 @@
 spring:
     application:
         name: balance
+    cloud:
+        # Tests run without a Consul instance; without this Spring Cloud aborts startup
+        # demanding a spring.config.import entry for the Consul config server.
+        consul:
+            enabled: false
     main:
         allow-bean-definition-overriding: true
     jackson:
@@ -58,6 +63,8 @@ spring:
     mvc:
         favicon:
             enabled: false
+        problemdetails:
+            enabled: true
     thymeleaf:
         mode: HTML
 

@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 
 @Configuration
 public class BalanceSecurityConfiguration extends SecurityConfiguration {
@@ -17,6 +19,20 @@ public class BalanceSecurityConfiguration extends SecurityConfiguration {
                                         @Value("${jhipster.security.content-security-policy}")
                                         String contentSecurityPolicy) {
         super(tokenProvider, contentSecurityPolicy);
+    }
+
+    /**
+     * Keeps the URL rules inherited from xm-commons and only re-opens frame options.
+     *
+     * <p>The parent configures headers before delegating here, and Spring Security reuses the same
+     * headers configurer instance, so disabling frame options at this point overrides the parent's
+     * {@code deny()}. This preserves the pre-Spring Boot 4 behaviour, where balance sent no
+     * {@code X-Frame-Options} header at all.
+     */
+    @Override
+    protected HttpSecurity applyUrlSecurity(HttpSecurity http) {
+        super.applyUrlSecurity(http);
+        return http.headers(headers -> headers.frameOptions(FrameOptionsConfig::disable));
     }
 
     @Bean
