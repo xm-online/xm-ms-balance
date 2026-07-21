@@ -17,12 +17,12 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 @Import({
     XmMsWebConfiguration.class
 })
-public class WebMvcConfig extends XmWebMvcConfigurerAdapter {
+public class BalanceWebMvcConfig extends XmWebMvcConfigurerAdapter {
 
     private final ApplicationProperties applicationProperties;
     private final TenantVerifyInterceptor tenantVerifyInterceptor;
 
-    public WebMvcConfig(
+    public BalanceWebMvcConfig(
         TenantInterceptor tenantInterceptor,
         XmLoggingInterceptor xmLoggingInterceptor,
         ApplicationProperties applicationProperties,
