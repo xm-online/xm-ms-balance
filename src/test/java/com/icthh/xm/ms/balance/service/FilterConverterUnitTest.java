@@ -3,13 +3,13 @@ package com.icthh.xm.ms.balance.service;
 import com.icthh.xm.ms.balance.service.FilterConverter.QueryPart;
 import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.PocketCriteria;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import tech.jhipster.service.filter.BigDecimalFilter;
 import tech.jhipster.service.filter.LongFilter;
 import tech.jhipster.service.filter.StringFilter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 /**
  *
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @Slf4j
 public class FilterConverterUnitTest {
 
@@ -97,7 +97,7 @@ public class FilterConverterUnitTest {
     @Test
     public void testGreaterOrEqualThanExpression() {
         BalanceCriteria criteria = new BalanceCriteria();
-        criteria.setId((LongFilter) new LongFilter().setGreaterOrEqualThan(42L));
+        criteria.setId((LongFilter) new LongFilter().setGreaterThanOrEqual(42L));
         QueryPart queryPart = createQueryPart(criteria);
 
         assertEquals("id >= :id", queryPart.getQuery().toString());
@@ -107,7 +107,7 @@ public class FilterConverterUnitTest {
     @Test
     public void testLessOrEqualThanExpression() {
         BalanceCriteria criteria = new BalanceCriteria();
-        criteria.setId((LongFilter) new LongFilter().setLessOrEqualThan(42L));
+        criteria.setId((LongFilter) new LongFilter().setLessThanOrEqual(42L));
         QueryPart queryPart = createQueryPart(criteria);
 
         assertEquals("id <= :id", queryPart.getQuery().toString());

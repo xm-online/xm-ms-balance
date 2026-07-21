@@ -5,6 +5,7 @@ import com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect;
 import org.hibernate.boot.model.FunctionContributions;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.spi.TypeConfiguration;
 
 public class CustomPostgreSQL82Dialect extends CustomPostgreSQLDialect {
 
@@ -14,24 +15,14 @@ public class CustomPostgreSQL82Dialect extends CustomPostgreSQLDialect {
     public static final String JSON_FIELD_INT = "json_field_int";
     public static final String JSON_FIELD_TEXT = "json_field_text";
 
-    public CustomPostgreSQL82Dialect() {
-        super();
-        registerFunction(JSON_FIELD_TEXT, new SQLFunctionTemplate(StringType.INSTANCE, TEXT_FIELD));
-        registerFunction(JSON_FIELD_INT, new SQLFunctionTemplate(StringType.INSTANCE, INT_FIELD));
+    @Override
+    public void initializeFunctionRegistry(FunctionContributions functionContributions) {
+        super.initializeFunctionRegistry(functionContributions);
+        TypeConfiguration typeConfiguration = functionContributions.getTypeConfiguration();
+        BasicType<String> stringType = typeConfiguration.getBasicTypeRegistry().resolve(StandardBasicTypes.STRING);
+        BasicType<Integer> intType = typeConfiguration.getBasicTypeRegistry().resolve(StandardBasicTypes.INTEGER);
+        functionContributions.getFunctionRegistry().registerPattern(JSON_FIELD_TEXT, TEXT_FIELD, stringType);
+        functionContributions.getFunctionRegistry().registerPattern(JSON_FIELD_INT, INT_FIELD, intType);
     }
-
-
-//    @Override
-//    public void initializeFunctionRegistry(FunctionContributions functionContributions) {
-//        BasicType<String> stringBasicType = functionContributions
-//                .getTypeConfiguration()
-//                .getBasicTypeRegistry()
-//                .resolve(StandardBasicTypes.STRING);
-//
-////        functionContributions.getFunctionRegistry().register(JSON_FIELD_TEXT)
-////        functionContributions.getFunctionRegistry().register(JSON_FIELD_INT)
-//
-//        super.initializeFunctionRegistry(functionContributions);
-//    }
 
 }

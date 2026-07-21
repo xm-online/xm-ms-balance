@@ -23,11 +23,10 @@ import java.util.List;
 import java.util.Map;
 import jakarta.persistence.criteria.Expression;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -36,31 +35,35 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, BalanceApp.class})
-@ContextConfiguration(initializers = {com.icthh.xm.ms.balance.repository.PostgressConfigIntTest.Initializer.class})
 @ActiveProfiles("pg-test")
+@Testcontainers
 public class PostgressConfigIntTest {
 
-    @ClassRule
-    public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:11.1")
+    @Container
+    public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:14.17")
         .withDatabaseName("balance")
         .withUsername("sa")
         .withPassword("sa");
 
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                "spring.datasource.url=" + postgreSQLContainer.getJdbcUrl(),
-                "spring.datasource.username=" + postgreSQLContainer.getUsername(),
-                "spring.datasource.password=" + postgreSQLContainer.getPassword()
-                                 ).applyTo(configurableApplicationContext.getEnvironment());
-            log.info("spring.datasource.url: {}", postgreSQLContainer.getJdbcUrl());
+
+    @DynamicPropertySource
+    static void setPostgreSQLContainer(DynamicPropertyRegistry registry) {
+        if (!postgreSQLContainer.isRunning()) {
+            postgreSQLContainer.start();
         }
+        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        log.info("spring.datasource.url: {}", postgreSQLContainer.getJdbcUrl());
     }
 
     @Autowired
@@ -78,7 +81,7 @@ public class PostgressConfigIntTest {
     @Autowired
     private XmAuthenticationContextHolder xmAuthenticationContextHolder;
 
-    @Before
+    @BeforeEach
     public void beforeTransaction() {
         TenantContextUtils.setTenant(tenantContextHolder, "public");
         lepManager.beginThreadContext(scopedContext -> {
@@ -87,7 +90,7 @@ public class PostgressConfigIntTest {
         });
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         lepManager.endThreadContext();

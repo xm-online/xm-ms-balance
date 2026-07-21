@@ -1,7 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
 import com.icthh.xm.commons.config.client.service.TenantConfigService;
-import com.icthh.xm.commons.domainevent.outbox.service.OutboxTransportService.OutboxTransportServiceField;
 import com.icthh.xm.commons.lep.api.BaseLepContext;
 import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.BalanceService;
@@ -10,7 +9,7 @@ import com.icthh.xm.ms.balance.service.PocketQueryService;
 import com.icthh.xm.ms.balance.service.PocketService;
 import org.springframework.web.client.RestTemplate;
 
-public class LepContext extends BaseLepContext implements OutboxTransportServiceField {
+public class LepContext extends BaseLepContext {
 
     public LepServices services;
     public LepTemplates templates;

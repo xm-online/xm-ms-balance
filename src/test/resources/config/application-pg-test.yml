@@ -1,6 +1,4 @@
 spring:
-    profiles:
-        active: pg-test
     datasource:
         driver-class-name: org.postgresql.Driver
     jpa:

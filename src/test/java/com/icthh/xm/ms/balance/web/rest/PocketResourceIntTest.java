@@ -13,16 +13,19 @@ import com.icthh.xm.ms.balance.service.PocketService;
 import com.icthh.xm.ms.balance.service.dto.PocketDTO;
 import com.icthh.xm.ms.balance.service.mapper.PocketMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @see PocketResource
  */
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, BalanceApp.class})
 public class PocketResourceIntTest {
 
@@ -87,7 +90,7 @@ public class PocketResourceIntTest {
     private PocketQueryService pocketQueryService;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
+    private JacksonJsonHttpMessageConverter jacksonMessageConverter;
 
     @Autowired
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
@@ -110,7 +113,7 @@ public class PocketResourceIntTest {
         TenantContextUtils.setTenant(tenantContextHolder, "RESINTTEST");
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         final PocketResource pocketResource = new PocketResource(pocketService, pocketQueryService);
@@ -143,7 +146,7 @@ public class PocketResourceIntTest {
         return pocket;
     }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         pocket = createEntity(em);
     }
@@ -240,7 +243,7 @@ public class PocketResourceIntTest {
         // Get all the pocketList
         restPocketMockMvc.perform(get("/api/pockets?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(pocket.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].label").value(hasItem(DEFAULT_LABEL.toString())))
@@ -259,7 +262,7 @@ public class PocketResourceIntTest {
         // Get the pocket
         restPocketMockMvc.perform(get("/api/pockets/{id}", pocket.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(pocket.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY.toString()))
             .andExpect(jsonPath("$.label").value(DEFAULT_LABEL.toString()))
@@ -546,7 +549,7 @@ public class PocketResourceIntTest {
     private void defaultPocketShouldBeFound(String filter) throws Exception {
         restPocketMockMvc.perform(get("/api/pockets?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(pocket.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].label").value(hasItem(DEFAULT_LABEL.toString())))
@@ -562,7 +565,7 @@ public class PocketResourceIntTest {
     private void defaultPocketShouldNotBeFound(String filter) throws Exception {
         restPocketMockMvc.perform(get("/api/pockets?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
     }

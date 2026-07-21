@@ -25,7 +25,7 @@ public @interface AuthorizedFeignClient {
      * @see FeignClientsConfiguration for the defaults
      */
     @AliasFor(annotation = FeignClient.class, attribute = "configuration")
-    Class<?>[] configuration() default OAuth2InterceptedFeignConfiguration.class;
+    Class<?>[] configuration() default OAuth2UserClientFeignConfiguration.class;
 
     /**
      * An absolute URL or resolvable hostname (the protocol is optional).

@@ -15,17 +15,20 @@ import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.OperationType;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
@@ -51,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @see BalanceHistoryResource
  */
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, BalanceApp.class})
 public class BalanceHistoryResourceIntTest {
 
@@ -79,7 +82,7 @@ public class BalanceHistoryResourceIntTest {
     private XmAuthenticationContextHolder xmAuthenticationContextHolder;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
+    private JacksonJsonHttpMessageConverter jacksonMessageConverter;
 
     @Autowired
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
@@ -96,13 +99,13 @@ public class BalanceHistoryResourceIntTest {
         });
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         lepManager.endThreadContext();
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         MockitoAnnotations.initMocks(this);
         final BalanceHistoryResource balanceHistoryResource = new BalanceHistoryResource(balanceHistoryService);
@@ -152,7 +155,7 @@ public class BalanceHistoryResourceIntTest {
 
         restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].balanceKey").value(hasItem(DEFAULT_KEY)))
             .andExpect(jsonPath("$.[*].balanceTypeKey").value(hasItem(DEFAULT_TYPE_KEY)))
             .andExpect(jsonPath("$.[*].balanceId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
@@ -187,7 +190,7 @@ public class BalanceHistoryResourceIntTest {
 
         restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&operationType.in=RELOAD"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].balanceKey").value(hasItem(DEFAULT_KEY)))
             .andExpect(jsonPath("$.[*].balanceTypeKey").value(hasItem(DEFAULT_TYPE_KEY)))
             .andExpect(jsonPath("$.[*].balanceId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
@@ -198,7 +201,7 @@ public class BalanceHistoryResourceIntTest {
 
         restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&balanceTypeKey.equals=AAAAAAAAAA"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].balanceKey").value(hasItem(DEFAULT_KEY)))
             .andExpect(jsonPath("$.[*].balanceTypeKey").value(hasItem(DEFAULT_TYPE_KEY)))
             .andExpect(jsonPath("$.[*].balanceId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
@@ -209,7 +212,7 @@ public class BalanceHistoryResourceIntTest {
 
         restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&amountAfter.greatThat=0"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].balanceKey").value(hasItem(DEFAULT_KEY)))
             .andExpect(jsonPath("$.[*].balanceTypeKey").value(hasItem(DEFAULT_TYPE_KEY)))
             .andExpect(jsonPath("$.[*].balanceId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
@@ -220,7 +223,7 @@ public class BalanceHistoryResourceIntTest {
 
         restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&oprationId.contains=tu"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].balanceKey").value(hasItem(DEFAULT_KEY)))
             .andExpect(jsonPath("$.[*].balanceTypeKey").value(hasItem(DEFAULT_TYPE_KEY)))
             .andExpect(jsonPath("$.[*].balanceId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
@@ -231,7 +234,7 @@ public class BalanceHistoryResourceIntTest {
 
         restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&entryDate.lessThan=2023-12-25T10:16:30Z"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].balanceKey").value(hasItem(DEFAULT_KEY)))
             .andExpect(jsonPath("$.[*].balanceTypeKey").value(hasItem(DEFAULT_TYPE_KEY)))
             .andExpect(jsonPath("$.[*].balanceId").value(hasItem(DEFAULT_ENTITY_ID.intValue())))
@@ -243,7 +246,7 @@ public class BalanceHistoryResourceIntTest {
 
         restBalanceHistoryMockMvc.perform(get("/api/v2/balances/history?sort=id,desc&entryDate.greaterThan=2023-12-25T10:15:30Z"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].balanceKey").value(not(hasItem(DEFAULT_KEY))))
             .andDo(print());
     }

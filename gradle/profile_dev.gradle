@@ -6,8 +6,8 @@ configurations {
 }
 
 dependencies {
-    developmentOnly "org.springframework.boot:spring-boot-devtools"
-    implementation "com.h2database:h2"
+    implementation "org.postgresql:postgresql"
+    developmentOnly "org.springframework.boot:spring-boot-docker-compose"
 }
 
 def profiles = "dev"
@@ -27,9 +27,10 @@ springBoot {
 }
 
 bootRun {
-    args = []
+    args = ["--spring.profiles.active=${profiles}"]
+    systemProperty 'user.timezone', 'UTC'
+    environment 'POSTGRES_PORT', '0'
 }
-
 
 processResources {
     inputs.property('version', version)

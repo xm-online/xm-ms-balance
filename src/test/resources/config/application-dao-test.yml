@@ -3,7 +3,7 @@ spring:
         url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
         driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     jpa:
-        database-platform: tech.jhipster.domain.util.FixedPostgreSQL82Dialect
+        database-platform: org.hibernate.dialect.H2Dialect
         show-sql: true
         hibernate:
             ddl-auto: none

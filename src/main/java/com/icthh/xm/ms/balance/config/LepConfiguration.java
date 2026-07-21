@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
+import com.icthh.xm.commons.lep.groovy.GroovyLepEngineConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 

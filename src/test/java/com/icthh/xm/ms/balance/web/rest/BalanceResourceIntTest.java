@@ -30,10 +30,11 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +42,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -77,7 +78,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @see BalanceResource
  */
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { SecurityBeanOverrideConfiguration.class, BalanceApp.class})
 public class BalanceResourceIntTest {
 
@@ -170,13 +171,13 @@ public class BalanceResourceIntTest {
         });
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         lepManager.endThreadContext();
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         MockitoAnnotations.initMocks(this);
         final BalanceResource balanceResource = new BalanceResource(balanceService, balanceQueryService);
@@ -208,7 +209,7 @@ public class BalanceResourceIntTest {
         return balance;
     }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         balance = createEntity(em);
     }
@@ -365,7 +366,7 @@ public class BalanceResourceIntTest {
         // Get all the balanceList
         restBalanceMockMvc.perform(get("/api/balances?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(balance.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
@@ -388,7 +389,7 @@ public class BalanceResourceIntTest {
         // Get the balance
         restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY.toString()))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY.toString()))
@@ -729,7 +730,7 @@ public class BalanceResourceIntTest {
     private void defaultBalanceShouldBeFound(String filter) throws Exception {
         restBalanceMockMvc.perform(get("/api/balances?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(balance.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
@@ -745,7 +746,7 @@ public class BalanceResourceIntTest {
     private void defaultBalanceShouldNotBeFound(String filter) throws Exception {
         restBalanceMockMvc.perform(get("/api/balances?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
     }
@@ -895,7 +896,7 @@ public class BalanceResourceIntTest {
         // Get the balance
         restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()).param("applyDate", Instant.now().toString()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY))
@@ -918,7 +919,7 @@ public class BalanceResourceIntTest {
         // Get the balance
         restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()).param("applyDate", Instant.now().plusSeconds(1000).toString()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY))

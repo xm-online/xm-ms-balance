@@ -20,11 +20,6 @@ logging:
         io.github.jhipster: INFO
 
 spring:
-    devtools:
-        restart:
-            enabled: false
-        livereload:
-            enabled: false
     cloud:
         consul:
             discovery:

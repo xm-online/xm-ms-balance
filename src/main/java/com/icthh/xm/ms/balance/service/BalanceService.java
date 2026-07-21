@@ -72,6 +72,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -105,7 +106,7 @@ public class BalanceService {
     private final BalanceChangeEventRepository balanceChangeEventRepository;
     private final BalanceSpecService balanceSpecService;
     private final PocketChangeEventMapper pocketChangeEventMapper;
-    @Setter(onMethod = @__(@Autowired))
+    @Setter(onMethod = @__({@Autowired, @Lazy}))
     private BalanceService self;
     private Clock clock = Clock.systemDefaultZone();
 

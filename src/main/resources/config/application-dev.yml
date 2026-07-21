@@ -29,18 +29,14 @@ management:
                 enabled: false
 
 spring:
-    profiles:
-        active: dev
-        include:
-            - swagger
+    config:
+        import: consul
+    #    profiles:
+#        active: dev
+#        include:
+#            - swagger
             # Uncomment to activate TLS for the dev profile
             #- tls
-    devtools:
-        restart:
-            enabled: true
-            additional-exclude: .h2.server.properties
-        livereload:
-            enabled: false # we use Webpack dev server + BrowserSync for livereload
     jackson:
         serialization:
             indent-output: true
@@ -52,17 +48,21 @@ spring:
             port: 8500
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:h2:mem:balance;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/balance
         username: balance
-        password:
+        password: balance
         hikari:
+            poolName: Hikari
             auto-commit: false
-    h2:
-        console:
-            enabled: false
     jpa:
-        database-platform: tech.jhipster.domain.util.FixedH2Dialect
-        database: H2
+        open-in-view: false
+        hibernate:
+            ddl-auto: none
+            naming:
+                physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+                implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+        database-platform: com.icthh.xm.commons.migration.db.jsonb.CustomPostgreSQLDialect
+        database: POSTGRESQL
         show-sql: true
         properties:
             hibernate.id.new_generator_mappings: true
@@ -138,7 +138,7 @@ jhipster:
             enabled: false
             host: localhost
             port: 5000
-            queue-size: 512
+            ring-buffer-size: 512
 oauth2:
     signature-verification:
         public-key-endpoint-uri: http://config/api/token_key

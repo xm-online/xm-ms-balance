@@ -52,10 +52,6 @@ public class BalanceSpecService implements RefreshableConfiguration {
     @Value("${application.specification-path-pattern}")
     private String balanceSpecPathPattern;
 
-    {
-        mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
-
     @Override
     public void onRefresh(String updatedKey, String config) {
 

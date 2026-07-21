@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import tools.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.core.JacksonException;
 import org.hamcrest.Description;
@@ -37,7 +37,7 @@ public class TestUtil {
     public static byte[] convertObjectToJsonBytes(Object object)
             throws JacksonException {
         JsonMapper mapper = JsonMapper.builder()
-            .serializationInclusion(JsonInclude.Include.NON_NULL)
+            .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
             .build();
 
         return mapper.writeValueAsBytes(object);

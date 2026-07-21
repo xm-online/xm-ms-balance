@@ -4,14 +4,19 @@ import com.icthh.xm.ms.balance.domain.Balance;
 import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.repository.BalanceRepository;
 import com.icthh.xm.ms.balance.repository.MetricRepository;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -21,7 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+
+@ExtendWith(MockitoExtension.class)
 public class MetricServiceUnitTest {
 
     @InjectMocks
@@ -63,10 +69,11 @@ public class MetricServiceUnitTest {
     public void ifNewBalanceLessThenInMetricMetricsNotChanged() {
         Balance balance = new Balance();
         balance.setId(456L);
-        when(balanceRepository.findBalanceAmount(balance, Instant.now())).thenReturn(of(new BigDecimal("17")));
+        Instant now = Instant.now();
+        when(balanceRepository.findBalanceAmount(balance, now)).thenReturn(of(new BigDecimal("17")));
         when(metricRepository.findByTypeKeyAndBalance("MAX", balance)).thenReturn(of(new Metric().typeKey("MAX").value("18")));
 
-        metricService.updateMaxMetric(balance, Instant.now());
+        metricService.updateMaxMetric(balance, now);
 
         verify(metricRepository).findByTypeKeyAndBalance(eq("MAX"), refEq(balance));
         verifyNoMoreInteractions(metricRepository);

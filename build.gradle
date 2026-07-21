@@ -18,9 +18,6 @@ plugins {
     id "org.springframework.boot"
     id "com.google.cloud.tools.jib"
     id "com.gorylenko.gradle-git-properties"
-//    id "net.ltgt.apt-eclipse"
-//    id "net.ltgt.apt-idea"
-//    id "net.ltgt.apt"
     id "org.liquibase.gradle"
     id "org.sonarqube"
     id "com.github.spotbugs"
@@ -28,7 +25,6 @@ plugins {
     id 'pmd'
     id 'war'
     id "io.spring.dependency-management"
-    //jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
 }
 
 group = "com.icthh.xm.ms.balance"
@@ -180,6 +176,13 @@ checkstyle {
     configFile = rootProject.file('./qa/checkstyle.xml')
 }
 
+
+tasks.withType(Checkstyle).configureEach {
+    def buildDirPath = layout.buildDirectory.get().asFile.absolutePath
+    exclude { it.file.absolutePath.startsWith(buildDirPath) }
+    showViolations = false
+}
+
 spotbugs {
     ignoreFailures = true
 }
@@ -217,18 +220,16 @@ dependencies {
     implementation "tools.jackson.datatype:jackson-datatype-hppc"
     implementation "tools.jackson.datatype:jackson-datatype-hibernate7"
     implementation "tools.jackson.core:jackson-databind"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5" // for leps
+    implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate7" // for leps
     implementation "com.fasterxml.jackson.module:jackson-module-afterburner"
     implementation "org.hibernate.orm:hibernate-core:${hibernate_version}"
 
     implementation "com.zaxxer:HikariCP"
     implementation "org.apache.commons:commons-lang3"
     implementation "commons-io:commons-io"
-//    implementation "org.hibernate:hibernate-entitymanager"
     implementation "org.hibernate.validator:hibernate-validator"
     implementation "org.liquibase:liquibase-core"
-//    liquibaseRuntime "org.liquibase.ext:liquibase-hibernate5:${liquibase_hibernate5_version}"
-//    liquibaseRuntime sourceSets.main.compileClasspath
     implementation "org.springframework.boot:spring-boot-loader-tools:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-mail"
     implementation "org.springframework.boot:spring-boot-starter-logging"
@@ -267,20 +268,20 @@ dependencies {
         exclude group: "com.vaadin.external.google", module: "android-json"
     }
     testImplementation "com.jayway.jsonpath:json-path"
-//    testImplementation "io.cucumber:cucumber-junit"
-//    testImplementation "io.cucumber:cucumber-spring"
     testImplementation ("org.springframework.boot:spring-boot-starter-test") {
         exclude module: "junit"
         exclude group: "com.vaadin.external.google", module: "android-json"
     }
     testImplementation "org.springframework.security:spring-security-test"
     testImplementation "org.springframework.boot:spring-boot-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-data-jpa-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
     testImplementation "org.junit.jupiter:junit-jupiter-engine"
     testImplementation "org.junit.vintage:junit-vintage-engine"
+
     testImplementation "com.tngtech.archunit:archunit-junit5-api:${archunit_junit5_version}"
     testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunit_junit5_version}"
     testImplementation "org.assertj:assertj-core"
-    testImplementation "junit:junit"
     testImplementation "org.mockito:mockito-core"
     testImplementation "org.hamcrest:hamcrest-library"
     testImplementation "com.h2database:h2"
@@ -289,7 +290,6 @@ dependencies {
 
     // XM custom dependencies
     implementation "org.hibernate.orm:hibernate-envers"
-    implementation 'com.vladmihalcea:hibernate-types-52:2.21.1'
 
     implementation "com.icthh.xm.commons:xm-commons-timeline:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-security:${xm_commons_version}"
@@ -304,21 +304,15 @@ dependencies {
     implementation "com.icthh.xm.commons:xm-commons-i18n:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-metric:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-logging-web:${xm_commons_version}"
-    implementation "com.icthh.xm.commons:xm-commons-metric:${xm_commons_version}"
-    implementation "com.icthh.xm.commons:xm-commons-domainevent:${xm_commons_version}"
-    implementation "com.icthh.xm.commons:xm-commons-domainevent-db:${xm_commons_version}"
-    implementation "com.icthh.xm.commons:xm-commons-domainevent-outbox:${xm_commons_version}"
     implementation("com.icthh.xm.commons:xm-commons-ms-web:${xm_commons_version}") {
         exclude group: "io.github.jhipster", module: "jhipster-framework"
     }
 
     testCompileOnly "org.projectlombok:lombok:${lombok_version}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombok_version}"
-    liquibaseRuntime "com.h2database:h2"
-    testImplementation(group: 'org.testcontainers', name: 'testcontainers', version: '1.10.5') {
-        exclude group: 'commons-io', module: 'commons-io'
-    }
-    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.10.5'
+    testImplementation "org.testcontainers:postgresql:1.21.4"
+    testImplementation "org.testcontainers:testcontainers:1.21.4"
+    testImplementation "org.testcontainers:junit-jupiter:1.21.4"
 
     testImplementation("com.github.database-rider:rider-spring:1.44.0") {
         exclude module: 'slf4j-api'
