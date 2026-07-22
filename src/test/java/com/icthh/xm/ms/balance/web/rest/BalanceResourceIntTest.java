@@ -183,7 +183,7 @@ public class BalanceResourceIntTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         final BalanceResource balanceResource = new BalanceResource(balanceService, balanceQueryService);
         this.restBalanceMockMvc = MockMvcBuilders.standaloneSetup(balanceResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
