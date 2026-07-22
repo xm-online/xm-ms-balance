@@ -29,14 +29,6 @@ management:
                 enabled: false
 
 spring:
-    config:
-        import: consul
-    #    profiles:
-#        active: dev
-#        include:
-#            - swagger
-            # Uncomment to activate TLS for the dev profile
-            #- tls
     jackson:
         serialization:
             indent-output: true
@@ -129,10 +121,6 @@ jhipster:
     mail: # specific JHipster mail property, for standard properties see MailProperties
         from: balance@localhost
         base-url: http://127.0.0.1:8085
-    metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
-        logs: # Reports Dropwizard metrics in the logs
-            enabled: false
-            report-frequency: 60 # in seconds
     logging:
         logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration
             enabled: false

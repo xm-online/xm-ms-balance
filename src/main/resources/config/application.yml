@@ -83,7 +83,6 @@ spring:
             naming:
                 physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
                 implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
-        properties:
     messages:
         basename: i18n/messages
     mvc:
@@ -133,18 +132,6 @@ jhipster:
         #max-age: 1800
     mail:
         from: balance@localhost
-    swagger:
-        default-include-pattern: /api/.*
-        title: balance API
-        description: balance API documentation
-        version: 0.0.1
-        terms-of-service-url:
-        contact-name:
-        contact-url:
-        contact-email:
-        license:
-        license-url:
-
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class
