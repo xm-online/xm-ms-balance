@@ -21,14 +21,6 @@ public class BalanceSecurityConfiguration extends SecurityConfiguration {
         super(tokenProvider, contentSecurityPolicy);
     }
 
-    /**
-     * Keeps the URL rules inherited from xm-commons and only re-opens frame options.
-     *
-     * <p>The parent configures headers before delegating here, and Spring Security reuses the same
-     * headers configurer instance, so disabling frame options at this point overrides the parent's
-     * {@code deny()}. This preserves the pre-Spring Boot 4 behaviour, where balance sent no
-     * {@code X-Frame-Options} header at all.
-     */
     @Override
     protected HttpSecurity applyUrlSecurity(HttpSecurity http) {
         super.applyUrlSecurity(http);
