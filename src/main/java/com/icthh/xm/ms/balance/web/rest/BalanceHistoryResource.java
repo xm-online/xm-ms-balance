@@ -6,7 +6,6 @@ import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
-import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceHistoryCriteria;
 import com.icthh.xm.ms.balance.web.rest.requests.HistoryRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TemplateParamsHolder;
