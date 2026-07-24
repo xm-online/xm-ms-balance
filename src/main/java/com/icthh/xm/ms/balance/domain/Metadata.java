@@ -1,6 +1,8 @@
 package com.icthh.xm.ms.balance.domain;
 
+import com.icthh.xm.commons.tenant.JsonMapperUtils;
 import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 import com.icthh.xm.ms.balance.domain.converter.MapToStringConverter;
@@ -26,10 +28,10 @@ import static java.util.Collections.unmodifiableMap;
 @NoArgsConstructor
 public class Metadata implements Serializable {
 
-    private static final JsonMapper objectMapper = JsonMapper.builder()
-        .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-        .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-        .build();
+    private static final ObjectMapper objectMapper = JsonMapperUtils.buildJsonMapper(conf ->
+            conf.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    );
 
     @Transient
     private Map<String, String> metadata = null;

@@ -296,7 +296,6 @@ dependencies {
     implementation "com.icthh.xm.commons:xm-commons-migration-db:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-tenant-endpoint:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-permission:${xm_commons_version}"
-    implementation "com.icthh.xm.commons:xm-commons-ms-web:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-lep:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-lep-groovy:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-metric-lep:${xm_commons_version}"
