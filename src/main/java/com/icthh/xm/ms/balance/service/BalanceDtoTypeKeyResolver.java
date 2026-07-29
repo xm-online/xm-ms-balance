@@ -1,6 +1,5 @@
 package com.icthh.xm.ms.balance.service;
 
-import com.icthh.xm.lep.api.LepKeyResolver;
 import com.icthh.xm.lep.api.LepMethod;
 import com.icthh.xm.ms.balance.service.dto.BalanceDTO;
 import org.springframework.stereotype.Component;
@@ -8,10 +7,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class BalanceDtoTypeKeyResolver implements LepKeyResolver {
+public class BalanceDtoTypeKeyResolver extends AppendLepKeyResolver {
 
     @Override
-    public List<String> segments(LepMethod method) {
+    protected List<String> getAppendSegments(LepMethod method) {
         BalanceDTO balanceDto = method.getParameter("balanceDTO", BalanceDTO.class);
         return List.of(balanceDto.getTypeKey());
     }
