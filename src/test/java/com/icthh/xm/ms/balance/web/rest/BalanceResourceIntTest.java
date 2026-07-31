@@ -42,6 +42,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.BeforeTransaction;
@@ -127,7 +128,7 @@ public class BalanceResourceIntTest {
     private BalanceQueryService balanceQueryService;
 
     @Autowired
-    private JacksonJsonHttpMessageConverter jacksonMessageConverter;
+    private JsonMapper jsonMapper;
 
     @Autowired
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
@@ -189,7 +190,7 @@ public class BalanceResourceIntTest {
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator, responseStatusExceptionTranslator)
             .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
+            .setMessageConverters(new JacksonJsonHttpMessageConverter(jsonMapper)).build();
         String balanceSpec = new String(BalanceRepositoryIntTest.class.getResourceAsStream("/config/balancespec.yml").readAllBytes());
         balanceSpecService.onRefresh("/config/tenants/RESINTTEST/balance/balancespec.yml", balanceSpec);
     }
