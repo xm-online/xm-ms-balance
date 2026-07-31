@@ -298,6 +298,7 @@ dependencies {
     implementation "com.icthh.xm.commons:xm-commons-i18n:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-metric:${xm_commons_version}"
     implementation "com.icthh.xm.commons:xm-commons-logging-web:${xm_commons_version}"
+    implementation "com.icthh.xm.commons:xm-commons-lep-annotation-processor:${xm_commons_version}"
     implementation("com.icthh.xm.commons:xm-commons-ms-web:${xm_commons_version}") {
         exclude group: "io.github.jhipster", module: "jhipster-framework"
     }
