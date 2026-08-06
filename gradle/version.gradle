@@ -20,7 +20,7 @@ task getProjectVersion {
 
 task incrementProjectVersion {
     doLast{
-        PropertiesConfiguration props = new PropertiesConfiguration('gradle.properties')
+        PropertiesConfiguration props = new PropertiesConfiguration(project.getProjectDir().absolutePath + '/gradle.properties')
         String version = props.getProperty("version")
         println "old version: " + version
         String [] vTokens = version.tokenize(".")
@@ -34,7 +34,7 @@ task incrementProjectVersion {
 
 task decrementProjectVersion {
     doLast{
-        PropertiesConfiguration props = new PropertiesConfiguration('gradle.properties')
+        PropertiesConfiguration props = new PropertiesConfiguration(project.getProjectDir().absolutePath + '/gradle.properties')
         String version = props.getProperty("version")
         println "old version: " + version
         String newVersion = version
