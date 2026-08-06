@@ -24,3 +24,6 @@ file("sonar-project.properties").withReader {
         }
     }
 }
+
+test.finalizedBy jacocoTestReport
+jacocoTestReport.dependsOn test
