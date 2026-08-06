@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
+
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
@@ -9,13 +9,13 @@ import com.icthh.xm.ms.balance.service.MetricService;
 import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
 import com.icthh.xm.ms.balance.service.dto.MetricDTO;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
-import io.github.jhipster.web.util.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -56,7 +56,6 @@ public class MetricResource {
      */
     @PreAuthorize("hasPermission({'metric': #metricDTO}, 'METRIC.CREATE')")
     @PostMapping("/metrics")
-    @Timed
     @PrivilegeDescription("Privilege to create a new metric")
     public ResponseEntity<MetricDTO> createMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
         if (metricDTO.getId() != null) {
@@ -80,7 +79,6 @@ public class MetricResource {
      */
     @PreAuthorize("hasPermission({'id': #metricDTO.id, 'newMetric': #metricDTO}, 'metric', 'METRIC.UPDATE')")
     @PutMapping("/metrics")
-    @Timed
     @PrivilegeDescription("Privilege to updates an existing metric")
     public ResponseEntity<MetricDTO> updateMetric(@Valid @RequestBody MetricDTO metricDTO) throws URISyntaxException {
         if (metricDTO.getId() == null) {
@@ -99,7 +97,6 @@ public class MetricResource {
      * @return the ResponseEntity with status 200 (OK) and the list of metrics in body
      */
     @GetMapping("/metrics")
-    @Timed
     public ResponseEntity<List<MetricDTO>> getAllMetrics(MetricCriteria criteria) {
         List<MetricDTO> entityList = metricQueryService.findByCriteria(criteria, null);
         return ResponseEntity.ok().body(entityList);
@@ -113,7 +110,6 @@ public class MetricResource {
      */
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'METRIC.GET_LIST.ITEM')")
     @GetMapping("/metrics/{id}")
-    @Timed
     @PrivilegeDescription("Privilege to get the metric by id")
     public ResponseEntity<MetricDTO> getMetric(@PathVariable Long id) {
         MetricDTO metricDTO = metricService.findOne(id);
@@ -128,7 +124,6 @@ public class MetricResource {
      */
     @PreAuthorize("hasPermission({'id': #id}, 'metric', 'METRIC.DELETE')")
     @DeleteMapping("/metrics/{id}")
-    @Timed
     @PrivilegeDescription("Privilege to delete the metric by id")
     public ResponseEntity<Void> deleteMetric(@PathVariable Long id) {
         metricService.delete(id);

@@ -1,23 +1,22 @@
 package com.icthh.xm.ms.balance.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +28,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  */
 @Getter
 @Setter
-@ApiModel(description = "This structure describes the balance definition that came out of the billing systems.")
+@Schema(description = "This structure describes the balance definition that came out of the billing systems.")
 @Entity
 @Table(name = "balance")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -39,14 +38,14 @@ public class Balance implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @SequenceGenerator(name = "sequenceGenerator", sequenceName = "hibernate_sequence")
     private Long id;
 
     /**
      * This field is used to identify the balance.
      */
     @NotNull
-    @ApiModelProperty(value = "This field is used to identify the balance.", required = true)
+    @Schema(description = "This field is used to identify the balance.", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "jhi_key", nullable = false)
     private String key;
 
@@ -54,14 +53,14 @@ public class Balance implements Serializable {
      * This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)
      */
     @NotNull
-    @ApiModelProperty(value = "This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)", required = true)
+    @Schema(description = "This field is used to identify the balance type (e.g. `MAIN`, `BONUS`, `DEBT`, ect.)", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "type_key", nullable = false)
     private String typeKey;
 
     /**
      * The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)
      */
-    @ApiModelProperty(value = "The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)")
+    @Schema(description = "The measure of the specified balance (e.g. `EUR`, `USD`, `watt`, `byte`, number of SMS, etc.)")
     @Column(name = "measure_key")
     private String measureKey;
 
@@ -69,14 +68,14 @@ public class Balance implements Serializable {
      * The value of the balance denoted by this object.
      * The amount includes the reserved amount (see field reserved).
      */
-    @ApiModelProperty(value = "The value of the balance denoted by this object. The amount includes the reserved amount (see field reserved).")
+    @Schema(description = "The value of the balance denoted by this object. The amount includes the reserved amount (see field reserved).")
     @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
 
     /**
      * The reserved amount from the balance for uncommitted reservation transactions.
      */
-    @ApiModelProperty(value = "The reserved amount from the balance for uncommitted reservation transactions.")
+    @Schema(description = "The reserved amount from the balance for uncommitted reservation transactions.")
     @Column(name = "reserved", precision = 10, scale = 2)
     private BigDecimal reserved;
 
@@ -84,21 +83,21 @@ public class Balance implements Serializable {
      * The Entity ID related to this balance.
      */
     @NotNull
-    @ApiModelProperty(value = "The Entity ID related to this balance.", required = true)
+    @Schema(description = "The Entity ID related to this balance.", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
 
     /**
      * Created by user key.
      */
-    @ApiModelProperty(value = "Created by user key.")
+    @Schema(description = "Created by user key.")
     @Column(name = "created_by")
     private String createdBy;
 
     /**
      * Balance status.
      */
-    @ApiModelProperty(value = "Balance status.")
+    @Schema(description = "Balance status.")
     @Column(name = "status")
     private String status;
 
@@ -107,7 +106,7 @@ public class Balance implements Serializable {
      * have pockets because they are not configured in the specification. An empty list
      * indicates that are no pockets defined.
      */
-    @ApiModelProperty(value = "List of pockets owned by the balance. A null value indicates balances that cannot have pockets because they are not configured in the specification. An empty list indicates that are no pockets defined.")
+    @Schema(description = "List of pockets owned by the balance. A null value indicates balances that cannot have pockets because they are not configured in the specification. An empty list indicates that are no pockets defined.")
     @OneToMany(mappedBy = "balance")
     @JsonIgnore
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -116,7 +115,7 @@ public class Balance implements Serializable {
     /**
      * List of metrics owned by the balance.
      */
-    @ApiModelProperty(value = "List of metrics owned by the balance.")
+    @Schema(description = "List of metrics owned by the balance.")
     @OneToMany(mappedBy = "balance")
     @JsonIgnore
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)

@@ -16,10 +16,16 @@
 spring:
     application:
         name: balance
+    cloud:
+        # Tests run without a Consul instance; without this Spring Cloud aborts startup
+        # demanding a spring.config.import entry for the Consul config server.
+        consul:
+            enabled: false
     main:
         allow-bean-definition-overriding: true
     jackson:
-        serialization.write_dates_as_timestamps: false
+        mapper:
+            sort-properties-alphabetically: false
     cache:
         type: simple
     datasource:
@@ -31,24 +37,22 @@ spring:
         hikari:
             auto-commit: false
     jpa:
-        database-platform: io.github.jhipster.domain.util.FixedH2Dialect
+        database-platform: tech.jhipster.domain.util.FixedH2Dialect
         database: H2
         open-in-view: false
         show-sql: false
         hibernate:
             ddl-auto: none
             naming:
-                physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-                implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+                physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+                implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
         properties:
             hibernate.id.new_generator_mappings: true
             hibernate.connection.provider_disables_autocommit: true
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
             hibernate.generate_statistics: true
-            hibernate.hbm2ddl.auto: validate
-            # see org.hibernate.cfg.AvailableSettings.PREFER_GENERATOR_NAME_AS_DEFAULT_SEQUENCE_NAME
-            hibernate.model.generator_name_as_sequence_name: false
+            hibernate.hbm2ddl.auto: none
     liquibase:
         contexts: test
         change-log: config/liquibase/master.xml
@@ -59,6 +63,8 @@ spring:
     mvc:
         favicon:
             enabled: false
+        problemdetails:
+            enabled: true
     thymeleaf:
         mode: HTML
 
@@ -72,6 +78,13 @@ server:
 # Full reference is available at: https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 management:
+    tracing:
+        export:
+            enabled: false
+    otlp:
+        metrics:
+            export:
+                enabled: false
     metrics:
         export:
             prometheus:
@@ -88,8 +101,9 @@ jhipster:
             enabled: true
             host: localhost
             port: 5000
-            queue-size: 512
+            ring-buffer-size: 512
     security:
+        content-security-policy: "default-src 'self'; frame-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com data:"
         authentication:
             jwt:
                 secret: 797e9015a0ada7d21bf761ca50ee9edfd06a69b3
@@ -100,9 +114,6 @@ jhipster:
             token-service-id: uaa
             client-id: internal
             client-secret: internal
-    metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
-        logs: # Reports Dropwizard metrics in the logs
-            enabled: false
 
 # ===================================================================
 # Application specific properties
@@ -116,6 +127,7 @@ xm-config:
     enabled: false
 
 application:
+    tenant-ignored-path-list: /v2/api-docs, /api/profile-info, /swagger-resources/configuration/ui, /management/health
     kafka-system-queue: system_queue
     kafka-enabled: false
     lep:

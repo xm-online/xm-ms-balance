@@ -1,6 +1,8 @@
 package com.icthh.xm.ms.balance.web.rest;
 
+import com.icthh.xm.ms.balance.web.filter.LegacyRangeFilterParamsFilter;
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
+import com.icthh.xm.ms.balance.web.rest.errors.ResponseStatusExceptionTranslator;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
 import com.icthh.xm.commons.security.XmAuthenticationContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
@@ -30,24 +32,26 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -77,7 +81,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @see BalanceResource
  */
 @Slf4j
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { SecurityBeanOverrideConfiguration.class, BalanceApp.class})
 public class BalanceResourceIntTest {
 
@@ -125,13 +129,16 @@ public class BalanceResourceIntTest {
     private BalanceQueryService balanceQueryService;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
+    private JsonMapper jsonMapper;
 
     @Autowired
     private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
 
     @Autowired
     private ExceptionTranslator exceptionTranslator;
+
+    @Autowired
+    private ResponseStatusExceptionTranslator responseStatusExceptionTranslator;
 
     @Autowired
     private EntityManager em;
@@ -170,21 +177,23 @@ public class BalanceResourceIntTest {
         });
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         tenantContextHolder.getPrivilegedContext().destroyCurrentContext();
         lepManager.endThreadContext();
     }
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         final BalanceResource balanceResource = new BalanceResource(balanceService, balanceQueryService);
         this.restBalanceMockMvc = MockMvcBuilders.standaloneSetup(balanceResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
+            .setControllerAdvice(exceptionTranslator, responseStatusExceptionTranslator)
             .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
+            .setMessageConverters(new JacksonJsonHttpMessageConverter(jsonMapper))
+            .addFilter(new LegacyRangeFilterParamsFilter())
+            .build();
         String balanceSpec = new String(BalanceRepositoryIntTest.class.getResourceAsStream("/config/balancespec.yml").readAllBytes());
         balanceSpecService.onRefresh("/config/tenants/RESINTTEST/balance/balancespec.yml", balanceSpec);
     }
@@ -208,7 +217,7 @@ public class BalanceResourceIntTest {
         return balance;
     }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         balance = createEntity(em);
     }
@@ -365,7 +374,7 @@ public class BalanceResourceIntTest {
         // Get all the balanceList
         restBalanceMockMvc.perform(get("/api/balances?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(balance.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
@@ -388,7 +397,7 @@ public class BalanceResourceIntTest {
         // Get the balance
         restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY.toString()))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY.toString()))
@@ -660,10 +669,10 @@ public class BalanceResourceIntTest {
         balanceRepository.saveAndFlush(balance);
 
         // Get all the balanceList where entityId greater than or equals to DEFAULT_ENTITY_ID
-        defaultBalanceShouldBeFound("entityId.greaterOrEqualThan=" + DEFAULT_ENTITY_ID);
+        defaultBalanceShouldBeFound("entityId.greaterThanOrEqual=" + DEFAULT_ENTITY_ID);
 
         // Get all the balanceList where entityId greater than or equals to UPDATED_ENTITY_ID
-        defaultBalanceShouldNotBeFound("entityId.greaterOrEqualThan=" + UPDATED_ENTITY_ID);
+        defaultBalanceShouldNotBeFound("entityId.greaterThanOrEqual=" + UPDATED_ENTITY_ID);
     }
 
     @Test
@@ -729,7 +738,7 @@ public class BalanceResourceIntTest {
     private void defaultBalanceShouldBeFound(String filter) throws Exception {
         restBalanceMockMvc.perform(get("/api/balances?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(balance.getId().intValue())))
             .andExpect(jsonPath("$.[*].key").value(hasItem(DEFAULT_KEY.toString())))
             .andExpect(jsonPath("$.[*].typeKey").value(hasItem(DEFAULT_TYPE_KEY.toString())))
@@ -745,7 +754,7 @@ public class BalanceResourceIntTest {
     private void defaultBalanceShouldNotBeFound(String filter) throws Exception {
         restBalanceMockMvc.perform(get("/api/balances?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
     }
@@ -895,7 +904,7 @@ public class BalanceResourceIntTest {
         // Get the balance
         restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()).param("applyDate", Instant.now().toString()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY))
@@ -918,7 +927,7 @@ public class BalanceResourceIntTest {
         // Get the balance
         restBalanceMockMvc.perform(get("/api/balances/{id}", balance.getId()).param("applyDate", Instant.now().plusSeconds(1000).toString()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(balance.getId().intValue()))
             .andExpect(jsonPath("$.key").value(DEFAULT_KEY))
             .andExpect(jsonPath("$.typeKey").value(DEFAULT_TYPE_KEY))
@@ -1220,4 +1229,62 @@ public class BalanceResourceIntTest {
         chargingBalanceRequest.setMetadata(reloadMetadata);
         return chargingBalanceRequest;
     }
+
+    /**
+     * jhipster-framework 9 renamed the range filter properties from
+     * {@code greaterOrEqualThan}/{@code lessOrEqualThan} to
+     * {@code greaterThanOrEqual}/{@code lessThanOrEqual}. Criteria are bound from query
+     * parameters by property name, so without an alias a request using the old name is not
+     * rejected — Spring silently drops the unknown property and the endpoint answers 200
+     * with the filter never applied. These tests pin both spellings to the same behaviour.
+     */
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByEntityIdGreaterOrEqualThan_legacyParamName() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        // matches: entityId >= DEFAULT_ENTITY_ID
+        defaultBalanceShouldBeFound("entityId.greaterOrEqualThan=" + DEFAULT_ENTITY_ID);
+
+        // does not match: entityId >= UPDATED_ENTITY_ID. Before the alias this returned the
+        // balance anyway, because the filter was dropped.
+        defaultBalanceShouldNotBeFound("entityId.greaterOrEqualThan=" + UPDATED_ENTITY_ID);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByEntityIdLessOrEqualThan_legacyParamName() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        defaultBalanceShouldBeFound("entityId.lessOrEqualThan=" + DEFAULT_ENTITY_ID);
+        defaultBalanceShouldNotBeFound("entityId.lessOrEqualThan=" + (DEFAULT_ENTITY_ID - 1));
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void legacyAndCurrentParamNamesAreEquivalent() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        // both spellings must filter identically
+        defaultBalanceShouldBeFound("entityId.greaterThanOrEqual=" + DEFAULT_ENTITY_ID);
+        defaultBalanceShouldBeFound("entityId.greaterOrEqualThan=" + DEFAULT_ENTITY_ID);
+
+        defaultBalanceShouldNotBeFound("entityId.greaterThanOrEqual=" + UPDATED_ENTITY_ID);
+        defaultBalanceShouldNotBeFound("entityId.greaterOrEqualThan=" + UPDATED_ENTITY_ID);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByAmountLegacyParamName() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        // BigDecimal range filter carries the same aliases
+        defaultBalanceShouldBeFound("reserved.greaterOrEqualThan=" + DEFAULT_RESERVED);
+        defaultBalanceShouldNotBeFound("reserved.greaterOrEqualThan=" + DEFAULT_RESERVED.add(java.math.BigDecimal.ONE));
+    }
+
 }

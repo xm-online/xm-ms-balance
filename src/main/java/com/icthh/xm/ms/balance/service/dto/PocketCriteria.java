@@ -1,10 +1,10 @@
 package com.icthh.xm.ms.balance.service.dto;
 
-import io.github.jhipster.service.filter.BigDecimalFilter;
-import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.InstantFilter;
-import io.github.jhipster.service.filter.LongFilter;
-import io.github.jhipster.service.filter.StringFilter;
+import tech.jhipster.service.filter.BigDecimalFilter;
+import tech.jhipster.service.filter.Filter;
+import tech.jhipster.service.filter.InstantFilter;
+import tech.jhipster.service.filter.LongFilter;
+import tech.jhipster.service.filter.StringFilter;
 
 import java.io.Serializable;
 

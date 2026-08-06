@@ -1,19 +1,18 @@
 package com.icthh.xm.ms.balance.domain;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.util.Objects;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -22,7 +21,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * The balance metric structure to store value like maximum amount of the balance
  * denoted by this object due to all time of use.
  */
-@ApiModel(description = "The balance metric structure to store value like maximum amount of the balance denoted by this object due to all time of use.")
+@Schema(description = "The balance metric structure to store value like maximum amount of the balance denoted by this object due to all time of use.")
 @Entity
 @Table(name = "metric")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -32,14 +31,14 @@ public class Metric implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @SequenceGenerator(name = "sequenceGenerator", sequenceName = "hibernate_sequence")
     private Long id;
 
     /**
      * This field is used to identify the metric.
      */
     @NotNull
-    @ApiModelProperty(value = "This field is used to identify the metric.", required = true)
+    @Schema(description = "This field is used to identify the metric.", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "jhi_key", nullable = false)
     private String key;
 
@@ -47,14 +46,14 @@ public class Metric implements Serializable {
      * String with the metric type identifer.
      */
     @NotNull
-    @ApiModelProperty(value = "String with the metric type identifer.", required = true)
+    @Schema(description = "String with the metric type identifer.", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "type_key", nullable = false)
     private String typeKey;
 
     /**
      * String with the metric value.
      */
-    @ApiModelProperty(value = "String with the metric value.")
+    @Schema(description = "String with the metric value.")
     @Column(name = "jhi_value")
     private String value;
 

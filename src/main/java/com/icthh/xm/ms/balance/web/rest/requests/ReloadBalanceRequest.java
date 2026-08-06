@@ -3,8 +3,8 @@ package com.icthh.xm.ms.balance.web.rest.requests;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 

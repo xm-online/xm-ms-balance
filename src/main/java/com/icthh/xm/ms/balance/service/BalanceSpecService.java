@@ -1,11 +1,11 @@
 package com.icthh.xm.ms.balance.service;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import com.icthh.xm.commons.config.client.api.RefreshableConfiguration;
 import com.icthh.xm.commons.tenant.TenantContextHolder;
 import com.icthh.xm.commons.tenant.TenantContextUtils;
@@ -35,7 +35,9 @@ public class BalanceSpecService implements RefreshableConfiguration {
 
     private final AntPathMatcher matcher = new AntPathMatcher();
 
-    private final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private final YAMLMapper mapper = YAMLMapper.builder()
+        .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+        .build();
 
     private final ApplicationProperties applicationProperties;
 
@@ -49,10 +51,6 @@ public class BalanceSpecService implements RefreshableConfiguration {
 
     @Value("${application.specification-path-pattern}")
     private String balanceSpecPathPattern;
-
-    {
-        mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
 
     @Override
     public void onRefresh(String updatedKey, String config) {

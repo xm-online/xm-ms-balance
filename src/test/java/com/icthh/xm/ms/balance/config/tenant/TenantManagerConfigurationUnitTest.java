@@ -16,8 +16,9 @@ import com.icthh.xm.commons.tenantendpoint.provisioner.TenantAbilityCheckerProvi
 import com.icthh.xm.commons.tenantendpoint.provisioner.TenantConfigProvisioner;
 import com.icthh.xm.commons.tenantendpoint.provisioner.TenantListProvisioner;
 import com.icthh.xm.ms.balance.config.ApplicationProperties;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -28,8 +29,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantManagerConfigurationUnitTest {
 
     private TenantManager tenantManager;
@@ -50,9 +52,9 @@ public class TenantManagerConfigurationUnitTest {
     @Mock
     private ApplicationProperties applicationProperties;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
 
         when(applicationProperties.getSpecificationPathPattern()).thenReturn(
             "/config/tenants/{tenantName}/balance/balancespec.yml");

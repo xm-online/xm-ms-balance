@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
-import io.github.jhipster.service.filter.Filter;
+import tech.jhipster.service.filter.Filter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;

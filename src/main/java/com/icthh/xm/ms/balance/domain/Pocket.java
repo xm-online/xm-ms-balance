@@ -1,7 +1,6 @@
 package com.icthh.xm.ms.balance.domain;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -9,20 +8,20 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +34,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * special lifetime for partial amount of the balance.
  */
 @Slf4j
-@ApiModel(description = "This structure describes the sub-balances called pockets. A pocket defines a special lifetime for partial amount of the balance.")
+@Schema(description = "This structure describes the sub-balances called pockets. A pocket defines a special lifetime for partial amount of the balance.")
 @Entity
 @Table(name = "pocket")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
@@ -47,14 +46,14 @@ public class Pocket implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @SequenceGenerator(name = "sequenceGenerator", sequenceName = "hibernate_sequence")
     private Long id;
 
     /**
      * This field is used to identify the pocket.
      */
     @NotNull
-    @ApiModelProperty(value = "This field is used to identify the pocket.", required = true)
+    @Schema(description = "This field is used to identify the pocket.", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "jhi_key", nullable = false)
     private String key;
 
@@ -62,21 +61,21 @@ public class Pocket implements Serializable {
      * String with the pocket type identifer.
      */
     @NotNull
-    @ApiModelProperty(value = "String with the pocket type identifer.", required = true)
+    @Schema(description = "String with the pocket type identifer.", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "label", nullable = false)
     private String label;
 
     /**
      * Date/DateTime when the pocket becomes valid (date included).
      */
-    @ApiModelProperty(value = "Date/DateTime when the pocket becomes valid (date included).")
+    @Schema(description = "Date/DateTime when the pocket becomes valid (date included).")
     @Column(name = "start_date_time")
     private Instant startDateTime;
 
     /**
      * Date/DateTime when the pocket becomes invalid (date excluded).
      */
-    @ApiModelProperty(value = "Date/DateTime when the pocket becomes invalid (date excluded).")
+    @Schema(description = "Date/DateTime when the pocket becomes invalid (date excluded).")
     @Column(name = "end_date_time")
     private Instant endDateTime;
 
@@ -84,14 +83,14 @@ public class Pocket implements Serializable {
      * The value of the pocket denoted by this object.
      * The amount includes the reserved amount (see field reserved).
      */
-    @ApiModelProperty(value = "The value of the pocket denoted by this object. The amount includes the reserved amount (see field reserved).")
+    @Schema(description = "The value of the pocket denoted by this object. The amount includes the reserved amount (see field reserved).")
     @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
 
     /**
      * The reserved amount from pocket for uncommitted reservation transactions.
      */
-    @ApiModelProperty(value = "The reserved amount from pocket for uncommitted reservation transactions.")
+    @Schema(description = "The reserved amount from pocket for uncommitted reservation transactions.")
     @Column(name = "reserved", precision = 10, scale = 2)
     private BigDecimal reserved;
 

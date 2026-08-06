@@ -8,7 +8,6 @@ import com.icthh.xm.ms.balance.domain.Metric;
 import com.icthh.xm.ms.balance.service.dto.MetricCriteria;
 import com.icthh.xm.ms.balance.service.dto.MetricDTO;
 import com.icthh.xm.ms.balance.service.mapper.MetricMapper;
-import io.github.jhipster.service.QueryService;
 
 import java.util.List;
 
@@ -17,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.jhipster.service.QueryService;
 
 /**
  * Service for executing complex queries for Metric entities in the database.

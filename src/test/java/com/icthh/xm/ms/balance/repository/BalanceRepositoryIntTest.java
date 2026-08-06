@@ -3,7 +3,7 @@ package com.icthh.xm.ms.balance.repository;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.icthh.xm.ms.balance.domain.Balance;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;

@@ -1,12 +1,11 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
+
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
 import com.icthh.xm.ms.balance.domain.BalanceChangeEvent;
 import com.icthh.xm.ms.balance.domain.PocketChangeEvent;
 import com.icthh.xm.ms.balance.service.BalanceHistoryService;
 import com.icthh.xm.ms.balance.service.dto.BalanceChangeEventDto;
-import com.icthh.xm.ms.balance.service.dto.BalanceCriteria;
 import com.icthh.xm.ms.balance.service.dto.BalanceHistoryCriteria;
 import com.icthh.xm.ms.balance.web.rest.requests.HistoryRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TemplateParamsHolder;
@@ -38,7 +37,6 @@ public class BalanceHistoryResource {
 
     @PreAuthorize("hasPermission({'request': #request}, 'BALANCE_HISTORY.SEARCH_BY_DATE')")
     @GetMapping("/balances/history")
-    @Timed
     @PrivilegeDescription("Privilege to search balance history by date")
     public ResponseEntity<List<BalanceChangeEvent>> searchBalanceHistory(HistoryRequest request,
                                                                          Pageable pageable) {
@@ -50,7 +48,6 @@ public class BalanceHistoryResource {
 
     @PreAuthorize("hasPermission({'criteria': #criteria}, 'BALANCE_HISTORY.CRITERIA')")
     @GetMapping("/v2/balances/history")
-    @Timed
     @PrivilegeDescription("Privilege to search balance history by criteria")
     public ResponseEntity<List<BalanceChangeEventDto>> searchBalanceHistoryByCriteria(BalanceHistoryCriteria criteria,
                                                                                       Pageable pageable) {
@@ -61,7 +58,6 @@ public class BalanceHistoryResource {
 
     @PreAuthorize("hasPermission({'templateName': #templateName, 'params': #params}, 'BALANCE_HISTORY.SEARCH_BY_TEMPLATE')")
     @GetMapping("/balances/history/{templateName}")
-    @Timed
     @PrivilegeDescription("Privilege to search balance history by templateName")
     public ResponseEntity<List<BalanceChangeEvent>> searchBalanceHistory(@PathVariable("templateName") String templateName,
                                                                          TemplateParamsHolder params,
@@ -73,7 +69,6 @@ public class BalanceHistoryResource {
 
     @PreAuthorize("hasPermission({'request': #request}, 'POCKET_HISTORY.SEARCH_BY_DATE')")
     @GetMapping("/pockets/history")
-    @Timed
     @PrivilegeDescription("Privilege to search pocket history by date")
     public ResponseEntity<List<PocketChangeEvent>> searchPocketHistory(HistoryRequest request,
                                                                        Pageable pageable) {
@@ -84,7 +79,6 @@ public class BalanceHistoryResource {
 
     @PreAuthorize("hasPermission({'templateName': #templateName, 'params': #params}, 'POCKET_HISTORY.SEARCH_BY_TEMPLATE')")
     @GetMapping("/pockets/history/{templateName}")
-    @Timed
     @PrivilegeDescription("Privilege to search pocket history by templateName")
     public ResponseEntity<List<PocketChangeEvent>> searchPocketHistory(@PathVariable("templateName") String templateName,
                                                                        TemplateParamsHolder params,

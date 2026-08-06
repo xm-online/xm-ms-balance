@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * <p>
  * Properties are configured in the application.yml file.
  * </p>
- * See {@link io.github.jhipster.config.JHipsterProperties} for a good example.
+ * See {@link tech.jhipster.config.JHipsterProperties} for a good example.
  */
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 @Getter
@@ -23,6 +23,7 @@ public class ApplicationProperties {
     private final Retry retry = new Retry();
 
     private List<String> tenantIgnoredPathList = Collections.emptyList();
+    private List<String> tenantWithCreationAccessList = Collections.emptyList();
     private boolean timelinesEnabled;
     private boolean kafkaEnabled;
     private String kafkaSystemQueue;

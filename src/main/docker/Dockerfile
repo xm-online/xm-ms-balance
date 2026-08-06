@@ -1,4 +1,4 @@
-FROM adoptopenjdk:11-jre-hotspot
+FROM eclipse-temurin:25-jre
 
 ENTRYPOINT ["/entrypoint.sh"]
 

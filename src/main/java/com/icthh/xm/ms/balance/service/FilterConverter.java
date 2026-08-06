@@ -2,9 +2,7 @@ package com.icthh.xm.ms.balance.service;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import io.github.jhipster.service.filter.Filter;
-import io.github.jhipster.service.filter.RangeFilter;
-import io.github.jhipster.service.filter.StringFilter;
+import tech.jhipster.service.filter.Filter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -13,6 +11,8 @@ import org.springframework.cglib.beans.BeanMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+import tech.jhipster.service.filter.RangeFilter;
+import tech.jhipster.service.filter.StringFilter;
 
 /**
  * Converts Criteria to JPQL statement.

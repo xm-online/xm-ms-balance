@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;

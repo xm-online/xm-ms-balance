@@ -1,15 +1,13 @@
 package com.icthh.xm.ms.balance.domain.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.IOException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.core.JacksonException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,17 +15,13 @@ import org.apache.commons.lang3.StringUtils;
 @Converter
 public class MapToStringConverter implements AttributeConverter<Map<String, Object>, String> {
 
-    private ObjectMapper mapper = new ObjectMapper();
-
-    public MapToStringConverter() {
-        mapper.registerModule(new JavaTimeModule());
-    }
+    private final JsonMapper mapper = JsonMapper.builder().build();
 
     @Override
     public String convertToDatabaseColumn(Map<String, Object> data) {
         try {
             return mapper.writeValueAsString(data != null ? data : new HashMap<>());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn("Error during JSON to String converting", e);
             return "";
         }
@@ -39,7 +33,7 @@ public class MapToStringConverter implements AttributeConverter<Map<String, Obje
         };
         try {
             return mapper.readValue(StringUtils.isNoneBlank(data) ? data : "{}", typeRef);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.warn("Error during String to JSON converting", e);
             return Collections.emptyMap();
         }

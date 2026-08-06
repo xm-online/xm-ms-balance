@@ -1,6 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
+
 import com.icthh.xm.commons.exceptions.BusinessException;
 import com.icthh.xm.commons.exceptions.ErrorConstants;
 import com.icthh.xm.commons.permission.annotation.PrivilegeDescription;
@@ -16,7 +16,6 @@ import com.icthh.xm.ms.balance.web.rest.requests.RevertBalanceOperationRequest;
 import com.icthh.xm.ms.balance.web.rest.requests.TransferBalanceRequest;
 import com.icthh.xm.ms.balance.web.rest.util.HeaderUtil;
 import com.icthh.xm.ms.balance.web.rest.util.PaginationUtil;
-import io.github.jhipster.web.util.ResponseUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,7 +23,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing Balance.
@@ -70,7 +70,6 @@ public class BalanceResource {
      */
     @PreAuthorize("hasPermission({'balance': #balanceDTO}, 'BALANCE.CREATE')")
     @PostMapping("/balances")
-    @Timed
     @PrivilegeDescription("Privilege to create a new balance")
     public ResponseEntity<BalanceDTO> createBalance(@Valid @RequestBody BalanceDTO balanceDTO) throws URISyntaxException {
         if (balanceDTO.getId() != null) {
@@ -94,7 +93,6 @@ public class BalanceResource {
      */
     @PreAuthorize("hasPermission({'id': #balanceDTO.id, 'newBalance': #balanceDTO}, 'balance', 'BALANCE.UPDATE')")
     @PutMapping("/balances")
-    @Timed
     @PrivilegeDescription("Privilege to updates an existing balance")
     public ResponseEntity<BalanceDTO> updateBalance(@Valid @RequestBody BalanceDTO balanceDTO) throws URISyntaxException {
         if (balanceDTO.getId() == null) {
@@ -119,7 +117,6 @@ public class BalanceResource {
      */
     @PreAuthorize("hasPermission({'id': #id, 'status': #status, 'context': #context}, 'balance', 'BALANCE.STATUS')")
     @PutMapping("/balances/{id}/statuses/{status}")
-    @Timed
     @PrivilegeDescription("Privilege to updates an existing balance")
     public ResponseEntity<BalanceDTO> updateBalanceStatus(@PathVariable Long id,
                                                           @PathVariable String status,
@@ -138,7 +135,6 @@ public class BalanceResource {
      * @return the ResponseEntity with status 200 (OK) and the list of balances in body
      */
     @GetMapping("/balances")
-    @Timed
     public ResponseEntity<List<BalanceDTO>> getAllBalances(BalanceCriteria criteria, Pageable pageable) {
         Page<BalanceDTO> page = balanceQueryService.findByCriteria(criteria, pageable, null);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/balances");
@@ -153,7 +149,6 @@ public class BalanceResource {
      */
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'BALANCE.GET_LIST.ITEM')")
     @GetMapping("/balances/{id}")
-    @Timed
     @PrivilegeDescription("Privilege to get the balance by id")
     public ResponseEntity<BalanceDTO> getBalance(@PathVariable Long id, @RequestParam(value = "applyDate", required = false) Instant applyDate) {
         BalanceDTO balanceDTO = balanceService.findOne(id, applyDate);
@@ -173,7 +168,6 @@ public class BalanceResource {
      */
     @PostAuthorize("hasPermission({'returnObject': returnObject.body}, 'BALANCE.INFO')")
     @GetMapping("/balances/{id}/info")
-    @Timed
     @PrivilegeDescription("Privilege to get the balance info")
     public ResponseEntity<Map<String, Object>> getBalanceInfo(@PathVariable Long id,
                                                               @RequestParam(required = false) String fields,
@@ -191,7 +185,6 @@ public class BalanceResource {
      */
     @PreAuthorize("hasPermission({'id': #id}, 'balance', 'BALANCE.DELETE')")
     @DeleteMapping("/balances/{id}")
-    @Timed
     @PrivilegeDescription("Privilege to delete the balance by id")
     public ResponseEntity<Void> deleteBalance(@PathVariable Long id) {
         balanceService.delete(id);
@@ -200,7 +193,6 @@ public class BalanceResource {
 
     @PreAuthorize("hasPermission({'reloadRequest': #reloadRequest}, 'BALANCE.RELOAD')")
     @PostMapping("/balances/reload")
-    @Timed
     @PrivilegeDescription("Privilege to reload the balance")
     public ResponseEntity<BalanceChangeEventDto> reloadBalance(@Valid @RequestBody ReloadBalanceRequest reloadRequest) {
         BalanceChangeEventDto balanceChangeEventDto = balanceService.reload(reloadRequest);
@@ -209,7 +201,6 @@ public class BalanceResource {
 
     @PreAuthorize("hasPermission({'chargingRequest': #chargingRequest}, 'BALANCE.CHARGING')")
     @PostMapping("/balances/charging")
-    @Timed
     @PrivilegeDescription("Privilege to charging the balance")
     public ResponseEntity<BalanceChangeEventDto> chargingBalance(@Valid @RequestBody ChargingBalanceRequest chargingRequest) {
         BalanceChangeEventDto balanceChangeEventDto = balanceService.charging(chargingRequest);
@@ -218,7 +209,6 @@ public class BalanceResource {
 
     @PreAuthorize("hasPermission({'transferRequest': #transferRequest}, 'BALANCE.TRANSFER')")
     @PostMapping("/balances/transfer")
-    @Timed
     @PrivilegeDescription("Privilege to transfer the balance")
     public ResponseEntity<TransferDto> transferBalance(@Valid @RequestBody TransferBalanceRequest transferRequest) {
         TransferDto response = balanceService.transfer(transferRequest);
@@ -227,7 +217,6 @@ public class BalanceResource {
 
     @PreAuthorize("hasPermission({'revertRequest': #revertRequest}, 'BALANCE.REVERT.OPERATION')")
     @PostMapping("/balances/revert/operation")
-    @Timed
     @PrivilegeDescription("Privilege to revert balance operation")
     public ResponseEntity<BalanceChangeEventDto> revertBalanceOperation(@Valid @RequestBody RevertBalanceOperationRequest revertRequest) {
         BalanceChangeEventDto balanceChangeEventDto = balanceService.revertBalanceOperation(revertRequest);

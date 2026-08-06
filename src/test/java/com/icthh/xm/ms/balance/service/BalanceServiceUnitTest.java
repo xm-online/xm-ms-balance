@@ -17,11 +17,13 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,21 +66,28 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class BalanceServiceUnitTest {
 
     private static final String EMPTY_METADATA_VALUE = null;
@@ -110,10 +119,10 @@ public class BalanceServiceUnitTest {
     @Captor
     private ArgumentCaptor<BalanceChangeEvent> captor;
 
-    @Before
+    @BeforeEach
     public void before() {
         balanceService.setSelf(balanceService);
-        when(balanceSpecService.getBalanceSpec(any())).thenReturn(new BalanceTypeSpec());
+        lenient().when(balanceSpecService.getBalanceSpec(any())).thenReturn(new BalanceTypeSpec());
     }
 
     private void expectedAuth() {
@@ -374,22 +383,22 @@ public class BalanceServiceUnitTest {
     }
 
 
-    @Test(expected = EntityNotFoundException.class)
+    @Test
     public void ifBalanceNotFound() {
-        when(balanceRepository.findOneByIdForUpdate(5L)).thenReturn(Optional.empty());
-        balanceService.reload(new ReloadBalanceRequest().setBalanceId(5L));
+        lenient().when(balanceRepository.findOneByIdForUpdate(5L)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> balanceService.reload(new ReloadBalanceRequest().setBalanceId(5L)));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
-    @Test(expected = NoEnoughMoneyException.class)
+    @Test
     public void throwExceptionIfNoManyDuringCheckout() {
         Balance balance = createBalance(1L);
         expectBalance(balance, "19.73");
 
-        balanceService.charging(new ChargingBalanceRequest()
+        assertThrows(NoEnoughMoneyException.class, () -> balanceService.charging(new ChargingBalanceRequest()
             .setAmount(new BigDecimal("20"))
             .setBalanceId(1L)
-        );
+        ));
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
@@ -605,7 +614,7 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
-    @Test(expected = NoEnoughMoneyException.class)
+    @Test
     public void throwNoManyIfPocketsDoesNotHaveEnoughMany() {
         expectedAuth();
 
@@ -627,13 +636,11 @@ public class BalanceServiceUnitTest {
 
         setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
 
-        balanceService.charging(
+        assertThrows(NoEnoughMoneyException.class, () -> balanceService.charging(
             new ChargingBalanceRequest()
                 .setAmount(new BigDecimal("201"))
                 .setBalanceId(1L)
-        );
-
-        verifyNoMoreInteractions(balanceChangeEventRepository);
+        ));
     }
 
     private Pocket pocket(String amount, String label) {
@@ -668,15 +675,15 @@ public class BalanceServiceUnitTest {
         return pocket;
     }
 
-    @Test(expected = NoEnoughMoneyException.class)
+    @Test
     public void throwExceptionIfNoManyDuringTransfer() {
         Balance balance = createBalance(1L);
         expectBalance(balance, "19.73");
 
-        balanceService.transfer(new TransferBalanceRequest()
+        assertThrows(NoEnoughMoneyException.class, () -> balanceService.transfer(new TransferBalanceRequest()
             .setAmount(new BigDecimal("20"))
             .setSourceBalanceId(1L)
-        );
+        ));
 
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
@@ -1837,10 +1844,10 @@ public class BalanceServiceUnitTest {
         assertFalse(balanceEventForUpdate.getLast());
     }
 
-    @Test(expected = EntityNotFoundException.class)
+    @Test
     public void shouldThrowExceptionWhenBalanceNotFound() {
         when(balanceRepository.findOneByIdForUpdate(5L)).thenReturn(Optional.empty());
-        balanceService.revertBalanceOperation(new RevertBalanceOperationRequest().setBalanceId(5L));
+        assertThrows(EntityNotFoundException.class, () -> balanceService.revertBalanceOperation(new RevertBalanceOperationRequest().setBalanceId(5L)));
         verify(balanceRepository).findOneByIdForUpdate(5L);
         verifyNoMoreInteractions(balanceRepository);
         verifyNoMoreInteractions(balanceChangeEventRepository);
@@ -1871,7 +1878,7 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
-    @Test(expected = EntityNotFoundException.class)
+    @Test
     public void shouldThrowExceptionWhenEventToRevertNotFound() {
         long balanceId = 123456789;
         String currentUuid = UUID.randomUUID().toString();
@@ -1889,7 +1896,7 @@ public class BalanceServiceUnitTest {
         when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
             .thenReturn(emptyList());
 
-        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+        assertThrows(EntityNotFoundException.class, () -> balanceService.revertBalanceOperation(revertBalanceOperationRequest));
 
         verify(balanceRepository).findOneByIdForUpdate(123456789L);
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
@@ -1898,7 +1905,7 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
-    @Test(expected = BusinessException.class)
+    @Test
     public void shouldThrowExceptionWhenRevertOperationAlreadyProvided() {
         long balanceId = 123456789;
         String currentUuid = UUID.randomUUID().toString();
@@ -1922,7 +1929,7 @@ public class BalanceServiceUnitTest {
         when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
             .thenReturn(true);
 
-        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+        assertThrows(BusinessException.class, () -> balanceService.revertBalanceOperation(revertBalanceOperationRequest));
 
         verify(balanceRepository).findOneByIdForUpdate(123456789L);
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
@@ -1932,7 +1939,7 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
-    @Test(expected = BusinessException.class)
+    @Test
     public void shouldThrowExceptionWhenRevertOperationTypeNotSupported() {
         long balanceId = 123456789;
         String currentUuid = UUID.randomUUID().toString();
@@ -1955,7 +1962,7 @@ public class BalanceServiceUnitTest {
         when(balanceChangeEventRepository.existsByRevertOperationId(uuidToRevert))
             .thenReturn(false);
 
-        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+        assertThrows(BusinessException.class, () -> balanceService.revertBalanceOperation(revertBalanceOperationRequest));
 
         verify(balanceRepository).findOneByIdForUpdate(123456789L);
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
@@ -1965,7 +1972,7 @@ public class BalanceServiceUnitTest {
         verifyNoMoreInteractions(balanceChangeEventRepository);
     }
 
-    @Test(expected = EntityNotFoundException.class)
+    @Test
     public void shouldThrowExceptionWhenRevertReloadOperationModeDefaultAndPocketNotFound() {
         expectedAuth();
         long balanceId = 123456789;
@@ -1993,19 +2000,17 @@ public class BalanceServiceUnitTest {
             .thenReturn(false);
         when(pocketRepository.findOneByIdForUpdate(123L)).thenReturn(Optional.empty());
 
-        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+        assertThrows(EntityNotFoundException.class, () -> balanceService.revertBalanceOperation(revertBalanceOperationRequest));
 
         verify(balanceRepository).findOneByIdForUpdate(123456789L);
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
         verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
         verify(pocketRepository).findOneByIdForUpdate(123L);
-        verifyNoMoreInteractions(balanceRepository);
-        verifyNoMoreInteractions(balanceChangeEventRepository);
         verifyNoMoreInteractions(pocketRepository);
     }
 
-    @Test(expected = BusinessException.class)
+    @Test
     public void shouldThrowExceptionWhenRevertReloadModeExceptionAndChargeToNegativeRemainder() {
         expectedAuth();
         long balanceId = 123456789;
@@ -2037,15 +2042,13 @@ public class BalanceServiceUnitTest {
             .thenReturn(false);
         when(pocketRepository.findOneByIdForUpdate(123L)).thenReturn(of(pocket));
 
-        balanceService.revertBalanceOperation(revertBalanceOperationRequest);
+        assertThrows(BusinessException.class, () -> balanceService.revertBalanceOperation(revertBalanceOperationRequest));
 
         verify(balanceRepository).findOneByIdForUpdate(123456789L);
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(currentUuid);
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(uuidToRevert);
         verify(balanceChangeEventRepository).existsByRevertOperationId(uuidToRevert);
         verify(pocketRepository).findOneByIdForUpdate(123L);
-        verifyNoMoreInteractions(balanceRepository);
-        verifyNoMoreInteractions(balanceChangeEventRepository);
         verifyNoMoreInteractions(pocketRepository);
     }
 

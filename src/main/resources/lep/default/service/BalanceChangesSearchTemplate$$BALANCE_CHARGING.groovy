@@ -5,9 +5,9 @@ import com.icthh.xm.ms.balance.domain.BalanceChangeEvent_
 import com.icthh.xm.ms.balance.service.OperationType
 import com.icthh.xm.ms.balance.service.mapper.FilterMapper
 import groovy.util.logging.Slf4j
-import io.github.jhipster.service.QueryService
-import io.github.jhipster.service.filter.LongFilter
-import io.github.jhipster.service.filter.StringFilter
+import tech.jhipster.service.QueryService
+import tech.jhipster.service.filter.LongFilter
+import tech.jhipster.service.filter.StringFilter
 import org.springframework.data.jpa.domain.Specification
 
 return new BalanceCharging(lepContext as LepContext).execute()
