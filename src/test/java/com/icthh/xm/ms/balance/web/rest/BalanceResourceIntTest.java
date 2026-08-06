@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.web.rest;
 
+import com.icthh.xm.ms.balance.web.filter.LegacyRangeFilterParamsFilter;
 import com.icthh.xm.commons.i18n.error.web.ExceptionTranslator;
 import com.icthh.xm.ms.balance.web.rest.errors.ResponseStatusExceptionTranslator;
 import com.icthh.xm.commons.lep.XmLepScriptConfigServerResourceLoader;
@@ -190,7 +191,9 @@ public class BalanceResourceIntTest {
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator, responseStatusExceptionTranslator)
             .setConversionService(createFormattingConversionService())
-            .setMessageConverters(new JacksonJsonHttpMessageConverter(jsonMapper)).build();
+            .setMessageConverters(new JacksonJsonHttpMessageConverter(jsonMapper))
+            .addFilter(new LegacyRangeFilterParamsFilter())
+            .build();
         String balanceSpec = new String(BalanceRepositoryIntTest.class.getResourceAsStream("/config/balancespec.yml").readAllBytes());
         balanceSpecService.onRefresh("/config/tenants/RESINTTEST/balance/balancespec.yml", balanceSpec);
     }
@@ -1226,4 +1229,62 @@ public class BalanceResourceIntTest {
         chargingBalanceRequest.setMetadata(reloadMetadata);
         return chargingBalanceRequest;
     }
+
+    /**
+     * jhipster-framework 9 renamed the range filter properties from
+     * {@code greaterOrEqualThan}/{@code lessOrEqualThan} to
+     * {@code greaterThanOrEqual}/{@code lessThanOrEqual}. Criteria are bound from query
+     * parameters by property name, so without an alias a request using the old name is not
+     * rejected — Spring silently drops the unknown property and the endpoint answers 200
+     * with the filter never applied. These tests pin both spellings to the same behaviour.
+     */
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByEntityIdGreaterOrEqualThan_legacyParamName() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        // matches: entityId >= DEFAULT_ENTITY_ID
+        defaultBalanceShouldBeFound("entityId.greaterOrEqualThan=" + DEFAULT_ENTITY_ID);
+
+        // does not match: entityId >= UPDATED_ENTITY_ID. Before the alias this returned the
+        // balance anyway, because the filter was dropped.
+        defaultBalanceShouldNotBeFound("entityId.greaterOrEqualThan=" + UPDATED_ENTITY_ID);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByEntityIdLessOrEqualThan_legacyParamName() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        defaultBalanceShouldBeFound("entityId.lessOrEqualThan=" + DEFAULT_ENTITY_ID);
+        defaultBalanceShouldNotBeFound("entityId.lessOrEqualThan=" + (DEFAULT_ENTITY_ID - 1));
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void legacyAndCurrentParamNamesAreEquivalent() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        // both spellings must filter identically
+        defaultBalanceShouldBeFound("entityId.greaterThanOrEqual=" + DEFAULT_ENTITY_ID);
+        defaultBalanceShouldBeFound("entityId.greaterOrEqualThan=" + DEFAULT_ENTITY_ID);
+
+        defaultBalanceShouldNotBeFound("entityId.greaterThanOrEqual=" + UPDATED_ENTITY_ID);
+        defaultBalanceShouldNotBeFound("entityId.greaterOrEqualThan=" + UPDATED_ENTITY_ID);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "SUPER-ADMIN")
+    public void getAllBalancesByAmountLegacyParamName() throws Exception {
+        balanceRepository.saveAndFlush(balance);
+
+        // BigDecimal range filter carries the same aliases
+        defaultBalanceShouldBeFound("reserved.greaterOrEqualThan=" + DEFAULT_RESERVED);
+        defaultBalanceShouldNotBeFound("reserved.greaterOrEqualThan=" + DEFAULT_RESERVED.add(java.math.BigDecimal.ONE));
+    }
+
 }
