@@ -275,6 +275,12 @@ dependencies {
     implementation "org.springframework.security:spring-security-web"
     implementation "org.springframework.boot:spring-boot-starter-security-oauth2-client"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation("org.springframework.security:spring-security-jwt:${securityJwtVersion}") {
+        // bcpkix/bcprov-jdk15on 1.64 have no fixed release (line ended at 1.70): replaced by the jdk18on artifacts
+        exclude group: "org.bouncycastle", module: "bcpkix-jdk15on"
+        exclude group: "org.bouncycastle", module: "bcprov-jdk15on"
+    }
+    implementation "org.bouncycastle:bcpkix-jdk18on"
     implementation "org.glassfish.jaxb:jaxb-runtime:${jaxb_runtime_version}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
     implementation "org.postgresql:postgresql"
