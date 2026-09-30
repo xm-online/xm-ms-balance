@@ -26,8 +26,6 @@ public final class Constants {
     public static final String DDL_CREATE_SCHEMA = "CREATE SCHEMA IF NOT EXISTS %s";
     public static final String CHANGE_LOG_PATH = "classpath:config/liquibase/master.xml";
 
-    public static final String CERTIFICATE = "X.509";
-    public static final String PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----%n%s%n-----END PUBLIC KEY-----";
     public static final String TENANT_XM = "XM";
 
     private Constants() {
