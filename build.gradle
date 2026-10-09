@@ -202,9 +202,34 @@ repositories {
     }
 }
 
+// Security overrides of Spring Boot managed versions (Veracode SCA)
+ext["tomcat.version"] = tomcatVersion
+ext["jackson-bom.version"] = jacksonVersion
+ext["jackson-2-bom.version"] = jackson2Version
+ext["opentelemetry.version"] = opentelemetryVersion
+ext["postgresql.version"] = postgresqlVersion
+
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+    // Security overrides of transitive versions (Veracode SCA)
+    dependencies {
+        dependencySet(group: "org.bouncycastle", version: bouncycastleVersion) {
+            entry "bcprov-jdk18on"
+            entry "bcpkix-jdk18on"
+            entry "bcutil-jdk18on"
+        }
+        dependencySet(group: "org.apache.ant", version: antVersion) {
+            entry "ant"
+            entry "ant-launcher"
+            entry "ant-antlr"
+            entry "ant-junit"
+        }
+        dependency "com.github.luben:zstd-jni:${zstdJniVersion}"
+        dependency "at.yawk.lz4:lz4-java:${lz4JavaVersion}"
+        dependency "org.springframework.retry:spring-retry:${springRetryVersion}"
+        dependency "commons-fileupload:commons-fileupload:${commonsFileuploadVersion}"
     }
 }
 
@@ -250,7 +275,12 @@ dependencies {
     implementation "org.springframework.security:spring-security-web"
     implementation "org.springframework.boot:spring-boot-starter-security-oauth2-client"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-    implementation "org.springframework.security:spring-security-jwt:${securityJwtVersion}"
+    implementation("org.springframework.security:spring-security-jwt:${securityJwtVersion}") {
+        // bcpkix/bcprov-jdk15on 1.64 have no fixed release (line ended at 1.70): replaced by the jdk18on artifacts
+        exclude group: "org.bouncycastle", module: "bcpkix-jdk15on"
+        exclude group: "org.bouncycastle", module: "bcprov-jdk15on"
+    }
+    implementation "org.bouncycastle:bcpkix-jdk18on"
     implementation "org.glassfish.jaxb:jaxb-runtime:${jaxb_runtime_version}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
     implementation "org.postgresql:postgresql"
