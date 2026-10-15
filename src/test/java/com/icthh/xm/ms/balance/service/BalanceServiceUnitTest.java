@@ -28,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import com.icthh.xm.commons.exceptions.BusinessException;
@@ -1863,7 +1864,7 @@ public class BalanceServiceUnitTest {
         revertBalanceOperationRequest.setUuid(duplicateUuid);
         revertBalanceOperationRequest.setBalanceId(balanceId);
 
-        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", 1L, RELOAD, "100", "10");
+        BalanceChangeEvent existBalanceChangeEvent = createBalanceEvent("90", balanceId, RELOAD, "100", "10");
         existBalanceChangeEvent.setOperationId(duplicateUuid);
         when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(duplicateUuid))
             .thenReturn(List.of(existBalanceChangeEvent));
@@ -1876,6 +1877,129 @@ public class BalanceServiceUnitTest {
         verify(balanceChangeEventRepository).findBalanceChangeEventsByOperationId(duplicateUuid);
         verifyNoMoreInteractions(balanceRepository);
         verifyNoMoreInteractions(balanceChangeEventRepository);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenRevertOperationBelongsToAnotherBalance() {
+        long balanceId = 123456789;
+        long anotherBalanceId = 987654321;
+        String currentUuid = UUID.randomUUID().toString();
+        String uuidToRevert = UUID.randomUUID().toString();
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+        revertBalanceOperationRequest.setUuid(currentUuid);
+        revertBalanceOperationRequest.setUuidToRevert(uuidToRevert);
+        revertBalanceOperationRequest.setStartDateTime(Instant.now());
+        revertBalanceOperationRequest.setEndDateTime(Instant.now().plus(30, ChronoUnit.DAYS));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(currentUuid)).thenReturn(emptyList());
+
+        BalanceChangeEvent chargingOfAnotherBalance = createBalanceEvent("90", anotherBalanceId, CHARGING, "10", "100");
+        chargingOfAnotherBalance.setOperationId(uuidToRevert);
+        chargingOfAnotherBalance.setPocketChangeEvents(List.of(
+            createPocketEvent("90", 12345L, "key", "label", "10", "100")
+        ));
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuidToRevert))
+            .thenReturn(List.of(chargingOfAnotherBalance));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+            () -> balanceService.revertBalanceOperation(revertBalanceOperationRequest));
+
+        assertEquals("error.operation.balance.mismatch", exception.getCode());
+        verify(balanceChangeEventRepository, never()).existsByRevertOperationId(any());
+        verify(balanceChangeEventRepository, never()).save(any());
+        verify(pocketRepository, never()).save(any());
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenDuplicateRevertOperationBelongsToAnotherBalance() {
+        long balanceId = 123456789;
+        createBalance(balanceId);
+
+        RevertBalanceOperationRequest revertBalanceOperationRequest = new RevertBalanceOperationRequest();
+        String duplicateUuid = UUID.randomUUID().toString();
+        revertBalanceOperationRequest.setUuid(duplicateUuid);
+        revertBalanceOperationRequest.setUuidToRevert(UUID.randomUUID().toString());
+        revertBalanceOperationRequest.setBalanceId(balanceId);
+
+        BalanceChangeEvent eventOfAnotherBalance = createBalanceEvent("90", 1L, RELOAD, "100", "10");
+        eventOfAnotherBalance.setOperationId(duplicateUuid);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(duplicateUuid))
+            .thenReturn(List.of(eventOfAnotherBalance));
+
+        assertThrows(BusinessException.class, () -> balanceService.revertBalanceOperation(revertBalanceOperationRequest));
+
+        verify(balanceChangeEventRepository, never())
+            .findBalanceChangeEventsByOperationId(revertBalanceOperationRequest.getUuidToRevert());
+        verify(balanceChangeEventRepository, never()).save(any());
+    }
+
+    @Test
+    public void chargingMoneyWithOperationIdOfAnotherBalanceThrows() {
+        Balance balance = createBalance(1L);
+        expectBalance(balance, "100");
+        setClock(balanceService, MOCK_CURRENT_DATE.toEpochMilli());
+
+        String uuid = UUID.randomUUID().toString();
+        BalanceChangeEvent eventOfAnotherBalance = createBalanceEvent("90", 2L, CHARGING, "100", "10");
+        eventOfAnotherBalance.setOperationId(uuid);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of(eventOfAnotherBalance));
+
+        assertThrows(BusinessException.class, () -> balanceService.charging(
+            new ChargingBalanceRequest()
+                .setAmount(new BigDecimal("2"))
+                .setBalanceId(1L)
+                .setUuid(uuid)
+        ));
+
+        verify(balanceChangeEventRepository, never()).save(any());
+        verify(pocketRepository, never()).save(any());
+    }
+
+    @Test
+    public void reloadMoneyWithOperationIdOfAnotherBalanceThrows() {
+        Balance balance = createBalance(1L);
+        expectBalance(balance, "100");
+
+        String uuid = UUID.randomUUID().toString();
+        BalanceChangeEvent eventOfAnotherBalance = createBalanceEvent("90", 2L, RELOAD, "100", "10");
+        eventOfAnotherBalance.setOperationId(uuid);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of(eventOfAnotherBalance));
+
+        assertThrows(BusinessException.class, () -> balanceService.reload(
+            new ReloadBalanceRequest()
+                .setBalanceId(1L)
+                .setAmount(new BigDecimal("100"))
+                .setUuid(uuid)
+        ));
+
+        verify(balanceChangeEventRepository, never()).save(any());
+        verify(pocketRepository, never()).save(any());
+    }
+
+    @Test
+    public void transferWithOperationIdOfAnotherBalancesThrows() {
+        String uuid = UUID.randomUUID().toString();
+        BalanceChangeEvent from = createBalanceEvent("50", 3L, TRANSFER_FROM, "50", "100");
+        from.setOperationId(uuid);
+        BalanceChangeEvent to = createBalanceEvent("50", 4L, TRANSFER_TO, "150", "100");
+        to.setOperationId(uuid);
+        when(balanceChangeEventRepository.findBalanceChangeEventsByOperationId(uuid))
+            .thenReturn(List.of(from, to));
+
+        assertThrows(BusinessException.class, () -> balanceService.transfer(
+            new TransferBalanceRequest()
+                .setAmount(new BigDecimal("50"))
+                .setSourceBalanceId(1L)
+                .setTargetBalanceId(2L)
+                .setUuid(uuid)
+        ));
+
+        verify(balanceRepository, never()).findOneByIdForUpdate(any());
+        verify(balanceChangeEventRepository, never()).save(any());
     }
 
     @Test
