@@ -194,12 +194,13 @@ pmd {
 }
 
 repositories {
+    maven {
+        name "reposiliteRepository"
+        url "https://reposilite.jevera.software/releases"
+    }
     mavenLocal()
     mavenCentral()
     //jhipster-needle-gradle-repositories - JHipster will add additional repositories
-    maven {
-        url "https://reposilite.jevera.software/releases"
-    }
 }
 
 // Security overrides of Spring Boot managed versions (Veracode SCA)
