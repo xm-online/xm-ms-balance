@@ -1,5 +1,6 @@
 package com.icthh.xm.ms.balance.config;
 
+import com.icthh.xm.commons.config.XmCommonsApplicationProperties;
 import java.util.Collections;
 import java.util.List;
 
@@ -18,7 +19,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = false)
 @Getter
 @Setter
-public class ApplicationProperties {
+public class ApplicationProperties extends XmCommonsApplicationProperties {
 
     private final Retry retry = new Retry();
 
@@ -48,5 +49,4 @@ public class ApplicationProperties {
         private String tenantScriptStorage;
         private Boolean fullRecompileOnLepUpdate;
     }
-
 }
