@@ -39,6 +39,13 @@ management:
     endpoint:
         health:
             show-details: when-authorized
+            probes:
+                enabled: true
+            group:
+                liveness:
+                    include: livenessState
+                readiness:
+                    include: readinessState
     info:
         git:
             mode: full
@@ -93,6 +100,7 @@ spring:
     liquibase:
         default-schema: XM
         change-log: classpath:config/liquibase/master.xml
+    # Kafka connection by environment variables, PLAINTEXT when not set: https://github.com/xm-online/xm-ms-template/blob/main/README.md#kafka-connection
 security:
     oauth2:
         resource:
@@ -147,7 +155,7 @@ xm-config:
     kafka-config-topic: config_topic
 
 application:
-    tenant-ignored-path-list: /v3/api-docs, /api/profile-info, /swagger-resources/configuration/ui, /management/health
+    tenant-ignored-path-list: /v3/api-docs, /api/profile-info, /swagger-resources/configuration/ui, /management/health, /management/health/liveness, /management/health/readiness, /error
     tenant-with-creation-access-list: XM, MANAGER
     timelines-enabled: true
     db-schema-suffix:
@@ -163,6 +171,9 @@ application:
         full-recompile-on-lep-update: false
     specification-name: balancespec.yml
     specification-path-pattern: /config/tenants/{tenantName}/balance/${application.specification-name}
+    config-private-key: # APPLICATION_CONFIG_PRIVATE_KEY=MC4CAQAwBQYDK2VwBCIEI..., base64 Ed25519 private key (PKCS#8 DER) to sign the requests to /api/private/v2 of xm-ms-config
+    api-docs:
+        privilege-check: true
 
 gracefulShutdown:
     enabled: false

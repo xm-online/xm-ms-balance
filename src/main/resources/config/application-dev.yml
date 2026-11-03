@@ -112,12 +112,6 @@ jhipster:
         # exposed-headers: "Authorization,Link,X-Total-Count"
         # allow-credentials: true
         # max-age: 1800
-    security:
-        client-authorization:
-            access-token-uri: http://uaa/oauth/token
-            token-service-id: uaa
-            client-id: internal
-            client-secret: internal
     mail: # specific JHipster mail property, for standard properties see MailProperties
         from: balance@localhost
         base-url: http://127.0.0.1:8085

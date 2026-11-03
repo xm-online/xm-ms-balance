@@ -103,12 +103,6 @@ jhipster:
     http:
         cache: # Used by the CachingHttpHeadersFilter
             timeToLiveInDays: 1461
-    security:
-        client-authorization:
-            access-token-uri: http://uaa/oauth/token
-            token-service-id: uaa
-            client-id: internal
-            client-secret: internal
     mail: # specific JHipster mail property, for standard properties see MailProperties
         from: balance@localhost
         base-url: http://my-server-url-to-change # Modify according to your server's URL
